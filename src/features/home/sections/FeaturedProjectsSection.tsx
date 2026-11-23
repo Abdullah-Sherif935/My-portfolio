@@ -6,11 +6,12 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { ButtonLink } from '@/components/ui/Button';
 import { Reveal } from '@/components/animations/Reveal';
 import { ProjectCard } from '@/features/portfolio/components/ProjectCard';
-import { PROJECTS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 export function FeaturedProjectsSection() {
   const { t } = useTranslation(['home', 'common']);
-  const featuredProjects = PROJECTS.filter((project) => project.featured);
+  const { projects } = usePortfolioData();
+  const featuredProjects = projects.filter((project) => project.featured);
 
   return (
     <Section id="featured-projects" surface="secondary">

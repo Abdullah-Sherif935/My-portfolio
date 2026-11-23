@@ -4,11 +4,12 @@ import { PlaceholderNotice } from '@/components/common/PlaceholderNotice';
 import { Container } from '@/components/layout/Container';
 import { Section } from '@/components/layout/Section';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { COMPANIES } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { CompanyCard } from './components/CompanyCard';
 
 export function CompaniesPage() {
   const { t } = useTranslation(['pages', 'common']);
+  const { companies } = usePortfolioData();
   useDocumentTitle(t('pages:companies.pageTitle'));
 
   return (
@@ -24,7 +25,7 @@ export function CompaniesPage() {
           <PlaceholderNotice text={t('pages:companies.placeholderBanner')} />
 
           <div className="grid gap-6 md:grid-cols-2">
-            {COMPANIES.map((company) => (
+            {companies.map((company) => (
               <CompanyCard key={company.id} company={company} detailed />
             ))}
           </div>

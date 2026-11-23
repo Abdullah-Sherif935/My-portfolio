@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useLanguage } from '@/hooks/useLanguage';
-import { PROJECTS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import type { ExperienceItem } from '@/types/portfolio';
 
 interface ExperienceTimelineProps {
@@ -14,11 +14,12 @@ interface ExperienceTimelineProps {
 export function ExperienceTimeline({ items }: ExperienceTimelineProps) {
   const { t } = useTranslation(['home', 'common']);
   const { pick } = useLanguage();
+  const { projects } = usePortfolioData();
 
   return (
     <ol className="relative space-y-4 border-s-2 border-border-default ps-5 sm:space-y-6 sm:ps-8">
       {items.map((item) => {
-        const linkedProjects = PROJECTS.filter((project) =>
+        const linkedProjects = projects.filter((project) =>
           item.relatedProjectSlugs.includes(project.slug)
         );
 

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useLanguage } from '@/hooks/useLanguage';
-import { PROJECTS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import type { Company } from '@/types/portfolio';
 
 interface CompanyCardProps {
@@ -15,8 +15,9 @@ interface CompanyCardProps {
 export function CompanyCard({ company, detailed = false }: CompanyCardProps) {
   const { t } = useTranslation(['home', 'common']);
   const { pick } = useLanguage();
+  const { projects } = usePortfolioData();
 
-  const linkedProjects = PROJECTS.filter(
+  const linkedProjects = projects.filter(
     (project) =>
       project.companyId === company.id ||
       company.relatedProjectSlugs.includes(project.slug)

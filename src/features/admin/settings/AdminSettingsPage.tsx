@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
@@ -16,17 +16,25 @@ export function AdminSettingsPage() {
   const { t } = useTranslation('admin');
   useDocumentTitle(t('settings.pageTitle'));
 
-  const { siteSettings, updateSiteSettings } = useAdminData();
+  const { siteSettings, updateSiteSettings, isSaving } = useAdminData();
   const [form, setForm] = useState<AdminSiteSettings>(() =>
     structuredClone(siteSettings)
   );
   const [saved, setSaved] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    setForm(structuredClone(siteSettings));
+  }, [siteSettings]);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    updateSiteSettings(form);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 3000);
+    try {
+      await updateSiteSettings(form);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 3000);
+    } catch {
+      // Error surfaced via PrototypeBanner
+    }
   };
 
   return (
@@ -70,7 +78,7 @@ export function AdminSettingsPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
         <Card className="space-y-5 p-5 sm:p-6">
           <h2 className="text-base font-semibold text-text-primary">
             {t('settings.identityHeading')}
@@ -139,8 +147,8 @@ export function AdminSettingsPage() {
           >
             {t('common.cancel')}
           </Button>
-          <Button type="submit" variant="primary" size="md">
-            {t('common.save')}
+          <Button type="submit" variant="primary" size="md" disabled={isSaving}>
+            {isSaving ? t('prototype.saving') : t('common.save')}
           </Button>
         </div>
       </form>

@@ -99,7 +99,7 @@ export function AdminCompaniesPage() {
     if (searchParams.has('new')) setSearchParams({}, { replace: true });
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
     const { company, linkedExpIds } = editing;
@@ -107,18 +107,22 @@ export function AdminCompaniesPage() {
       setError(t('common.validationRequired'));
       return;
     }
-    saveCompany(
-      {
-        ...company,
-        slug: company.slug
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9-]+/g, '-'),
-      },
-      linkedExpIds
-    );
-    setEditing(null);
-    setFeedback(t('prototype.savedInMemory'));
+    try {
+      await saveCompany(
+        {
+          ...company,
+          slug: company.slug
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9-]+/g, '-'),
+        },
+        linkedExpIds
+      );
+      setEditing(null);
+      setFeedback(t('prototype.savedInMemory'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('prototype.syncError'));
+    }
   };
 
   return (
@@ -166,7 +170,7 @@ export function AdminCompaniesPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <LocalizedFieldGroup
               idPrefix="comp-name"
               label={t('companies.fields.name')}
@@ -613,9 +617,10 @@ export function AdminCompaniesPage() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (!deleteTarget) return;
-          deleteCompany(deleteTarget.id);
-          setDeleteTarget(null);
-          setFeedback(t('prototype.deletedInMemory'));
+          void deleteCompany(deleteTarget.id).then(() => {
+            setDeleteTarget(null);
+            setFeedback(t('prototype.deletedInMemory'));
+          }).catch(() => setDeleteTarget(null));
         }}
       />
     </div>

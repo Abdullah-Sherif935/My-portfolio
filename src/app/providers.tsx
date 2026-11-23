@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { MotionConfig } from 'motion/react';
 import { ThemeContext } from '@/hooks/useTheme';
+import { PortfolioDataProvider } from '@/context/PortfolioDataContext';
+import { AdminAuthProvider } from '@/features/admin/auth/AdminAuthContext';
 import type { Theme } from '@/types/portfolio';
 
 const THEME_STORAGE_KEY = 'abdullah-portfolio-theme';
@@ -55,7 +57,11 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <ThemeContext.Provider value={themeValue}>{children}</ThemeContext.Provider>
+      <ThemeContext.Provider value={themeValue}>
+        <AdminAuthProvider>
+          <PortfolioDataProvider>{children}</PortfolioDataProvider>
+        </AdminAuthProvider>
+      </ThemeContext.Provider>
     </MotionConfig>
   );
 }

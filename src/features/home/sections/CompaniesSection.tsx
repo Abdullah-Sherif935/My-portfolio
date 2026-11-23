@@ -7,14 +7,15 @@ import { Card } from '@/components/ui/Card';
 import { ButtonLink } from '@/components/ui/Button';
 import { Reveal } from '@/components/animations/Reveal';
 import { CompanyCard } from '@/features/companies/components/CompanyCard';
-import { COMPANIES } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 export function CompaniesSection() {
   const { t } = useTranslation(['home', 'common']);
+  const { companies } = usePortfolioData();
 
   // Display detailed cards on the public Home page only for verified company records.
-  // Editable unverified records remain accessible via the Companies directory for future CMS curation.
-  const verifiedCompanies = COMPANIES.filter(
+  // Editable unverified records remain accessible via the Companies directory for CMS curation.
+  const verifiedCompanies = companies.filter(
     (company) => company.dataSource !== 'placeholder'
   );
 

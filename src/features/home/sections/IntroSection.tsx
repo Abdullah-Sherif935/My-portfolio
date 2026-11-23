@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
 import { Reveal } from '@/components/animations/Reveal';
 import { useLanguage } from '@/hooks/useLanguage';
-import { EDUCATION_ITEMS, PROJECTS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 interface IntroPillar {
   code: string;
@@ -20,10 +20,11 @@ interface IntroPillar {
 export function IntroSection() {
   const { t } = useTranslation(['home', 'common']);
   const { pick } = useLanguage();
+  const { education: educationList, projects } = usePortfolioData();
   const pillars = t('home:intro.pillars', { returnObjects: true }) as IntroPillar[];
-  const education = EDUCATION_ITEMS[0];
+  const education = educationList[0];
   const graduationProject = education?.graduationProjectSlug
-    ? PROJECTS.find((project) => project.slug === education.graduationProjectSlug)
+    ? projects.find((project) => project.slug === education.graduationProjectSlug)
     : undefined;
 
   return (

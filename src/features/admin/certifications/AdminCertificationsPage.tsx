@@ -41,7 +41,7 @@ export function AdminCertificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
     const { cert } = editing;
@@ -49,9 +49,13 @@ export function AdminCertificationsPage() {
       setError(t('common.validationRequired'));
       return;
     }
-    saveCertification(cert);
-    setEditing(null);
-    setFeedback(t('prototype.savedInMemory'));
+    try {
+      await saveCertification(cert);
+      setEditing(null);
+      setFeedback(t('prototype.savedInMemory'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('prototype.syncError'));
+    }
   };
 
   return (
@@ -111,7 +115,7 @@ export function AdminCertificationsPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <LocalizedFieldGroup
               idPrefix="cert-title"
               label={t('certifications.fields.title')}
@@ -305,9 +309,10 @@ export function AdminCertificationsPage() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (!deleteTarget) return;
-          deleteCertification(deleteTarget.id);
-          setDeleteTarget(null);
-          setFeedback(t('prototype.deletedInMemory'));
+          void deleteCertification(deleteTarget.id).then(() => {
+            setDeleteTarget(null);
+            setFeedback(t('prototype.deletedInMemory'));
+          }).catch(() => setDeleteTarget(null));
         }}
       />
     </div>

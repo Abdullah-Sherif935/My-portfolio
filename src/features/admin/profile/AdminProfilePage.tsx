@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { CheckCircle2, MapPin, Plus, Trash2, UserRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
@@ -19,10 +19,14 @@ export function AdminProfilePage() {
   const { pick } = useLanguage();
   useDocumentTitle(t('profile.pageTitle'));
 
-  const { profile, updateProfile } = useAdminData();
+  const { profile, updateProfile, isSaving } = useAdminData();
   const [form, setForm] = useState<ProfileData>(() => structuredClone(profile));
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
+
+  useEffect(() => {
+    setForm(structuredClone(profile));
+  }, [profile]);
 
   const handleCancel = () => {
     setForm(structuredClone(profile));
@@ -30,7 +34,7 @@ export function AdminProfilePage() {
     setSavedNotice(false);
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (
       !form.fullName.en.trim() ||
@@ -44,8 +48,13 @@ export function AdminProfilePage() {
       return;
     }
     setError(null);
-    updateProfile({ ...form, dataSource: 'cms' });
-    setSavedNotice(true);
+    try {
+      await updateProfile({ ...form, dataSource: 'cms' });
+      setSavedNotice(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('prototype.syncError'));
+      setSavedNotice(false);
+    }
   };
 
   return (
@@ -59,7 +68,7 @@ export function AdminProfilePage() {
 
       <div className="grid gap-6 xl:grid-cols-12">
         {/* Editable Profile Form */}
-        <form onSubmit={handleSubmit} className="space-y-6 xl:col-span-8">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6 xl:col-span-8">
           {error && (
             <div role="alert" className="rounded-xl border border-error/40 bg-error-subtle px-4 py-3 text-sm text-error">
               {error}
@@ -389,8 +398,8 @@ export function AdminProfilePage() {
             <Button variant="secondary" size="md" onClick={handleCancel}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit" variant="primary" size="md">
-              {t('common.save')}
+            <Button type="submit" variant="primary" size="md" disabled={isSaving}>
+              {isSaving ? t('prototype.saving') : t('common.save')}
             </Button>
           </div>
         </form>

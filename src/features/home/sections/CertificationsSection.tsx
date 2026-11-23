@@ -6,10 +6,15 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { ButtonLink } from '@/components/ui/Button';
 import { Reveal } from '@/components/animations/Reveal';
 import { CertificationCard } from '@/features/certifications/components/CertificationCard';
-import { CERTIFICATIONS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 export function CertificationsSection() {
   const { t } = useTranslation(['home', 'common']);
+  const { certifications, siteSettings } = usePortfolioData();
+
+  if (!siteSettings.showCoursesSection) {
+    return null;
+  }
 
   return (
     <Section id="certifications" surface="secondary">
@@ -28,7 +33,7 @@ export function CertificationsSection() {
           />
 
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-            {CERTIFICATIONS.map((cert) => (
+            {certifications.map((cert) => (
               <CertificationCard key={cert.id} certification={cert} />
             ))}
           </div>

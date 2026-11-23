@@ -13,6 +13,7 @@ export interface MediaAsset {
   alt: LocalizedText;
   isLocalAsset: boolean;
   isSample: boolean;
+  storagePath?: string;
 }
 
 export interface AdminActivityItem {

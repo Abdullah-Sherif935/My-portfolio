@@ -3,12 +3,15 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { Container } from '@/components/layout/Container';
 import { Section } from '@/components/layout/Section';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { SKILL_GROUPS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { SkillGroupCard } from './components/SkillGroupCard';
 
 export function SkillsPage() {
   const { t } = useTranslation('pages');
+  const { skills } = usePortfolioData();
   useDocumentTitle(t('skills.pageTitle'));
+
+  const visibleSkills = skills.filter((group) => group.isVisible !== false);
 
   return (
     <>
@@ -21,7 +24,7 @@ export function SkillsPage() {
       <Section>
         <Container>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {SKILL_GROUPS.map((group) => (
+            {visibleSkills.map((group) => (
               <SkillGroupCard key={group.id} group={group} />
             ))}
           </div>

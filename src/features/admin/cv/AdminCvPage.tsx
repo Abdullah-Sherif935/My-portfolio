@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
@@ -30,6 +30,10 @@ export function AdminCvPage() {
 
   const [draft, setDraft] = useState<CvWorkspaceConfig>(() => structuredClone(cvConfig));
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setDraft(structuredClone(cvConfig));
+  }, [cvConfig]);
 
   const toggleId = (
     field:
@@ -72,10 +76,14 @@ export function AdminCvPage() {
     }));
   };
 
-  const handleSave = () => {
-    updateCvConfig(draft);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    try {
+      await updateCvConfig(draft);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 3000);
+    } catch {
+      // Error surfaced via PrototypeBanner
+    }
   };
 
   return (
@@ -84,7 +92,7 @@ export function AdminCvPage() {
         title={t('cv.title')}
         subtitle={t('cv.subtitle')}
         actions={
-          <Button variant="primary" size="md" onClick={handleSave}>
+          <Button variant="primary" size="md" onClick={() => void handleSave()}>
             {t('common.save')}
           </Button>
         }

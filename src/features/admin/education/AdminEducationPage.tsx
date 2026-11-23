@@ -42,7 +42,7 @@ export function AdminEducationPage() {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
     const { item } = editing;
@@ -50,9 +50,13 @@ export function AdminEducationPage() {
       setError(t('common.validationRequired'));
       return;
     }
-    saveEducation(item);
-    setEditing(null);
-    setFeedback(t('prototype.savedInMemory'));
+    try {
+      await saveEducation(item);
+      setEditing(null);
+      setFeedback(t('prototype.savedInMemory'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('prototype.syncError'));
+    }
   };
 
   return (
@@ -107,7 +111,7 @@ export function AdminEducationPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <LocalizedFieldGroup
               idPrefix="edu-degree"
               label={t('education.fields.degree')}
@@ -406,9 +410,10 @@ export function AdminEducationPage() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (!deleteTarget) return;
-          deleteEducation(deleteTarget.id);
-          setDeleteTarget(null);
-          setFeedback(t('prototype.deletedInMemory'));
+          void deleteEducation(deleteTarget.id).then(() => {
+            setDeleteTarget(null);
+            setFeedback(t('prototype.deletedInMemory'));
+          }).catch(() => setDeleteTarget(null));
         }}
       />
     </div>

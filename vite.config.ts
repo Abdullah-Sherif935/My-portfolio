@@ -17,6 +17,7 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'motion-vendor': ['motion'],
           'i18n-vendor': ['i18next', 'react-i18next'],
+          'supabase-vendor': ['@supabase/supabase-js'],
         },
       },
     },

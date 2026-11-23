@@ -6,10 +6,11 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { ButtonLink } from '@/components/ui/Button';
 import { Reveal } from '@/components/animations/Reveal';
 import { ExperienceTimeline } from '@/features/experience/components/ExperienceTimeline';
-import { EXPERIENCE_ITEMS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 export function ExperienceSection() {
   const { t } = useTranslation(['home', 'common']);
+  const { experience } = usePortfolioData();
 
   return (
     <Section id="experience" surface="primary">
@@ -27,7 +28,7 @@ export function ExperienceSection() {
             }
           />
 
-          <ExperienceTimeline items={EXPERIENCE_ITEMS} />
+          <ExperienceTimeline items={experience} />
         </Reveal>
       </Container>
     </Section>

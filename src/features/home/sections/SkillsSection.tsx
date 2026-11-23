@@ -6,10 +6,12 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { ButtonLink } from '@/components/ui/Button';
 import { Reveal } from '@/components/animations/Reveal';
 import { SkillGroupCard } from '@/features/skills/components/SkillGroupCard';
-import { SKILL_GROUPS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 export function SkillsSection() {
   const { t } = useTranslation(['home', 'common']);
+  const { skills } = usePortfolioData();
+  const visibleSkills = skills.filter((group) => group.isVisible !== false);
 
   return (
     <Section id="skills" surface="primary">
@@ -28,7 +30,7 @@ export function SkillsSection() {
           />
 
           <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {SKILL_GROUPS.map((group) => (
+            {visibleSkills.map((group) => (
               <SkillGroupCard key={group.id} group={group} />
             ))}
           </div>

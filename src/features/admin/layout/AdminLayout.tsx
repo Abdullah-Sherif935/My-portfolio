@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   Award,
@@ -12,7 +12,7 @@ import {
   GraduationCap,
   Image as ImageIcon,
   LayoutDashboard,
-  LogIn,
+  LogOut,
   Menu,
   Settings,
   Sliders,
@@ -27,6 +27,8 @@ import { PageTransition } from '@/components/animations/PageTransition';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { useLanguage } from '@/hooks/useLanguage';
 import { AdminDataProvider } from '@/features/admin/context/AdminDataContext';
+import { AdminProtectedRoute } from '@/features/admin/auth/AdminProtectedRoute';
+import { useAdminAuth } from '@/features/admin/auth/useAdminAuth';
 import { cn } from '@/utils/cn';
 
 interface NavGroup {
@@ -89,6 +91,20 @@ const ROUTE_LABEL_MAP: Record<string, string> = {
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation('admin');
+  const navigate = useNavigate();
+  const { user, signOut } = useAdminAuth();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      onNavigate?.();
+      navigate('/admin/login', { replace: true });
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <div className="flex h-full flex-col bg-bg-secondary">
@@ -162,16 +178,17 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
-      {/* Bottom Utility Links */}
-      <div className="space-y-1.5 border-t border-border-default p-3">
-        <Link
-          to="/admin/login"
-          onClick={onNavigate}
-          className="flex items-center gap-2.5 rounded-[10px] px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary"
-        >
-          <LogIn className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-          <span className="truncate">{t('nav.loginPreview')}</span>
-        </Link>
+      {/* Bottom Utility Links & Sign Out */}
+      <div className="space-y-2 border-t border-border-default p-3">
+        {user?.email && (
+          <p
+            dir="ltr"
+            className="truncate px-3 font-mono text-[11px] text-text-secondary"
+            title={user.email}
+          >
+            {user.email}
+          </p>
+        )}
         <Link
           to="/"
           onClick={onNavigate}
@@ -180,6 +197,15 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span className="truncate">{t('nav.viewPublicSite')}</span>
         </Link>
+        <button
+          type="button"
+          disabled={signingOut}
+          onClick={() => void handleSignOut()}
+          className="flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-xs font-medium text-error transition-colors hover:bg-error-subtle disabled:opacity-50 cursor-pointer"
+        >
+          <LogOut className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate">{t('nav.signOut')}</span>
+        </button>
       </div>
     </div>
   );
@@ -283,7 +309,7 @@ function AdminLayoutShell() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <Badge variant="accent" mono className="hidden md:inline-flex">
+            <Badge variant="success" mono className="hidden md:inline-flex">
               {t('prototype.badge')}
             </Badge>
             <LanguageSwitcher />
@@ -304,8 +330,10 @@ function AdminLayoutShell() {
 
 export function AdminLayout() {
   return (
-    <AdminDataProvider>
-      <AdminLayoutShell />
-    </AdminDataProvider>
+    <AdminProtectedRoute>
+      <AdminDataProvider>
+        <AdminLayoutShell />
+      </AdminDataProvider>
+    </AdminProtectedRoute>
   );
 }

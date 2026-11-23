@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { COMPANIES, PROJECTS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { ProjectThumbnail } from './components/ProjectThumbnail';
 import { ProjectCard } from './components/ProjectCard';
 
@@ -25,8 +25,9 @@ export function ProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useTranslation(['pages', 'common']);
   const { pick } = useLanguage();
+  const { projects, companies } = usePortfolioData();
 
-  const orderedProjects = [...PROJECTS].sort(
+  const orderedProjects = [...projects].sort(
     (a, b) => a.displayOrder - b.displayOrder
   );
   const currentIndex = orderedProjects.findIndex((item) => item.slug === slug);
@@ -63,7 +64,7 @@ export function ProjectDetailPage() {
   }
 
   const company = project.companyId
-    ? COMPANIES.find((item) => item.id === project.companyId)
+    ? companies.find((item) => item.id === project.companyId)
     : undefined;
 
   const previousProject =

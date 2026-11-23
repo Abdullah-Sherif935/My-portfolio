@@ -9,7 +9,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { PlaceholderNotice } from '@/components/common/PlaceholderNotice';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { COMPANIES, EXPERIENCE_ITEMS, PROJECTS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { ProjectCard } from '@/features/portfolio/components/ProjectCard';
 import { ExperienceTimeline } from '@/features/experience/components/ExperienceTimeline';
 
@@ -17,8 +17,9 @@ export function CompanyDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useTranslation(['pages', 'home', 'common']);
   const { pick } = useLanguage();
+  const { companies, experience, projects } = usePortfolioData();
 
-  const company = COMPANIES.find((item) => item.slug === slug);
+  const company = companies.find((item) => item.slug === slug);
 
   useDocumentTitle(
     company ? pick(company.name) : t('pages:companyDetail.notFoundTitle')
@@ -50,13 +51,13 @@ export function CompanyDetailPage() {
     );
   }
 
-  const relatedProjects = PROJECTS.filter(
+  const relatedProjects = projects.filter(
     (project) =>
       project.companyId === company.id ||
       company.relatedProjectSlugs.includes(project.slug)
   );
 
-  const relatedExperience = EXPERIENCE_ITEMS.filter(
+  const relatedExperience = experience.filter(
     (exp) => exp.companyId === company.id
   );
 

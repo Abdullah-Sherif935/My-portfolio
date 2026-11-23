@@ -1,20 +1,20 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  ArrowRight,
   Eye,
   EyeOff,
   Lock,
-  ShieldAlert,
+  ShieldCheck,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { Button, ButtonLink } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { LanguageSwitcher } from '@/components/navigation/LanguageSwitcher';
 import { ThemeToggle } from '@/components/navigation/ThemeToggle';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { useAdminAuth } from './useAdminAuth';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -22,37 +22,63 @@ export function AdminLoginPage() {
   const { t } = useTranslation('admin');
   useDocumentTitle(t('login.pageTitle'));
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, isChecking, signIn } = useAdminAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberPrototype, setRememberPrototype] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    form?: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [prototypeBlocked, setPrototypeBlocked] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const redirectTo =
+    (location.state as { from?: string } | null)?.from || '/admin';
+
+  if (!isChecking && isAuthenticated) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors: { email?: string; password?: string } = {};
+    const nextErrors: { email?: string; password?: string; form?: string } = {};
 
     if (!EMAIL_PATTERN.test(email.trim())) {
       nextErrors.email = t('login.emailError');
     }
-    if (password.length < 8) {
+    if (password.length < 6) {
       nextErrors.password = t('login.passwordError');
     }
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      setPrototypeBlocked(false);
       return;
     }
 
     setErrors({});
     setIsSubmitting(true);
-    window.setTimeout(() => {
+
+    try {
+      const result = await signIn(email, password);
+      if (result.ok) {
+        navigate(redirectTo, { replace: true });
+        return;
+      }
+
+      if (result.code === 'not_admin') {
+        setErrors({ form: t('login.notAuthorized') });
+      } else if (result.code === 'not_configured') {
+        setErrors({ form: t('login.notConfigured') });
+      } else {
+        setErrors({ form: t('login.invalidCredentials') });
+      }
+    } finally {
       setIsSubmitting(false);
-      setPrototypeBlocked(true);
-    }, 350);
+    }
   };
 
   return (
@@ -95,9 +121,12 @@ export function AdminLoginPage() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-accent-border bg-accent-subtle p-3.5 text-xs leading-relaxed">
+          <div className="rounded-xl border border-border-default bg-bg-primary p-3.5 text-xs leading-relaxed">
             <div className="flex items-start gap-2.5">
-              <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+              <ShieldCheck
+                className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                aria-hidden="true"
+              />
               <div className="space-y-1">
                 <p className="font-semibold text-text-primary">
                   {t('login.prototypeAlertTitle')}
@@ -107,7 +136,16 @@ export function AdminLoginPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {errors.form && (
+            <div
+              role="alert"
+              className="rounded-xl border border-error/40 bg-error-subtle px-4 py-3 text-xs font-medium text-error"
+            >
+              {errors.form}
+            </div>
+          )}
+
+          <form onSubmit={(e) => void handleSubmit(e)} noValidate className="space-y-4">
             <div className="space-y-1.5">
               <label
                 htmlFor="admin-email"
@@ -123,7 +161,9 @@ export function AdminLoginPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
+                  if (errors.email || errors.form) {
+                    setErrors((p) => ({ ...p, email: undefined, form: undefined }));
+                  }
                 }}
                 placeholder={t('login.emailPlaceholder')}
                 aria-invalid={Boolean(errors.email)}
@@ -151,8 +191,12 @@ export function AdminLoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    if (errors.password) {
-                      setErrors((p) => ({ ...p, password: undefined }));
+                    if (errors.password || errors.form) {
+                      setErrors((p) => ({
+                        ...p,
+                        password: undefined,
+                        form: undefined,
+                      }));
                     }
                   }}
                   placeholder={t('login.passwordPlaceholder')}
@@ -181,56 +225,16 @@ export function AdminLoginPage() {
               )}
             </div>
 
-            <label className="flex items-start gap-2.5 text-xs text-text-secondary cursor-pointer">
-              <input
-                type="checkbox"
-                checked={rememberPrototype}
-                onChange={(e) => setRememberPrototype(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-border-default accent-accent"
-              />
-              <span>{t('login.rememberLabel')}</span>
-            </label>
-
             <Button
               type="submit"
               variant="primary"
               size="lg"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isChecking}
               className="w-full"
             >
               {isSubmitting ? t('login.submitting') : t('login.submitButton')}
             </Button>
           </form>
-
-          {prototypeBlocked && (
-            <div
-              role="status"
-              className="space-y-3 rounded-xl border border-border-strong bg-bg-elevated p-4 text-xs leading-relaxed"
-            >
-              <p className="font-semibold text-text-primary">
-                {t('login.prototypeResponseTitle')}
-              </p>
-              <p className="text-text-secondary">
-                {t('login.prototypeResponseBody')}
-              </p>
-              <ButtonLink to="/admin" variant="secondary" size="sm" className="w-full">
-                <span>{t('login.openPrototypeDashboard')}</span>
-                <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-              </ButtonLink>
-            </div>
-          )}
-
-          {!prototypeBlocked && (
-            <div className="border-t border-border-default pt-4 text-center">
-              <Link
-                to="/admin"
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-hover"
-              >
-                <span>{t('login.openPrototypeDashboard')}</span>
-                <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-              </Link>
-            </div>
-          )}
         </Card>
       </main>
     </div>

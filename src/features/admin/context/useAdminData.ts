@@ -13,6 +13,7 @@ import type {
   AdminSiteSettings,
   CvWorkspaceConfig,
   MediaAsset,
+  MediaCategory,
 } from '@/types/admin';
 
 export interface AdminDataContextValue {
@@ -28,35 +29,40 @@ export interface AdminDataContextValue {
   cvConfig: CvWorkspaceConfig;
   siteSettings: AdminSiteSettings;
 
-  updateProfile: (next: ProfileData) => void;
+  isLoading: boolean;
+  isSaving: boolean;
+  lastError: string | null;
+  clearError: () => void;
 
-  saveProject: (project: Project) => void;
-  deleteProject: (id: string) => void;
+  updateProfile: (next: ProfileData) => Promise<void>;
 
-  saveCompany: (company: Company, linkedExperienceIds?: string[]) => void;
-  deleteCompany: (id: string) => void;
+  saveProject: (project: Project) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
 
-  saveExperience: (item: ExperienceItem) => void;
-  deleteExperience: (id: string) => void;
-  reorderExperience: (id: string, direction: 'up' | 'down') => void;
+  saveCompany: (company: Company, linkedExperienceIds?: string[]) => Promise<void>;
+  deleteCompany: (id: string) => Promise<void>;
 
-  saveEducation: (item: EducationItem) => void;
-  deleteEducation: (id: string) => void;
+  saveExperience: (item: ExperienceItem) => Promise<void>;
+  deleteExperience: (id: string) => Promise<void>;
+  reorderExperience: (id: string, direction: 'up' | 'down') => Promise<void>;
 
-  saveSkillGroup: (group: SkillGroup) => void;
-  deleteSkillGroup: (id: string) => void;
-  reorderSkillGroup: (id: string, direction: 'up' | 'down') => void;
-  toggleSkillGroupVisibility: (id: string) => void;
+  saveEducation: (item: EducationItem) => Promise<void>;
+  deleteEducation: (id: string) => Promise<void>;
 
-  saveCertification: (cert: Certification) => void;
-  deleteCertification: (id: string) => void;
+  saveSkillGroup: (group: SkillGroup) => Promise<void>;
+  deleteSkillGroup: (id: string) => Promise<void>;
+  reorderSkillGroup: (id: string, direction: 'up' | 'down') => Promise<void>;
+  toggleSkillGroupVisibility: (id: string) => Promise<void>;
 
-  addPreviewMedia: (asset: MediaAsset) => void;
-  deleteMedia: (id: string) => void;
+  saveCertification: (cert: Certification) => Promise<void>;
+  deleteCertification: (id: string) => Promise<void>;
 
-  updateCvConfig: (next: CvWorkspaceConfig) => void;
-  updateSiteSettings: (next: AdminSiteSettings) => void;
-  resetAllToInitial: () => void;
+  uploadMedia: (file: File, category: MediaCategory) => Promise<MediaAsset>;
+  deleteMedia: (id: string) => Promise<void>;
+
+  updateCvConfig: (next: CvWorkspaceConfig) => Promise<void>;
+  updateSiteSettings: (next: AdminSiteSettings) => Promise<void>;
+  reloadWorkspace: () => Promise<void>;
 }
 
 export const AdminDataContext = createContext<AdminDataContextValue | null>(null);

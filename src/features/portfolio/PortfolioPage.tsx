@@ -10,7 +10,8 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { PROJECTS, SPECIALIZATIONS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
+import { SPECIALIZATIONS } from '@/data';
 import type { ProjectKind } from '@/types/portfolio';
 import { ProjectCard } from './components/ProjectCard';
 import { cn } from '@/utils/cn';
@@ -24,6 +25,7 @@ const KIND_LABELS: Record<ProjectKind, string> = {
 export function PortfolioPage() {
   const { t } = useTranslation(['pages', 'home', 'common']);
   const { pick } = useLanguage();
+  const { projects } = usePortfolioData();
   useDocumentTitle(t('pages:portfolio.pageTitle'));
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,9 +43,9 @@ export function PortfolioPage() {
 
   const availableKinds = useMemo(() => {
     const kinds = new Set<ProjectKind>();
-    PROJECTS.forEach((p) => kinds.add(p.kind));
+    projects.forEach((p) => kinds.add(p.kind));
     return Array.from(kinds);
-  }, []);
+  }, [projects]);
 
   const updateParam = (key: 'category' | 'type' | 'q', value: string) => {
     setSearchParams(
@@ -73,7 +75,7 @@ export function PortfolioPage() {
   const filteredProjects = useMemo(() => {
     const normalizedQuery = searchInput.trim().toLowerCase();
 
-    return PROJECTS.filter((project) => {
+    return projects.filter((project) => {
       if (activeCategory !== 'all' && project.category !== activeCategory) {
         return false;
       }
@@ -103,7 +105,7 @@ export function PortfolioPage() {
 
       return haystack.includes(normalizedQuery);
     });
-  }, [activeCategory, activeType, searchInput]);
+  }, [projects, activeCategory, activeType, searchInput]);
 
   const hasActiveFilters =
     activeCategory !== 'all' || activeType !== 'all' || searchInput.trim().length > 0;

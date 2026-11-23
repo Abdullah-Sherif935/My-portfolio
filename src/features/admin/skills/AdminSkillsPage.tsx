@@ -47,7 +47,7 @@ export function AdminSkillsPage() {
 
   const ordered = [...skills].sort((a, b) => a.displayOrder - b.displayOrder);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
     const { group } = editing;
@@ -55,9 +55,13 @@ export function AdminSkillsPage() {
       setError(t('common.validationRequired'));
       return;
     }
-    saveSkillGroup(group);
-    setEditing(null);
-    setFeedback(t('prototype.savedInMemory'));
+    try {
+      await saveSkillGroup(group);
+      setEditing(null);
+      setFeedback(t('prototype.savedInMemory'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('prototype.syncError'));
+    }
   };
 
   return (
@@ -112,7 +116,7 @@ export function AdminSkillsPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label htmlFor="skl-code" className="block text-xs font-medium text-text-primary">
@@ -352,9 +356,10 @@ export function AdminSkillsPage() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (!deleteTarget) return;
-          deleteSkillGroup(deleteTarget.id);
-          setDeleteTarget(null);
-          setFeedback(t('prototype.deletedInMemory'));
+          void deleteSkillGroup(deleteTarget.id).then(() => {
+            setDeleteTarget(null);
+            setFeedback(t('prototype.deletedInMemory'));
+          }).catch(() => setDeleteTarget(null));
         }}
       />
     </div>

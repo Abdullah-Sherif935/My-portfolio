@@ -79,17 +79,25 @@ export function AdminProjectsPage() {
     if (searchParams.has('new')) setSearchParams({}, { replace: true });
   };
 
-  const handleSave = (project: Project) => {
-    saveProject(project);
-    setEditing(null);
-    setFeedback(t('prototype.savedInMemory'));
+  const handleSave = async (project: Project) => {
+    try {
+      await saveProject(project);
+      setEditing(null);
+      setFeedback(t('prototype.savedInMemory'));
+    } catch {
+      // Error displayed by PrototypeBanner
+    }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    deleteProject(deleteTarget.id);
-    setDeleteTarget(null);
-    setFeedback(t('prototype.deletedInMemory'));
+    try {
+      await deleteProject(deleteTarget.id);
+      setDeleteTarget(null);
+      setFeedback(t('prototype.deletedInMemory'));
+    } catch {
+      setDeleteTarget(null);
+    }
   };
 
   return (
@@ -121,7 +129,7 @@ export function AdminProjectsPage() {
           isNew={editing.isNew}
           companies={companies}
           allProjects={projects}
-          onSave={handleSave}
+          onSave={(project) => void handleSave(project)}
           onCancel={() => setEditing(null)}
         />
       ) : (
@@ -314,7 +322,7 @@ export function AdminProjectsPage() {
         isOpen={Boolean(deleteTarget)}
         itemName={deleteTarget ? pick(deleteTarget.title) : ''}
         onCancel={() => setDeleteTarget(null)}
-        onConfirm={handleConfirmDelete}
+        onConfirm={() => void handleConfirmDelete()}
       />
     </div>
   );

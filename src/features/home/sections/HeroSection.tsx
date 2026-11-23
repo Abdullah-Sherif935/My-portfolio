@@ -7,16 +7,17 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { useLanguage } from '@/hooks/useLanguage';
-import { EDUCATION_ITEMS, EXPERIENCE_ITEMS, PROFILE } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 export function HeroSection() {
   const { t } = useTranslation(['home', 'common']);
   const { pick } = useLanguage();
+  const { profile, education, experience, siteSettings } = usePortfolioData();
   const prefersReducedMotion = useReducedMotion();
   const [cvModalOpen, setCvModalOpen] = useState(false);
 
-  const primaryEducation = EDUCATION_ITEMS[0];
-  const currentRole = EXPERIENCE_ITEMS[0];
+  const primaryEducation = education[0];
+  const currentRole = experience[0];
 
   return (
     <>
@@ -48,14 +49,14 @@ export function HeroSection() {
 
               <div className="space-y-2 sm:space-y-3">
                 <h1 className="text-[30px] font-bold leading-[1.12] tracking-tight text-text-primary sm:text-5xl lg:text-[56px] lg:leading-[1.08]">
-                  {pick(PROFILE.fullName)}
+                  {pick(profile.fullName)}
                 </h1>
                 <p className="text-base font-medium leading-snug text-accent sm:text-xl lg:text-2xl">
-                  {pick(PROFILE.headline)}
+                  {pick(profile.headline)}
                 </p>
                 <p className="inline-flex items-center gap-1.5 text-xs text-text-secondary sm:text-sm">
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-accent sm:h-4 sm:w-4" aria-hidden="true" />
-                  <span>{pick(PROFILE.location)}</span>
+                  <span>{pick(profile.location)}</span>
                 </p>
               </div>
 
@@ -64,7 +65,7 @@ export function HeroSection() {
                 {t('home:hero.mobileSummary')}
               </p>
               <p className="hidden max-w-2xl text-base leading-relaxed text-text-secondary sm:block lg:text-[17px]">
-                {pick(PROFILE.summary)}
+                {pick(profile.summary)}
               </p>
 
               {/* CTA Group: Primary & Secondary prominent on mobile; Download CV understated below on mobile */}
@@ -154,14 +155,14 @@ export function HeroSection() {
                 </div>
 
                 {/* Engineer Portrait Area */}
-                {PROFILE.avatarUrl ? (
+                {siteSettings.showGraduationPortrait && profile.avatarUrl ? (
                   <div className="group relative aspect-[4/3.85] overflow-hidden rounded-xl border border-border-strong bg-bg-primary sm:aspect-[4/4.2]">
                     <img
-                      src={PROFILE.avatarUrl}
+                      src={profile.avatarUrl}
                       alt={
-                        PROFILE.avatarAlt
-                          ? pick(PROFILE.avatarAlt)
-                          : pick(PROFILE.fullName)
+                        profile.avatarAlt
+                          ? pick(profile.avatarAlt)
+                          : pick(profile.fullName)
                       }
                       className="h-full w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                     />

@@ -34,7 +34,7 @@ export function AdminDashboardPage() {
     skills,
     certifications,
     activities,
-    resetAllToInitial,
+    reloadWorkspace,
   } = useAdminData();
 
   const [resetMessage, setResetMessage] = useState(false);
@@ -113,8 +113,8 @@ export function AdminDashboardPage() {
     },
   ];
 
-  const handleReset = () => {
-    resetAllToInitial();
+  const handleReset = async () => {
+    await reloadWorkspace();
     setResetMessage(true);
     window.setTimeout(() => setResetMessage(false), 3000);
   };
@@ -126,7 +126,7 @@ export function AdminDashboardPage() {
         subtitle={t('dashboard.subtitle')}
       />
 
-      <PrototypeBanner onReset={handleReset} />
+      <PrototypeBanner onReset={() => void handleReset()} />
 
       {resetMessage && (
         <div

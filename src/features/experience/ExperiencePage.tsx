@@ -3,11 +3,12 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { Container } from '@/components/layout/Container';
 import { Section } from '@/components/layout/Section';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { EXPERIENCE_ITEMS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { ExperienceTimeline } from './components/ExperienceTimeline';
 
 export function ExperiencePage() {
   const { t } = useTranslation('pages');
+  const { experience } = usePortfolioData();
   useDocumentTitle(t('experience.pageTitle'));
 
   return (
@@ -20,7 +21,7 @@ export function ExperiencePage() {
 
       <Section>
         <Container>
-          <ExperienceTimeline items={EXPERIENCE_ITEMS} />
+          <ExperienceTimeline items={experience} />
         </Container>
       </Section>
     </>

@@ -3,7 +3,7 @@ import { ArrowUp, Github, Linkedin, Mail } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Container } from '@/components/layout/Container';
 import { BrandMark } from '@/components/common/BrandMark';
-import { PROFILE } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 
 const FOOTER_LINKS = [
   { to: '/', key: 'nav.home' },
@@ -18,6 +18,7 @@ const FOOTER_LINKS = [
 
 export function Footer() {
   const { t } = useTranslation('common');
+  const { profile, siteSettings } = usePortfolioData();
   const currentYear = new Date().getFullYear();
 
   const scrollToTop = () => {
@@ -64,36 +65,52 @@ export function Footer() {
               {t('footer.connectHeading')}
             </h2>
             <ul className="space-y-3 text-sm text-text-secondary">
+              {siteSettings.showContactEmail && (
+                <li>
+                  <a
+                    href={`mailto:${profile.contact.email}`}
+                    className="inline-flex max-w-full items-center gap-2.5 transition-colors hover:text-accent"
+                  >
+                    <Mail className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                    <span className="truncate font-mono text-xs">
+                      {profile.contact.email}
+                    </span>
+                  </a>
+                </li>
+              )}
+              {siteSettings.showLinkedinLink && (
+                <li>
+                  <a
+                    href={profile.contact.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 transition-colors hover:text-accent"
+                  >
+                    <Linkedin className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                    <span>{t('footer.linkedinLabel')}</span>
+                  </a>
+                </li>
+              )}
               <li>
-                <a
-                  href={`mailto:${PROFILE.contact.email}`}
-                  className="inline-flex max-w-full items-center gap-2.5 transition-colors hover:text-accent"
-                >
-                  <Mail className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <span className="truncate font-mono text-xs">
-                    {PROFILE.contact.email}
-                  </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href={PROFILE.contact.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 transition-colors hover:text-accent"
-                >
-                  <Linkedin className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <span>{t('footer.linkedinLabel')}</span>
-                </a>
-              </li>
-              <li>
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center gap-2.5 transition-colors hover:text-accent"
-                >
-                  <Github className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <span>{t('footer.githubLabel')}</span>
-                </Link>
+                {profile.contact.githubUrl ? (
+                  <a
+                    href={profile.contact.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 transition-colors hover:text-accent"
+                  >
+                    <Github className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                    <span>{t('footer.githubLabel')}</span>
+                  </a>
+                ) : (
+                  <Link
+                    to="/contact"
+                    className="inline-flex items-center gap-2.5 transition-colors hover:text-accent"
+                  >
+                    <Github className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                    <span>{t('footer.githubLabel')}</span>
+                  </Link>
+                )}
               </li>
             </ul>
           </div>

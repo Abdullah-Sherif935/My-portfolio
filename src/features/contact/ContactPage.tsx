@@ -10,7 +10,7 @@ import { Input, Textarea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { PROFILE } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import {
   validateContactForm,
   type ContactFormErrors,
@@ -28,6 +28,7 @@ const INITIAL_VALUES: ContactFormValues = {
 export function ContactPage() {
   const { t } = useTranslation(['pages', 'home', 'common']);
   const { pick } = useLanguage();
+  const { profile, siteSettings } = usePortfolioData();
   useDocumentTitle(t('pages:contact.pageTitle'));
   const [values, setValues] = useState<ContactFormValues>(INITIAL_VALUES);
   const [errors, setErrors] = useState<ContactFormErrors>({});
@@ -184,44 +185,48 @@ export function ContactPage() {
                 {t('pages:contact.channelsHeading')}
               </h2>
 
-              <Card className="flex items-start gap-4 p-5">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
-                  <Mail className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <div className="min-w-0 space-y-1">
-                  <h3 className="text-sm font-semibold text-text-primary">
-                    {t('home:contact.emailTitle')}
-                  </h3>
-                  <a
-                    href={`mailto:${PROFILE.contact.email}`}
-                    className="block truncate font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
-                  >
-                    {PROFILE.contact.email}
-                  </a>
-                  <p className="text-xs text-text-secondary">{t('home:contact.emailNote')}</p>
-                </div>
-              </Card>
+              {siteSettings.showContactEmail && (
+                <Card className="flex items-start gap-4 p-5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
+                    <Mail className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="text-sm font-semibold text-text-primary">
+                      {t('home:contact.emailTitle')}
+                    </h3>
+                    <a
+                      href={`mailto:${profile.contact.email}`}
+                      className="block truncate font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
+                    >
+                      {profile.contact.email}
+                    </a>
+                    <p className="text-xs text-text-secondary">{t('home:contact.emailNote')}</p>
+                  </div>
+                </Card>
+              )}
 
-              <Card className="flex items-start gap-4 p-5">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
-                  <Linkedin className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <div className="min-w-0 space-y-1">
-                  <h3 className="text-sm font-semibold text-text-primary">
-                    {t('home:contact.linkedinTitle')}
-                  </h3>
-                  <a
-                    href={PROFILE.contact.linkedinUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex max-w-full items-center gap-1.5 font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
-                  >
-                    <span className="truncate">{PROFILE.contact.linkedinDisplay}</span>
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  </a>
-                  <p className="text-xs text-text-secondary">{t('home:contact.linkedinNote')}</p>
-                </div>
-              </Card>
+              {siteSettings.showLinkedinLink && (
+                <Card className="flex items-start gap-4 p-5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
+                    <Linkedin className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="text-sm font-semibold text-text-primary">
+                      {t('home:contact.linkedinTitle')}
+                    </h3>
+                    <a
+                      href={profile.contact.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex max-w-full items-center gap-1.5 font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
+                    >
+                      <span className="truncate">{profile.contact.linkedinDisplay}</span>
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    </a>
+                    <p className="text-xs text-text-secondary">{t('home:contact.linkedinNote')}</p>
+                  </div>
+                </Card>
+              )}
 
               <Card className="flex items-start gap-4 p-5">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
@@ -231,9 +236,21 @@ export function ContactPage() {
                   <h3 className="text-sm font-semibold text-text-primary">
                     {t('home:contact.githubTitle')}
                   </h3>
-                  <p className="truncate font-mono text-xs text-text-secondary sm:text-sm">
-                    {pick(PROFILE.contact.githubDisplay)}
-                  </p>
+                  {profile.contact.githubUrl ? (
+                    <a
+                      href={profile.contact.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex max-w-full items-center gap-1.5 font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
+                    >
+                      <span className="truncate">{profile.contact.githubUrl}</span>
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    </a>
+                  ) : (
+                    <p className="truncate font-mono text-xs text-text-secondary sm:text-sm">
+                      {pick(profile.contact.githubDisplay)}
+                    </p>
+                  )}
                   <p className="text-xs text-text-secondary">{t('home:contact.githubNote')}</p>
                 </div>
               </Card>

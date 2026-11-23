@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { EDUCATION_ITEMS, PROFILE, PROJECTS, SPECIALIZATIONS } from '@/data';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
+import { SPECIALIZATIONS } from '@/data';
 
 export function AboutPage() {
   const { t } = useTranslation(['pages', 'common', 'home']);
   const { pick } = useLanguage();
+  const { profile, education, projects } = usePortfolioData();
   useDocumentTitle(t('pages:about.pageTitle'));
 
   return (
@@ -36,11 +38,11 @@ export function AboutPage() {
                   </h2>
                   <span className="inline-flex items-center gap-1.5 text-xs text-text-secondary">
                     <MapPin className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
-                    {pick(PROFILE.location)}
+                    {pick(profile.location)}
                   </span>
                 </div>
                 <p className="text-sm leading-relaxed text-text-secondary sm:text-base">
-                  {pick(PROFILE.summary)}
+                  {pick(profile.summary)}
                 </p>
                 <div className="flex flex-wrap gap-3 pt-2">
                   <ButtonLink to="/portfolio" variant="primary" size="md">
@@ -58,7 +60,7 @@ export function AboutPage() {
                   <GraduationCap className="h-5 w-5 text-accent" aria-hidden="true" />
                   <span>{t('pages:about.educationHeading')}</span>
                 </h2>
-                {EDUCATION_ITEMS.map((edu) => (
+                {education.map((edu) => (
                   <Card key={edu.id} className="space-y-4 p-5 sm:p-6">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -92,7 +94,7 @@ export function AboutPage() {
 
                     {edu.graduationProjectSlug &&
                       (() => {
-                        const gradProject = PROJECTS.find(
+                        const gradProject = projects.find(
                           (item) => item.slug === edu.graduationProjectSlug
                         );
                         if (!gradProject) return null;
@@ -124,7 +126,7 @@ export function AboutPage() {
                   <span>{t('pages:about.languagesHeading')}</span>
                 </h2>
                 <ul className="space-y-3">
-                  {PROFILE.languages.map((lang, idx) => (
+                  {profile.languages.map((lang, idx) => (
                     <li
                       key={idx}
                       className="flex items-center justify-between rounded-xl border border-border-default bg-bg-primary px-4 py-3 text-sm"
@@ -141,7 +143,7 @@ export function AboutPage() {
                   {t('pages:about.competenciesHeading')}
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {PROFILE.coreCompetencies.map((comp, idx) => (
+                  {profile.coreCompetencies.map((comp, idx) => (
                     <span
                       key={idx}
                       className="rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 text-xs font-medium text-text-primary"

@@ -65,7 +65,7 @@ export function AdminExperiencePage() {
     if (searchParams.has('new')) setSearchParams({}, { replace: true });
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
     const { item } = editing;
@@ -73,9 +73,13 @@ export function AdminExperiencePage() {
       setError(t('common.validationRequired'));
       return;
     }
-    saveExperience(item);
-    setEditing(null);
-    setFeedback(t('prototype.savedInMemory'));
+    try {
+      await saveExperience(item);
+      setEditing(null);
+      setFeedback(t('prototype.savedInMemory'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('prototype.syncError'));
+    }
   };
 
   return (
@@ -123,7 +127,7 @@ export function AdminExperiencePage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <LocalizedFieldGroup
               idPrefix="exp-role"
               label={t('experience.fields.role')}
@@ -535,9 +539,10 @@ export function AdminExperiencePage() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (!deleteTarget) return;
-          deleteExperience(deleteTarget.id);
-          setDeleteTarget(null);
-          setFeedback(t('prototype.deletedInMemory'));
+          void deleteExperience(deleteTarget.id).then(() => {
+            setDeleteTarget(null);
+            setFeedback(t('prototype.deletedInMemory'));
+          }).catch(() => setDeleteTarget(null));
         }}
       />
     </div>
