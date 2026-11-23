@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { PublicLayout } from './layouts/PublicLayout';
 import { ModulePlaceholderLayout } from './layouts/ModulePlaceholderLayout';
 import { HomePage } from '@/features/home/HomePage';
@@ -32,7 +32,7 @@ const CvBuilderPage = lazy(() =>
   }))
 );
 
-// Lazy-loaded Phase 03 Admin Dashboard Modules (keeps public bundle lean)
+// Lazy-loaded Page-Oriented Admin Dashboard Modules (keeps public bundle lean)
 const AdminLayout = lazy(() =>
   import('@/features/admin/layout/AdminLayout').then((m) => ({ default: m.AdminLayout }))
 );
@@ -46,66 +46,83 @@ const AdminDashboardPage = lazy(() =>
     default: m.AdminDashboardPage,
   }))
 );
-const AdminProfilePage = lazy(() =>
-  import('@/features/admin/profile/AdminProfilePage').then((m) => ({
-    default: m.AdminProfilePage,
-  }))
-);
-const AdminProjectsPage = lazy(() =>
-  import('@/features/admin/projects/AdminProjectsPage').then((m) => ({
-    default: m.AdminProjectsPage,
-  }))
-);
-const AdminCompaniesPage = lazy(() =>
-  import('@/features/admin/companies/AdminCompaniesPage').then((m) => ({
-    default: m.AdminCompaniesPage,
-  }))
-);
-const AdminExperiencePage = lazy(() =>
-  import('@/features/admin/experience/AdminExperiencePage').then((m) => ({
-    default: m.AdminExperiencePage,
-  }))
-);
-const AdminEducationPage = lazy(() =>
-  import('@/features/admin/education/AdminEducationPage').then((m) => ({
-    default: m.AdminEducationPage,
-  }))
-);
-const AdminSkillsPage = lazy(() =>
-  import('@/features/admin/skills/AdminSkillsPage').then((m) => ({
-    default: m.AdminSkillsPage,
-  }))
-);
-const AdminCertificationsPage = lazy(() =>
-  import('@/features/admin/certifications/AdminCertificationsPage').then((m) => ({
-    default: m.AdminCertificationsPage,
-  }))
-);
-const AdminMediaPage = lazy(() =>
-  import('@/features/admin/media/AdminMediaPage').then((m) => ({
-    default: m.AdminMediaPage,
-  }))
-);
-const AdminCvPage = lazy(() =>
-  import('@/features/admin/cv/AdminCvPage').then((m) => ({ default: m.AdminCvPage }))
-);
-const AdminSettingsPage = lazy(() =>
-  import('@/features/admin/settings/AdminSettingsPage').then((m) => ({
-    default: m.AdminSettingsPage,
-  }))
-);
+    const AdminHomePageManager = lazy(() =>
+      import('@/features/admin/pages/AdminHomePageManager').then((m) => ({
+        default: m.AdminHomePageManager,
+      }))
+    );
+        const AdminAboutPageManager = lazy(() =>
+          import('@/features/admin/pages/AdminAboutPageManager').then((m) => ({
+            default: m.AdminAboutPageManager,
+          }))
+        );
+            const AdminContactPageManager = lazy(() =>
+              import('@/features/admin/pages/AdminContactPageManager').then((m) => ({
+                default: m.AdminContactPageManager,
+              }))
+            );
+                const AdminExperiencePageManager = lazy(() =>
+                  import('@/features/admin/pages/AdminSectionPageWrappers').then((m) => ({
+                    default: m.AdminExperiencePageManager,
+                  }))
+                );
+                    const AdminPortfolioPageManager = lazy(() =>
+                      import('@/features/admin/pages/AdminSectionPageWrappers').then((m) => ({
+                        default: m.AdminPortfolioPageManager,
+                      }))
+                    );
+                        const AdminClientsPageManager = lazy(() =>
+                          import('@/features/admin/pages/AdminSectionPageWrappers').then((m) => ({
+                            default: m.AdminClientsPageManager,
+                          }))
+                        );
+                            const AdminSkillsPageManager = lazy(() =>
+                              import('@/features/admin/pages/AdminSectionPageWrappers').then((m) => ({
+                                default: m.AdminSkillsPageManager,
+                              }))
+                            );
+                            const AdminCertificationsPageManager = lazy(() =>
+                              import('@/features/admin/pages/AdminSectionPageWrappers').then((m) => ({
+                                default: m.AdminCertificationsPageManager,
+                              }))
+                            );
+                            const AdminRecruiterFeaturePage = lazy(() =>
+                              import('@/features/admin/features/AdminRecruiterFeaturePage').then((m) => ({
+                                default: m.AdminRecruiterFeaturePage,
+                              }))
+                            );
+                            const AdminCvBuilderFeaturePage = lazy(() =>
+                              import('@/features/admin/features/AdminCvBuilderFeaturePage').then((m) => ({
+                                default: m.AdminCvBuilderFeaturePage,
+                              }))
+                            );
+                            const AdminMediaPage = lazy(() =>
+                              import('@/features/admin/media/AdminMediaPage').then((m) => ({
+                                default: m.AdminMediaPage,
+                              }))
+                            );
+                            const AdminSettingsPage = lazy(() =>
+                              import('@/features/admin/settings/AdminSettingsPage').then((m) => ({
+                                default: m.AdminSettingsPage,
+                              }))
+                            );
+                            const AdminNavigationPage = lazy(() =>
+                              import('@/features/admin/system/AdminNavigationPage').then((m) => ({
+                                default: m.AdminNavigationPage,
+                              }))
+                            );
 
-function withSuspense(node: ReactNode) {
-  return (
+                            function withSuspense(node: ReactNode) {
+                            return(
     <Suspense
-      fallback={
-        <div className="flex min-h-[40vh] items-center justify-center bg-bg-primary p-8">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-default border-t-accent" />
-        </div>
+      fallback = {
+        < div className = "flex min-h-[40vh] items-center justify-center bg-bg-primary p-8" >
+                                <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-default border-t-accent" />
+        </div >
       }
     >
-      {node}
-    </Suspense>
+  { node }
+    </Suspense >
   );
 }
 
@@ -141,22 +158,39 @@ export const router = createBrowserRouter([
     path: '/admin/login',
     element: withSuspense(<AdminLoginPage />),
   },
-  // Dedicated Nested Admin Dashboard Layout (Phase 03 UI Prototype)
+  // Dedicated Nested Page-Oriented Admin Dashboard Layout
   {
     path: '/admin',
     element: withSuspense(<AdminLayout />),
     children: [
       { index: true, element: withSuspense(<AdminDashboardPage />) },
-      { path: 'profile', element: withSuspense(<AdminProfilePage />) },
-      { path: 'projects', element: withSuspense(<AdminProjectsPage />) },
-      { path: 'companies', element: withSuspense(<AdminCompaniesPage />) },
-      { path: 'experience', element: withSuspense(<AdminExperiencePage />) },
-      { path: 'education', element: withSuspense(<AdminEducationPage />) },
-      { path: 'skills', element: withSuspense(<AdminSkillsPage />) },
-      { path: 'certifications', element: withSuspense(<AdminCertificationsPage />) },
-      { path: 'media', element: withSuspense(<AdminMediaPage />) },
-      { path: 'cv', element: withSuspense(<AdminCvPage />) },
-      { path: 'settings', element: withSuspense(<AdminSettingsPage />) },
+      // Website Pages Group
+      { path: 'pages/home', element: withSuspense(<AdminHomePageManager />) },
+      { path: 'pages/about', element: withSuspense(<AdminAboutPageManager />) },
+      { path: 'pages/experience', element: withSuspense(<AdminExperiencePageManager />) },
+      { path: 'pages/portfolio', element: withSuspense(<AdminPortfolioPageManager />) },
+      { path: 'pages/clients', element: withSuspense(<AdminClientsPageManager />) },
+      { path: 'pages/skills', element: withSuspense(<AdminSkillsPageManager />) },
+      { path: 'pages/certifications', element: withSuspense(<AdminCertificationsPageManager />) },
+      { path: 'pages/contact', element: withSuspense(<AdminContactPageManager />) },
+      // Specialized Features Group
+      { path: 'features/recruiter', element: withSuspense(<AdminRecruiterFeaturePage />) },
+      { path: 'features/cv-builder', element: withSuspense(<AdminCvBuilderFeaturePage />) },
+      // System Management Group
+      { path: 'system/settings', element: withSuspense(<AdminSettingsPage />) },
+      { path: 'system/navigation', element: withSuspense(<AdminNavigationPage />) },
+      { path: 'system/media', element: withSuspense(<AdminMediaPage />) },
+      // Backwards-compatible legacy Admin route redirects (zero broken links/bookmarks)
+      { path: 'profile', element: <Navigate to="/admin/pages/about" replace /> },
+      { path: 'education', element: <Navigate to="/admin/pages/about?tab=education" replace /> },
+      { path: 'projects', element: <Navigate to="/admin/pages/portfolio" replace /> },
+      { path: 'companies', element: <Navigate to="/admin/pages/clients" replace /> },
+      { path: 'experience', element: <Navigate to="/admin/pages/experience" replace /> },
+      { path: 'skills', element: <Navigate to="/admin/pages/skills" replace /> },
+      { path: 'certifications', element: <Navigate to="/admin/pages/certifications" replace /> },
+      { path: 'cv', element: <Navigate to="/admin/features/cv-builder" replace /> },
+      { path: 'media', element: <Navigate to="/admin/system/media" replace /> },
+      { path: 'settings', element: <Navigate to="/admin/system/settings" replace /> },
     ],
   },
   // Reserved Future Career Platform Routes

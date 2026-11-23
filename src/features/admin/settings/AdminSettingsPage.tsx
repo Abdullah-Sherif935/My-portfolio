@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowUp, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -7,15 +8,18 @@ import { LanguageSwitcher } from '@/components/navigation/LanguageSwitcher';
 import { ThemeToggle } from '@/components/navigation/ThemeToggle';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAdminData } from '@/features/admin/context/useAdminData';
+import { useAdminAuth } from '@/features/admin/auth/useAdminAuth';
 import { AdminPageHeader } from '@/features/admin/components/AdminPageHeader';
 import { PrototypeBanner } from '@/features/admin/components/PrototypeBanner';
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
-import type { AdminSiteSettings, CvTemplateId } from '@/types/admin';
+import { SectionMappingBadge } from '@/features/admin/components/SectionMappingBadge';
+import type { AdminSiteSettings } from '@/types/admin';
 
 export function AdminSettingsPage() {
   const { t } = useTranslation('admin');
   useDocumentTitle(t('settings.pageTitle'));
 
+  const { user } = useAdminAuth();
   const { siteSettings, updateSiteSettings, isSaving } = useAdminData();
   const [form, setForm] = useState<AdminSiteSettings>(() =>
     structuredClone(siteSettings)
@@ -25,20 +29,6 @@ export function AdminSettingsPage() {
   useEffect(() => {
     setForm(structuredClone(siteSettings));
   }, [siteSettings]);
-
-  const moveCvSection = (index: number, direction: 'up' | 'down') => {
-    setForm((prev) => {
-      const target = direction === 'up' ? index - 1 : index + 1;
-      if (target < 0 || target >= prev.cvSectionOrder.length) return prev;
-      const next = [...prev.cvSectionOrder];
-      const currentItem = next[index];
-      const targetItem = next[target];
-      if (!currentItem || !targetItem) return prev;
-      next[index] = targetItem;
-      next[target] = currentItem;
-      return { ...prev, cvSectionOrder: next };
-    });
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -81,10 +71,6 @@ export function AdminSettingsPage() {
 
       <PrototypeBanner compact />
 
-      <p className="text-xs text-text-secondary">
-        {t('settings.prototypeSectionNotice')}
-      </p>
-
       {saved && (
         <div role="status" className="flex items-center gap-2 rounded-xl border border-success/30 bg-success-subtle px-4 py-2.5 text-xs font-medium text-success">
           <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -94,6 +80,7 @@ export function AdminSettingsPage() {
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
         <Card className="space-y-5 p-5 sm:p-6">
+          <SectionMappingBadge location={t('settings.mapGlobalSeo')} />
           <h2 className="text-base font-semibold text-text-primary">
             {t('settings.identityHeading')}
           </h2>
@@ -122,129 +109,9 @@ export function AdminSettingsPage() {
           />
         </Card>
 
-        <Card className="space-y-4 p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-text-primary">
-            {t('settings.visibilityHeading')}
-          </h2>
-          <div className="space-y-3">
-            {(
-              [
-                ['showGraduationPortrait', 'settings.showGraduationPortrait'],
-                ['showContactEmail', 'settings.showContactEmail'],
-                ['showLinkedinLink', 'settings.showLinkedinLink'],
-                ['showCoursesSection', 'settings.showCoursesSection'],
-                ['recruiterModeEnabled', 'settings.recruiterModeEnabled'],
-              ] as const
-            ).map(([field, labelKey]) => (
-              <label
-                key={field}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border-default bg-bg-primary px-4 py-3 text-sm text-text-primary cursor-pointer"
-              >
-                <span>{t(labelKey)}</span>
-                <input
-                  type="checkbox"
-                  checked={form[field]}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, [field]: e.target.checked }))
-                  }
-                  className="h-4 w-4 rounded accent-accent"
-                />
-              </label>
-            ))}
-          </div>
-        </Card>
-
-        {/* Smart CV Public Defaults & Section Order */}
-        <Card className="space-y-5 p-5 sm:p-6">
-          <div className="space-y-1">
-            <h2 className="text-base font-semibold text-text-primary">
-              {t('settings.recruiterCvHeading')}
-            </h2>
-            <p className="text-xs text-text-secondary">
-              {t('settings.recruiterCvDescription')}
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label
-              htmlFor="set-cv-template"
-              className="block text-xs font-medium text-text-primary"
-            >
-              {t('settings.defaultCvTemplate')}
-            </label>
-            <select
-              id="set-cv-template"
-              value={form.defaultCvTemplate}
-              onChange={(e) =>
-                setForm((p) => ({
-                  ...p,
-                  defaultCvTemplate: e.target.value as CvTemplateId,
-                }))
-              }
-              className="h-10 w-full max-w-sm rounded-[10px] border border-border-default bg-bg-primary px-3 text-sm text-text-primary"
-            >
-              <option value="ats">{t('settings.templateAts')}</option>
-              <option value="modern">{t('settings.templateModern')}</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-text-primary">
-              {t('settings.cvSectionOrderLabel')}
-            </p>
-            <div className="space-y-2">
-              {form.cvSectionOrder.map((sec, idx) => (
-                <div
-                  key={sec.key}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border-default bg-bg-primary px-3.5 py-2.5"
-                >
-                  <label className="inline-flex items-center gap-2.5 text-sm text-text-primary cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sec.visible}
-                      onChange={(e) =>
-                        setForm((p) => ({
-                          ...p,
-                          cvSectionOrder: p.cvSectionOrder.map((item) =>
-                            item.key === sec.key
-                              ? { ...item, visible: e.target.checked }
-                              : item
-                          ),
-                        }))
-                      }
-                      className="h-4 w-4 rounded accent-accent"
-                    />
-                    <span>{t(`cv.sections.${sec.key}`)}</span>
-                  </label>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={idx === 0}
-                      onClick={() => moveCvSection(idx, 'up')}
-                      aria-label={t('common.moveUp')}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border-default text-text-secondary hover:border-accent hover:text-accent disabled:opacity-35 cursor-pointer"
-                    >
-                      <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={idx === form.cvSectionOrder.length - 1}
-                      onClick={() => moveCvSection(idx, 'down')}
-                      aria-label={t('common.moveDown')}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border-default text-text-secondary hover:border-accent hover:text-accent disabled:opacity-35 cursor-pointer"
-                    >
-                      <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
         <div className="flex justify-end gap-3">
           <Button
+            type="button"
             variant="secondary"
             size="md"
             onClick={() => setForm(structuredClone(siteSettings))}
@@ -256,6 +123,50 @@ export function AdminSettingsPage() {
           </Button>
         </div>
       </form>
+
+      {/* Single-Admin Authorization Status & Page-Specific Settings Shortcuts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="space-y-3 p-5">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-success" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-text-primary">
+              {t('settings.authModelTitle')}
+            </h2>
+          </div>
+          <p className="text-xs leading-relaxed text-text-secondary">
+            {t('settings.authModelDesc')}
+          </p>
+          {user?.email && (
+            <p dir="ltr" className="font-mono text-xs text-accent">
+              {user.email}
+            </p>
+          )}
+        </Card>
+
+        <Card className="space-y-3 p-5">
+          <h2 className="text-sm font-semibold text-text-primary">
+            {t('settings.pageSettingsShortcutsTitle')}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { to: '/admin/pages/home', label: t('nav.pageHome') },
+              { to: '/admin/pages/contact', label: t('nav.pageContact') },
+              { to: '/admin/features/recruiter', label: t('nav.featureRecruiter') },
+              { to: '/admin/features/cv-builder', label: t('nav.featureCvBuilder') },
+              { to: '/admin/system/navigation', label: t('nav.navigationMgmt') },
+            ].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="inline-flex items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 text-xs font-medium text-text-primary hover:border-accent hover:text-accent"
+              >
+                <span>{item.label}</span>
+                <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

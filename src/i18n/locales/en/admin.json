@@ -23,9 +23,25 @@
     "signOut": "Sign Out",
     "viewPublicSite": "View Public Site",
     "groupOverview": "Overview",
+    "groupMain": "Main",
+    "groupPages": "Website Pages",
+    "groupFeatures": "Specialized Features",
     "groupContent": "Portfolio Content",
     "groupAssets": "Assets & Career",
-    "groupSystem": "System"
+    "groupSystem": "System Management",
+    "overview": "Overview",
+    "pageHome": "Home",
+    "pageAbout": "About",
+    "pageExperience": "Experience",
+    "pagePortfolio": "Portfolio",
+    "pageClients": "Clients",
+    "pageSkills": "Skills",
+    "pageCertifications": "Certifications",
+    "pageContact": "Contact",
+    "featureRecruiter": "Recruiter Mode",
+    "featureCvBuilder": "CV Builder",
+    "globalSettings": "Global Settings",
+    "navigationMgmt": "Navigation"
   },
   "prototype": {
     "badge": "Supabase Connected",
@@ -119,7 +135,28 @@
     "recentActivityHeading": "Recent Activity Log",
     "recentActivityNote": "Persisted audit trail of content updates saved to Supabase.",
     "sampleTag": "Sample",
-    "sessionTag": "Persisted"
+    "sessionTag": "Persisted",
+    "publishedRecords": "Published Records",
+    "pendingPlaceholders": "Placeholders Pending",
+    "placeholderHint": "Records flagged as placeholder awaiting final details",
+    "statusActive": "Active",
+    "statusPaused": "Paused",
+    "systemStatus": "Security & Database",
+    "rlsActive": "Single-Admin RLS Enforced",
+    "managePagesHeading": "Manage Website Pages",
+    "managePagesSubtitle": "Open any public page tab to edit its sections, see shared-content impact, and preview live.",
+    "recruiterCardDesc": "Control Recruiter Mode visibility, deterministic roles, and matching tag matrix.",
+    "cvCardDesc": "Manage public A4 CV templates, section order, and private owner CV curation.",
+    "pageCards": {
+      "home": "Hero, intro & {{featured}} of {{total}} featured projects",
+      "about": "Bio, {{education}} education record(s) & {{languages}} languages",
+      "experience": "{{count}} verified professional & training entries",
+      "portfolio": "{{count}} projects ({{featured}} featured on Home)",
+      "clients": "{{count}} companies, employers & industrial clients",
+      "skills": "{{visible}} of {{total}} skill groups visible publicly",
+      "certifications": "{{count}} courses & certification records",
+      "contact": "Direct channels & visibility (Email: {{emailStatus}})"
+    }
   },
   "profile": {
     "pageTitle": "Profile Management",
@@ -404,7 +441,119 @@
     "defaultCvTemplate": "Default Public CV Template",
     "templateAts": "ATS Single-Column (Recommended for ATS)",
     "templateModern": "Modern Engineering (Navy & Orange Header)",
-    "cvSectionOrderLabel": "Default Public CV Section Order & Visibility"
+    "cvSectionOrderLabel": "Default Public CV Section Order & Visibility",
+    "mapGlobalSeo": "All Public Pages → Document Title, Meta Description & Brand Identity",
+    "authModelTitle": "Administrator Access Model",
+    "authModelDesc": "This platform enforces a single-owner administrator allowlist in private.admin_users with Supabase Auth and Row-Level Security. Public registration is disabled.",
+    "pageSettingsShortcutsTitle": "Page-Specific Visibility & Feature Settings"
+  },
+  "pageShell": {
+    "livePreview": "Live Preview",
+    "hidePreview": "Hide Preview",
+    "openPublicPage": "Open Page",
+    "livePreviewBadge": "Live Public Page",
+    "desktopView": "Desktop",
+    "mobileView": "Mobile",
+    "refreshPreview": "Refresh live preview",
+    "livePreviewHint": "This preview renders the real public page route. Save your changes to see updates reflected immediately.",
+    "unsavedWarning": "You have unsaved changes on this page. Save your edits or cancel before leaving.",
+    "savedPublished": "Saved & published to Supabase at {{time}}.",
+    "sharedContentTitle": "Single Source of Truth — Shared Content",
+    "sharedContentBody": "Edits made here update the shared Supabase record and also appear on:",
+    "appearsOn": "Appears on",
+    "alsoUsedOn": "Also used on"
+  },
+  "homeMgr": {
+    "title": "Home Page Management",
+    "subtitle": "Manage the Hero identity, introduction summary, portrait visibility, featured projects, and homepage section links.",
+    "mappingPath": "Home (/) → Hero, Introduction, Featured Projects & Section Links",
+    "tabs": {
+      "hero": "Hero & Introduction",
+      "featured": "Featured Projects",
+      "sections": "Homepage Sections Map"
+    },
+    "mapHero": "Home → Hero Section & Introduction Block",
+    "mapFeatured": "Home → Featured Projects Grid",
+    "mapSections": "Home → Secondary Sections (Linked to Dedicated Page Tabs)",
+    "featuredDescription": "Toggle which projects appear in the Featured Projects section on the Home page without duplicating project records.",
+    "featuredActive": "Featured on Home",
+    "featuredInactive": "Portfolio Only",
+    "markFeatured": "Feature on Home",
+    "removeFeatured": "Unfeature",
+    "sectionsDescription": "These homepage summary sections pull live data from their dedicated page tabs to keep a single source of truth.",
+    "sections": {
+      "experience": "Experience Summary Section",
+      "companies": "Companies & Clients Strip",
+      "skills": "Technical Skills Matrix",
+      "certifications": "Courses & Certifications Section",
+      "contact": "Direct Contact CTA Section"
+    }
+  },
+  "aboutMgr": {
+    "title": "About Page Management",
+    "subtitle": "Manage personal biography, academic education records, languages, core competencies, and profile portrait.",
+    "mappingPath": "About (/about) → Biography, Education, Languages, Competencies & Media",
+    "tabs": {
+      "summary": "Biography & Summary",
+      "education": "Education",
+      "languages": "Languages & Competencies",
+      "media": "Profile Media"
+    },
+    "mapSummary": "About → Personal Introduction & Professional Summary",
+    "mapEducation": "About → Academic Education & Coursework",
+    "mapLanguages": "About → Languages List",
+    "mapCompetencies": "About → Core Engineering Competencies",
+    "mapMedia": "About & Home → Profile Portrait Image",
+    "openMediaLibrary": "Upload or browse images in Media Library"
+  },
+  "contactMgr": {
+    "title": "Contact Page Management",
+    "subtitle": "Manage public email, LinkedIn, GitHub, website display, location, and channel visibility settings.",
+    "mappingPath": "Contact (/contact) → Direct Channels, Social Links & Visibility",
+    "mapChannels": "Contact → Direct Channels & Social Links",
+    "mapVisibility": "Contact & Footer → Public Channel Visibility",
+    "formStatusTitle": "Contact Form Status",
+    "formStatusDesc": "The public contact form uses client-side Zod-style validation for Name, Email, Organization, Subject, and Message. Direct channels remain visible alongside the form."
+  },
+  "pageWrappers": {
+    "experienceMap": "Experience (/experience) → Professional Roles & Industrial Training Timeline",
+    "portfolioMap": "Portfolio (/portfolio & /portfolio/:slug) → Projects, Case Studies & Deliverables",
+    "clientsMap": "Companies & Clients (/companies & /companies/:slug) → Directory, Logos & Links",
+    "skillsMap": "Skills (/skills) → Categorized Technical Skill Groups & Display Order",
+    "certificationsMap": "Certifications (/certifications) → Courses, Credentials & Visibility",
+    "certificationsVisMap": "Certifications & Home → Public Section Visibility"
+  },
+  "recruiterMgr": {
+    "title": "Recruiter Mode Management",
+    "subtitle": "Control Recruiter Mode visibility, inspect supported deterministic roles, and audit matching tags across all records.",
+    "mappingPath": "Recruiter Mode (/recruiter & /recruiter/results) → Matching Rules & Tags",
+    "mapVisibility": "Public Navbar, Footer & /recruiter → Recruiter Mode Entry Points",
+    "mapPositions": "Recruiter Mode → 7 Supported Engineering Positions",
+    "mapMatrix": "Recruiter Mode & Smart CV → Verified Matching Tags & Priority Matrix",
+    "positionsHeading": "Supported Deterministic Job Positions",
+    "dynamicCustomHint": "Uses deterministic keyword matching on verified records without claiming an unverified specialization.",
+    "matrixHeading": "Content Matching Tags & CV Priority Audit",
+    "matrixSubtitle": "Tags and priorities live directly on each record so there is zero data duplication. Click any section to edit.",
+    "editInTab": "Edit in Page Tab",
+    "noTags": "No tags assigned"
+  },
+  "cvMgr": {
+    "title": "CV Builder Management",
+    "subtitle": "Configure default A4 templates and section ordering for public visitors, plus manage your private CV curation workspace.",
+    "mappingPath": "Smart CV Builder (/career/cv-builder) → A4 Templates, Order & Content",
+    "tabs": {
+      "publicDefaults": "Public Smart CV Defaults",
+      "ownerWorkspace": "Owner CV Workspace"
+    },
+    "mapPublicDefaults": "Smart CV Builder (/career/cv-builder) → Default Template & Section Order",
+    "mapOwnerWorkspace": "Private Admin CV Workspace → Saved Owner Structure (cv_workspace_config)"
+  },
+  "navigationMgr": {
+    "title": "Navigation Management",
+    "subtitle": "Inspect every public route in the header and footer, and toggle visibility flags that control navigation links.",
+    "mapControls": "Public Header & Footer → Navigation Link Visibility",
+    "inventoryHeading": "Public Website Route Inventory",
+    "managePage": "Manage Page"
   },
   "matching": {
     "heading": "Recruiter Matching & Smart CV Metadata",
