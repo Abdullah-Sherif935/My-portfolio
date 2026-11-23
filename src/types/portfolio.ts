@@ -66,16 +66,43 @@ export type SpecializationId =
   | 'sheet-metal-design'
   | 'robotics-mechatronics';
 
-export type SpecializationIcon = 'wind' | 'cpu' | 'wrench' | 'cog' | 'layers' | 'bot';
+export type SpecializationIcon =
+  | 'wind'
+  | 'cpu'
+  | 'wrench'
+  | 'cog'
+  | 'layers'
+  | 'bot'
+  | 'thermometer'
+  | 'gauge'
+  | 'zap'
+  | 'activity'
+  | 'shield'
+  | 'settings'
+  | 'box'
+  | 'circuit-board'
+  | 'factory'
+  | 'flame'
+  | 'sliders'
+  | 'compass';
+
+export type SpecializationIconType = 'library' | 'image';
+
+export type SpecializationProjectMode = 'category' | 'manual';
 
 export interface Specialization {
   id: string;
   code: string;
   icon: SpecializationIcon;
+  iconType?: SpecializationIconType;
+  customIconUrl?: string | null;
+  customIconPath?: string | null;
   title: LocalizedText;
   description: LocalizedText;
   highlights: LocalizedText[];
   filterCategory: string;
+  projectRelationMode?: SpecializationProjectMode;
+  relatedProjectIds?: string[];
   displayOrder?: number;
   isPublished?: boolean;
 }
@@ -142,6 +169,7 @@ export interface Project extends EditableRecord {
   relatedProjectSlugs?: string[];
   statusLabel: LocalizedText;
   featured: boolean;
+  isPublished?: boolean;
   updatedAt?: string;
   matchingTags?: string[];
   cvPriority?: number;

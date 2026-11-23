@@ -35,55 +35,59 @@ export function IntroSection() {
 
           <div className="grid gap-6 sm:gap-8 lg:grid-cols-12 lg:gap-12">
             {/* Start Column: Consolidated Summary + Education Card */}
-            <div
-              className={
-                intro.showPillars
-                  ? 'space-y-4 sm:space-y-6 lg:col-span-6'
-                  : 'space-y-4 sm:space-y-6 lg:col-span-12'
-              }
-            >
-              <p className="text-sm leading-relaxed text-text-secondary sm:text-base">
-                {pick(intro.description)}
-              </p>
+              <div
+                className={
+                  intro.showPillars
+                    ? 'space-y-4 sm:space-y-6 lg:col-span-6'
+                    : 'space-y-4 sm:space-y-6 lg:col-span-12'
+                }
+              >
+                <p className="text-sm leading-relaxed text-text-secondary sm:text-base">
+                  {pick(intro.description)}
+                </p>
 
-              {intro.showEducationCard && education && (
-                <Card elevated className="p-4 sm:p-5">
-                  <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 sm:mb-3">
-                    <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-accent sm:text-xs">
-                      <GraduationCap className="h-4 w-4" aria-hidden="true" />
-                      {pick(intro.educationLabel)}
-                    </span>
-                    <Badge variant="muted" mono>
-                      {pick(education.period)}
-                    </Badge>
-                  </div>
-                  <h3 className="text-[15px] font-semibold text-text-primary sm:text-lg">
-                    {pick(education.degree)}
-                  </h3>
-                  <p className="mt-1 text-xs text-text-secondary sm:text-sm">
-                    {pick(education.institution)}
-                    {intro.showGpa && education.grade
-                      ? ` · ${pick(education.grade)}`
-                      : ''}
-                  </p>
-                  {intro.showGraduationProject && graduationProject && (
-                    <div className="mt-3 border-t border-border-default pt-2.5 sm:mt-4 sm:pt-3">
-                      <Link
-                        to={`/portfolio/${graduationProject.slug}`}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover"
-                      >
-                        <span>
-                          {pick(intro.graduationProjectLabel)}:{' '}
-                          {pick(graduationProject.title)}
-                        </span>
-                        <ArrowUpRight className="h-3.5 w-3.5 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
-                      </Link>
-                    </div>
-                  )}
+                  {
+                    intro.showEducationCard && education && (
+                      <Card elevated className="p-4 sm:p-5">
+                        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 sm:mb-3">
+                          <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-accent sm:text-xs">
+                            <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                            {pick(intro.educationLabel)}
+                          </span>
+                          <Badge variant="muted" mono>
+                            {pick(education.period)}
+                          </Badge>
+                        </div>
+                        <h3 className="text-[15px] font-semibold text-text-primary sm:text-lg">
+                          {pick(education.degree)}
+                        </h3>
+                        <p className="mt-1 text-xs text-text-secondary sm:text-sm">
+                          {pick(education.institution)}
+                          {intro.showGpa && education.grade
+                            ? ` · ${pick(education.grade)}`
+                            : ''}
+                        </p>
+                          {
+                            intro.showGraduationProject && graduationProject && (
+                              <div className="mt-3 border-t border-border-default pt-2.5 sm:mt-4 sm:pt-3">
+                                <Link
+                                  to={`/portfolio/${graduationProject.slug}`}
+                                  className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover"
+                                >
+                                  <span>
+                                    {pick(intro.graduationProjectLabel)}:{' '}
+                                    {pick(graduationProject.title)}
+                                  </span>
+                                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+                                </Link>
+                              </div>
+                            )
+                          }
                 </Card>
-              )}
+                    )
+                  }
 
-              <div className="pt-0.5">
+                  < div className="pt-0.5">
                 <ButtonLink to="/about" variant="outline" size="sm" className="sm:h-11 sm:px-5 sm:text-sm">
                   <span>{pick(intro.ctaLabel)}</span>
                   <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />

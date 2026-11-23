@@ -74,43 +74,43 @@ export function AdminHomePageManager() {
     setShowPortrait(siteSettings.showGraduationPortrait);
   }, [siteSettings.showGraduationPortrait]);
 
-  const heroDirty = useMemo(() => {
-    return (
-      JSON.stringify({
-        fullName: heroForm.fullName,
-        headline: heroForm.headline,
-        location: heroForm.location,
-        summary: heroForm.summary,
-        avatarUrl: heroForm.avatarUrl ?? null,
-        showPortrait,
-      }) !==
-      JSON.stringify({
-        fullName: profile.fullName,
-        headline: profile.headline,
-        location: profile.location,
-        summary: profile.summary,
-        avatarUrl: profile.avatarUrl ?? null,
-        showPortrait: siteSettings.showGraduationPortrait,
-      })
-    );
-  }, [heroForm, showPortrait, profile, siteSettings.showGraduationPortrait]);
+    const heroDirty = useMemo(() => {
+      return (
+        JSON.stringify({
+          fullName: heroForm.fullName,
+          headline: heroForm.headline,
+          location: heroForm.location,
+          summary: heroForm.summary,
+          avatarUrl: heroForm.avatarUrl ?? null,
+          showPortrait,
+        }) !==
+        JSON.stringify({
+          fullName: profile.fullName,
+          headline: profile.headline,
+          location: profile.location,
+          summary: profile.summary,
+          avatarUrl: profile.avatarUrl ?? null,
+          showPortrait: siteSettings.showGraduationPortrait,
+        })
+      );
+    }, [heroForm, showPortrait, profile, siteSettings.showGraduationPortrait]);
 
-  const isDirty = heroDirty || subTabDirty;
+    const isDirty = heroDirty || subTabDirty;
 
-  useEffect(() => {
-    if (!isDirty) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [isDirty]);
+    useEffect(() => {
+      if (!isDirty) return;
+      const onBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = '';
+      };
+      window.addEventListener('beforeunload', onBeforeUnload);
+      return () => window.removeEventListener('beforeunload', onBeforeUnload);
+    }, [isDirty]);
 
-  const stampSaved = useCallback(() => {
-    setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    setPreviewRefreshKey((k) => k + 1);
-  }, []);
+      const stampSaved = useCallback(() => {
+        setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        setPreviewRefreshKey((k) => k + 1);
+    }, []);
 
   const handleSaveHero = async (e: FormEvent) => {
     e.preventDefault();
@@ -291,9 +291,9 @@ export function AdminHomePageManager() {
             >
               {t('common.cancel')}
             </Button>
-            <Button type="submit" variant="primary" size="md" disabled={isSaving || !heroDirty}>
-              {isSaving ? t('prototype.saving') : t('common.save')}
-            </Button>
+              <Button type="submit" variant="primary" size="md" disabled={isSaving || !heroDirty}>
+                {isSaving ? t('prototype.saving') : t('common.save')}
+              </Button>
           </div>
         </form>
       )}

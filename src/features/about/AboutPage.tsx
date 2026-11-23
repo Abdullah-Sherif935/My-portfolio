@@ -7,6 +7,7 @@ import { Section } from '@/components/layout/Section';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
+import { SpecializationIconBadge } from '@/components/common/SpecializationIconBadge';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
@@ -160,19 +161,24 @@ export function AboutPage() {
               {t('pages:about.disciplinesHeading')}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {specializations
+                {
+                  specializations
                 .filter((spec) => spec.isPublished !== false)
-                .map((spec) => (
-                <Card key={spec.id} className="p-4 sm:p-5">
-                  <p className="mb-1 font-mono text-xs text-accent">{spec.code}</p>
-                  <h3 className="mb-1.5 text-base font-semibold text-text-primary sm:mb-2">
-                    {pick(spec.title)}
-                  </h3>
-                  <p className="text-xs leading-relaxed text-text-secondary sm:text-sm">
-                    {pick(spec.description)}
-                  </p>
-                </Card>
-              ))}
+                    .map((spec) => (
+                      <Card key={spec.id} className="p-4 sm:p-5">
+                        <div className="mb-2.5 flex items-center justify-between gap-2">
+                          <SpecializationIconBadge specialization={spec} size="sm" />
+                          <p className="font-mono text-xs text-accent">{spec.code}</p>
+                        </div>
+                        <h3 className="mb-1.5 text-base font-semibold text-text-primary sm:mb-2">
+                          {pick(spec.title)}
+                        </h3>
+                        <p className="text-xs leading-relaxed text-text-secondary sm:text-sm">
+                          {pick(spec.description)}
+                        </p>
+                      </Card>
+                    ))
+                }
             </div>
           </div>
         </Container>

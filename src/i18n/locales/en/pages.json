@@ -27,7 +27,8 @@
     "emptyTitle": "No matching projects found",
     "emptyDescription": "Try adjusting your search query, project type, or discipline filter. Additional engineering case studies will be published as they are documented.",
     "countSingle": "1 engineering project",
-    "countLabel": "{{count}} engineering projects"
+    "countLabel": "{{count}} engineering projects",
+    "filteredBySpecialization": "Showing related projects for: {{name}}"
   },
   "projectDetail": {
     "notFoundCode": "ERR // PROJECT_NOT_FOUND",

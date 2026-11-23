@@ -11,7 +11,10 @@ import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
-import { SPECIALIZATIONS } from '@/data';
+import {
+  resolvePortfolioCategories,
+  resolveSpecializationProjects,
+} from '@/utils/specializationHelpers';
 import type { ProjectKind } from '@/types/portfolio';
 import { ProjectCard } from './components/ProjectCard';
 import { cn } from '@/utils/cn';
@@ -25,13 +28,35 @@ const KIND_LABELS: Record<ProjectKind, string> = {
 export function PortfolioPage() {
   const { t } = useTranslation(['pages', 'home', 'common']);
   const { pick } = useLanguage();
-  const { projects } = usePortfolioData();
+  const { projects, specializations } = usePortfolioData();
   useDocumentTitle(t('pages:portfolio.pageTitle'));
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const activeSpecializationId = searchParams.get('specialization') || '';
   const activeCategory = searchParams.get('category') || 'all';
   const activeType = searchParams.get('type') || 'all';
   const urlQuery = searchParams.get('q') || '';
+
+  const publishedSpecializations = useMemo(
+    () =>
+      specializations
+        .filter((s) => s.isPublished !== false)
+        .sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99)),
+    [specializations]
+  );
+
+  const dynamicCategories = useMemo(
+    () => resolvePortfolioCategories(publishedSpecializations, projects),
+    [publishedSpecializations, projects]
+  );
+
+  const activeSpecialization = useMemo(
+    () =>
+      activeSpecializationId
+        ? publishedSpecializations.find((s) => s.id === activeSpecializationId) ?? null
+        : null,
+    [activeSpecializationId, publishedSpecializations]
+  );
 
   // Local controlled input state prevents dropped characters during rapid typing
   // while React Router commits search-param transitions asynchronously.
@@ -51,11 +76,25 @@ export function PortfolioPage() {
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
+        if (key === 'category') {
+          next.delete('specialization');
+        }
         if (!value || (key !== 'q' && value === 'all') || (key === 'q' && !value.trim())) {
           next.delete(key);
         } else {
           next.set(key, value);
         }
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const clearSpecializationParam = () => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('specialization');
         return next;
       },
       { replace: true }
@@ -74,9 +113,12 @@ export function PortfolioPage() {
 
   const filteredProjects = useMemo(() => {
     const normalizedQuery = searchInput.trim().toLowerCase();
+    const baseProjects = activeSpecialization
+      ? resolveSpecializationProjects(activeSpecialization, projects)
+      : projects;
 
-    return projects.filter((project) => {
-      if (activeCategory !== 'all' && project.category !== activeCategory) {
+    return baseProjects.filter((project) => {
+      if (!activeSpecialization && activeCategory !== 'all' && project.category !== activeCategory) {
         return false;
       }
       if (activeType !== 'all' && project.kind !== activeType) {
@@ -105,10 +147,13 @@ export function PortfolioPage() {
 
       return haystack.includes(normalizedQuery);
     });
-  }, [projects, activeCategory, activeType, searchInput]);
+  }, [projects, activeSpecialization, activeCategory, activeType, searchInput]);
 
   const hasActiveFilters =
-    activeCategory !== 'all' || activeType !== 'all' || searchInput.trim().length > 0;
+    Boolean(activeSpecialization) ||
+    activeCategory !== 'all' ||
+    activeType !== 'all' ||
+    searchInput.trim().length > 0;
 
   const countText =
     filteredProjects.length === 1
@@ -189,11 +234,11 @@ export function PortfolioPage() {
             <button
               type="button"
               role="tab"
-              aria-selected={activeCategory === 'all'}
+              aria-selected={!activeSpecialization && activeCategory === 'all'}
               onClick={() => updateParam('category', 'all')}
               className={cn(
                 'rounded-[10px] border px-4 py-2 text-sm font-medium transition-colors cursor-pointer',
-                activeCategory === 'all'
+                !activeSpecialization && activeCategory === 'all'
                   ? 'border-accent bg-accent text-accent-foreground'
                   : 'border-border-default bg-bg-secondary text-text-secondary hover:border-border-strong hover:text-text-primary'
               )}
@@ -201,15 +246,15 @@ export function PortfolioPage() {
               {t('pages:portfolio.allCategories')}
             </button>
 
-            {SPECIALIZATIONS.map((spec) => {
-              const isSelected = activeCategory === spec.id;
+            {dynamicCategories.map((cat) => {
+              const isSelected = !activeSpecialization && activeCategory === cat.id;
               return (
                 <button
-                  key={spec.id}
+                  key={cat.id}
                   type="button"
                   role="tab"
                   aria-selected={isSelected}
-                  onClick={() => updateParam('category', spec.id)}
+                  onClick={() => updateParam('category', cat.id)}
                   className={cn(
                     'rounded-[10px] border px-4 py-2 text-sm font-medium transition-colors cursor-pointer',
                     isSelected
@@ -217,11 +262,34 @@ export function PortfolioPage() {
                       : 'border-border-default bg-bg-secondary text-text-secondary hover:border-border-strong hover:text-text-primary'
                   )}
                 >
-                  {pick(spec.title)}
+                  {pick(cat.label)}
                 </button>
               );
             })}
           </div>
+
+          {activeSpecialization && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent-subtle px-4 py-3 text-xs sm:text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="accent" mono>
+                  {activeSpecialization.code}
+                </Badge>
+                <span className="font-medium text-text-primary">
+                  {t('pages:portfolio.filteredBySpecialization', {
+                    name: pick(activeSpecialization.title),
+                  })}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={clearSpecializationParam}
+                className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{t('common:actions.resetFilters')}</span>
+              </button>
+            </div>
+          )}
 
           {filteredProjects.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

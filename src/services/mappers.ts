@@ -239,13 +239,23 @@ export interface SpecializationRow {
   id: string;
   code: string;
   icon: SpecializationIcon;
+  icon_type?: 'library' | 'image' | null;
+  custom_icon_url?: string | null;
+  custom_icon_path?: string | null;
   title: LocalizedText;
   description: LocalizedText;
   highlights: LocalizedText[];
   filter_category: string;
+  project_relation_mode?: 'category' | 'manual' | null;
   display_order: number;
   is_published: boolean;
   updated_at?: string;
+}
+
+export interface SpecializationProjectLinkRow {
+  specialization_id: string;
+  project_id: string;
+  display_order: number;
 }
 
 export interface ActivityLogRow {
@@ -362,6 +372,7 @@ export function mapProjectFromRow(row: ProjectRow): Project {
         : undefined,
     statusLabel: row.status_label,
     featured: row.featured,
+    isPublished: row.is_published,
     dataSource: row.data_source,
     isEditable: row.is_editable,
     displayOrder: row.display_order,
@@ -398,7 +409,7 @@ export function mapProjectToRow(data: Project): ProjectRow {
     data_source: data.dataSource,
     is_editable: data.isEditable,
     display_order: data.displayOrder,
-    is_published: true,
+    is_published: data.isPublished !== false,
     matching_tags: data.matchingTags ?? [],
     cv_priority: Math.min(100, Math.max(1, data.cvPriority ?? 50)),
     show_in_cv: data.showInCv !== false,
@@ -614,15 +625,24 @@ export function mapCvConfigToRow(data: CvWorkspaceConfig): CvWorkspaceConfigRow 
   };
 }
 
-export function mapSpecializationFromRow(row: SpecializationRow): Specialization {
+export function mapSpecializationFromRow(
+  row: SpecializationRow,
+  relatedProjectIds: string[] = []
+): Specialization {
   return {
     id: row.id,
     code: row.code,
     icon: row.icon ?? 'cog',
+    iconType: row.icon_type === 'image' ? 'image' : 'library',
+    customIconUrl: row.custom_icon_url ?? null,
+    customIconPath: row.custom_icon_path ?? null,
     title: row.title,
     description: row.description,
     highlights: row.highlights ?? [],
     filterCategory: row.filter_category ?? '',
+    projectRelationMode:
+      row.project_relation_mode === 'manual' ? 'manual' : 'category',
+    relatedProjectIds,
     displayOrder: row.display_order ?? 1,
     isPublished: row.is_published !== false,
   };
@@ -633,10 +653,15 @@ export function mapSpecializationToRow(data: Specialization): SpecializationRow 
     id: data.id,
     code: data.code,
     icon: data.icon ?? 'cog',
+    icon_type: data.iconType === 'image' && data.customIconUrl ? 'image' : 'library',
+    custom_icon_url: data.customIconUrl ?? null,
+    custom_icon_path: data.customIconPath ?? null,
     title: data.title,
     description: data.description,
     highlights: data.highlights ?? [],
     filter_category: data.filterCategory ?? '',
+    project_relation_mode:
+      data.projectRelationMode === 'manual' ? 'manual' : 'category',
     display_order: data.displayOrder ?? 1,
     is_published: data.isPublished !== false,
   };

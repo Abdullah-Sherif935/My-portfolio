@@ -27,7 +27,8 @@
     "emptyTitle": "لا توجد مشاريع مطابقة للبحث أو التصفية",
     "emptyDescription": "جرّب تعديل عبارة البحث أو نوع المشروع أو التخصص. سيتم نشر دراسات حالة هندسية إضافية فور توثيقها.",
     "countSingle": "مشروع هندسي واحد",
-    "countLabel": "{{count}} مشاريع هندسية"
+    "countLabel": "{{count}} مشاريع هندسية",
+    "filteredBySpecialization": "عرض المشاريع المرتبطة بتخصص: {{name}}"
   },
   "projectDetail": {
     "notFoundCode": "خطأ // المشروع غير موجود",

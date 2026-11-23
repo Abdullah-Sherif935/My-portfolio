@@ -50,8 +50,21 @@ import {
   type ProjectRow,
   type SiteSettingsRow,
   type SkillGroupRow,
+  type SpecializationProjectLinkRow,
   type SpecializationRow,
 } from './mappers';
+
+function groupProjectLinksBySpecialization(
+  rows: SpecializationProjectLinkRow[]
+): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const row of rows) {
+    const list = map.get(row.specialization_id) ?? [];
+    list.push(row.project_id);
+    map.set(row.specialization_id, list);
+  }
+  return map;
+}
 
 export interface PublicPortfolioBundle {
   profile: ProfileData | null;
@@ -87,6 +100,7 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     skillsRes,
     certificationsRes,
     specializationsRes,
+    specLinksRes,
     settingsRes,
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('is_published', true).limit(1).maybeSingle(),
@@ -97,6 +111,7 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     supabase.from('skill_groups').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('certifications').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('specializations').select('*').eq('is_published', true).order('display_order', { ascending: true }),
+    supabase.from('specialization_projects').select('*').order('display_order', { ascending: true }),
     supabase.from('site_settings').select('*').eq('id', 'default').maybeSingle(),
   ]);
 
@@ -109,11 +124,16 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     skillsRes.error ||
     certificationsRes.error ||
     specializationsRes.error ||
+    specLinksRes.error ||
     settingsRes.error;
 
   if (firstError) {
     throw new Error(firstError.message);
   }
+
+  const linkMap = groupProjectLinksBySpecialization(
+    (specLinksRes.data ?? []) as SpecializationProjectLinkRow[]
+  );
 
   return {
     profile: profileRes.data ? mapProfileFromRow(profileRes.data as ProfileRow) : null,
@@ -126,7 +146,7 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
       mapCertificationFromRow
     ),
     specializations: ((specializationsRes.data ?? []) as SpecializationRow[]).map(
-      mapSpecializationFromRow
+      (row) => mapSpecializationFromRow(row, linkMap.get(row.id) ?? [])
     ),
     siteSettings: settingsRes.data
       ? mapSiteSettingsFromRow(settingsRes.data as SiteSettingsRow)
@@ -149,6 +169,7 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     skillsRes,
     certificationsRes,
     specializationsRes,
+    specLinksRes,
     settingsRes,
     mediaRes,
     cvRes,
@@ -162,6 +183,7 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     client.from('skill_groups').select('*').order('display_order', { ascending: true }),
     client.from('certifications').select('*').order('display_order', { ascending: true }),
     client.from('specializations').select('*').order('display_order', { ascending: true }),
+    client.from('specialization_projects').select('*').order('display_order', { ascending: true }),
     client.from('site_settings').select('*').eq('id', 'default').maybeSingle(),
     client.from('media_assets').select('*').order('created_at', { ascending: false }),
     client.from('cv_workspace_config').select('*').eq('id', 'default').maybeSingle(),
@@ -181,6 +203,7 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     skillsRes.error ||
     certificationsRes.error ||
     specializationsRes.error ||
+    specLinksRes.error ||
     settingsRes.error ||
     mediaRes.error ||
     cvRes.error ||
@@ -189,6 +212,10 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
   if (firstError) {
     throw new Error(firstError.message);
   }
+
+  const linkMap = groupProjectLinksBySpecialization(
+    (specLinksRes.data ?? []) as SpecializationProjectLinkRow[]
+  );
 
   return {
     profile: profileRes.data ? mapProfileFromRow(profileRes.data as ProfileRow) : null,
@@ -201,7 +228,7 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
       mapCertificationFromRow
     ),
     specializations: ((specializationsRes.data ?? []) as SpecializationRow[]).map(
-      mapSpecializationFromRow
+      (row) => mapSpecializationFromRow(row, linkMap.get(row.id) ?? [])
     ),
     siteSettings: settingsRes.data
       ? mapSiteSettingsFromRow(settingsRes.data as SiteSettingsRow)
@@ -433,7 +460,96 @@ export async function saveSpecializationRecord(
   if (error || !data) {
     throw new Error(error?.message || 'Failed to save specialization.');
   }
-  return mapSpecializationFromRow(data as SpecializationRow);
+
+  const dedupedIds = Array.from(new Set(spec.relatedProjectIds ?? []));
+  const { error: deleteLinksError } = await client
+    .from('specialization_projects')
+    .delete()
+    .eq('specialization_id', spec.id);
+  if (deleteLinksError) {
+    throw new Error(deleteLinksError.message);
+  }
+
+  if (dedupedIds.length > 0) {
+    const linkRows: SpecializationProjectLinkRow[] = dedupedIds.map(
+      (projectId, idx) => ({
+        specialization_id: spec.id,
+        project_id: projectId,
+        display_order: idx + 1,
+      })
+    );
+    const { error: insertLinksError } = await client
+      .from('specialization_projects')
+      .insert(linkRows);
+    if (insertLinksError) {
+      throw new Error(insertLinksError.message);
+    }
+  }
+
+  return mapSpecializationFromRow(data as SpecializationRow, dedupedIds);
+}
+
+const ALLOWED_ICON_MIME_TYPES = new Set([
+  'image/svg+xml',
+  'image/png',
+  'image/webp',
+]);
+const MAX_ICON_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
+
+export async function uploadSpecializationIcon(
+  file: File,
+  specializationId: string
+): Promise<{ url: string; storagePath: string }> {
+  if (!ALLOWED_ICON_MIME_TYPES.has(file.type)) {
+    throw new Error('Only SVG, PNG, and WebP icon files are supported.');
+  }
+  if (file.size > MAX_ICON_SIZE_BYTES) {
+    throw new Error('Icon file size must be 2 MB or smaller.');
+  }
+
+  const client = requireSupabase();
+  const ext =
+    file.type === 'image/svg+xml'
+      ? 'svg'
+      : file.type === 'image/webp'
+        ? 'webp'
+        : 'png';
+  const safeId = specializationId.replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
+  const storagePath = `specializations/${safeId}-${Date.now()}.${ext}`;
+
+  const { error: uploadError } = await client.storage
+    .from('portfolio-media')
+    .upload(storagePath, file, {
+      contentType: file.type,
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    throw new Error(uploadError.message);
+  }
+
+  const { data: publicUrlData } = client.storage
+    .from('portfolio-media')
+    .getPublicUrl(storagePath);
+
+  return {
+    url: publicUrlData.publicUrl,
+    storagePath,
+  };
+}
+
+export async function deleteSpecializationIconAsset(
+  storagePath: string
+): Promise<void> {
+  if (!storagePath.trim()) return;
+  const client = requireSupabase();
+  const { error } = await client.storage
+    .from('portfolio-media')
+    .remove([storagePath]);
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function deleteSpecializationRecord(id: string): Promise<void> {

@@ -1,28 +1,20 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Bot, Cog, Cpu, Layers, Wind, Wrench } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Container } from '@/components/layout/Container';
 import { Section } from '@/components/layout/Section';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Card } from '@/components/ui/Card';
+import { SpecializationIconBadge } from '@/components/common/SpecializationIconBadge';
 import { Reveal } from '@/components/animations/Reveal';
 import { useLanguage } from '@/hooks/useLanguage';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
-import type { SpecializationIcon } from '@/types/portfolio';
-
-const ICON_MAP: Record<SpecializationIcon, typeof Wind> = {
-  wind: Wind,
-  cpu: Cpu,
-  wrench: Wrench,
-  cog: Cog,
-  layers: Layers,
-  bot: Bot,
-};
+import { getSpecializationProjectsHref } from '@/utils/specializationHelpers';
 
 export function SpecializationsSection() {
   const { t } = useTranslation('common');
   const { pick } = useLanguage();
-  const { specializations, siteSettings } = usePortfolioData();
+  const { specializations, projects, siteSettings } = usePortfolioData();
   const sectionConfig = siteSettings.homeSections.specializations;
 
   const visibleSpecs = specializations
@@ -45,16 +37,11 @@ export function SpecializationsSection() {
 
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {visibleSpecs.map((spec) => {
-              const Icon = ICON_MAP[spec.icon] ?? Cog;
-              const filterHref = spec.filterCategory
-                ? `/portfolio?category=${spec.filterCategory}`
-                : '/portfolio';
+              const filterHref = getSpecializationProjectsHref(spec, projects);
               return (
                 <Card key={spec.id} interactive className="flex h-full flex-col p-4 sm:p-6">
                   <div className="mb-3 flex items-center justify-between gap-3 sm:mb-5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent sm:h-12 sm:w-12">
-                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
-                    </div>
+                    <SpecializationIconBadge specialization={spec} size="md" />
                     <span className="font-mono text-[11px] text-text-secondary sm:text-xs">
                       {spec.code}
                     </span>
@@ -82,13 +69,15 @@ export function SpecializationsSection() {
                     </ul>
                   )}
 
-                  <Link
-                    to={filterHref}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover sm:text-sm"
-                  >
-                    <span>{t('actions.relatedProjects')}</span>
-                    <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 rtl:-scale-x-100" aria-hidden="true" />
-                  </Link>
+                  {filterHref && (
+                    <Link
+                      to={filterHref}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover sm:text-sm"
+                    >
+                      <span>{t('actions.relatedProjects')}</span>
+                      <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 rtl:-scale-x-100" aria-hidden="true" />
+                    </Link>
+                  )}
                 </Card>
               );
             })}
