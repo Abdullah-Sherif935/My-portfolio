@@ -1,0 +1,83 @@
+/* ==========================================================================
+   Centralized Design Tokens — Abdullah Sherif Engineering Portfolio
+   Strict semantic CSS variables for Dark & Light themes.
+   ========================================================================== */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Core Palette — Dark Theme */
+  --bg-primary: #0b1220;
+  --bg-secondary: #111b2e;
+  --bg-elevated: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-default: #263449;
+  --border-strong: #334662;
+
+  /* Brand & Semantic Accents */
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-subtle: rgba(245, 158, 11, 0.12);
+  --accent-border: rgba(245, 158, 11, 0.32);
+  --accent-foreground: #0b1220;
+
+  --success: #22c55e;
+  --success-subtle: rgba(34, 197, 94, 0.12);
+  --error: #ef4444;
+  --error-subtle: rgba(239, 68, 68, 0.12);
+
+  /* Surface Overlays & Technical Grid */
+  --nav-bg: rgba(11, 18, 32, 0.84);
+  --grid-line: rgba(148, 163, 184, 0.065);
+  --shadow-card: 0 12px 32px -16px rgba(2, 6, 23, 0.72);
+  --shadow-elevated: 0 20px 48px -20px rgba(2, 6, 23, 0.85);
+  --focus-ring: rgba(245, 158, 11, 0.55);
+
+  /* Typography */
+  --font-sans-en: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans-ar: 'IBM Plex Sans Arabic', 'Inter', Tahoma, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Radii (8px spacing rhythm) */
+  --radius-card: 16px;
+  --radius-card-sm: 12px;
+  --radius-input: 10px;
+  --radius-pill: 9999px;
+
+  /* Layout */
+  --container-max: 1280px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  /* Core Palette — Light Theme */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* Brand & Semantic Accents */
+  --accent: #d97706;
+  --accent-hover: #b45309;
+  --accent-subtle: rgba(217, 119, 6, 0.1);
+  --accent-border: rgba(217, 119, 6, 0.28);
+  --accent-foreground: #ffffff;
+
+  --success: #16a34a;
+  --success-subtle: rgba(22, 163, 74, 0.1);
+  --error: #dc2626;
+  --error-subtle: rgba(220, 38, 38, 0.1);
+
+  /* Surface Overlays & Technical Grid */
+  --nav-bg: rgba(248, 250, 252, 0.86);
+  --grid-line: rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 10px 28px -16px rgba(15, 23, 42, 0.12);
+  --shadow-elevated: 0 18px 40px -18px rgba(15, 23, 42, 0.18);
+  --focus-ring: rgba(217, 119, 6, 0.45);
+}

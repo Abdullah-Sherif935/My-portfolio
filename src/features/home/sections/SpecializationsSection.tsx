@@ -1,0 +1,86 @@
+import { Link } from 'react-router-dom';
+import { ArrowUpRight, Bot, Cog, Cpu, Layers, Wind, Wrench } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Container } from '@/components/layout/Container';
+import { Section } from '@/components/layout/Section';
+import { SectionHeading } from '@/components/ui/SectionHeading';
+import { Card } from '@/components/ui/Card';
+import { Reveal } from '@/components/animations/Reveal';
+import { useLanguage } from '@/hooks/useLanguage';
+import { SPECIALIZATIONS } from '@/data';
+import type { Specialization } from '@/types/portfolio';
+
+const ICON_MAP: Record<Specialization['icon'], typeof Wind> = {
+  wind: Wind,
+  cpu: Cpu,
+  wrench: Wrench,
+  cog: Cog,
+  layers: Layers,
+  bot: Bot,
+};
+
+export function SpecializationsSection() {
+  const { t } = useTranslation(['home', 'common']);
+  const { pick } = useLanguage();
+
+  return (
+    <Section id="specializations" surface="primary">
+      <Container>
+        <Reveal>
+          <SectionHeading
+            eyebrow={t('home:specializations.eyebrow')}
+            title={t('home:specializations.title')}
+            subtitle={t('home:specializations.subtitle')}
+          />
+
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+            {SPECIALIZATIONS.map((spec) => {
+              const Icon = ICON_MAP[spec.icon];
+              return (
+                <Card key={spec.id} interactive className="flex h-full flex-col p-4 sm:p-6">
+                  <div className="mb-3 flex items-center justify-between gap-3 sm:mb-5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent sm:h-12 sm:w-12">
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                    </div>
+                    <span className="font-mono text-[11px] text-text-secondary sm:text-xs">
+                      {spec.code}
+                    </span>
+                  </div>
+
+                  <h3 className="mb-1.5 text-base font-semibold text-text-primary sm:mb-2.5 sm:text-[19px]">
+                    {pick(spec.title)}
+                  </h3>
+
+                  <p className="mb-3 flex-1 text-xs leading-relaxed text-text-secondary sm:mb-5 sm:text-sm">
+                    {pick(spec.description)}
+                  </p>
+
+                  {/* Preserved on tablet/desktop; hidden on compact mobile to reduce scroll height */}
+                  <ul className="mb-5 hidden space-y-1.5 border-t border-border-default pt-4 text-xs text-text-secondary sm:block">
+                    {spec.highlights.map((item, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+                        />
+                        <span>{pick(item)}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    to={`/portfolio?category=${spec.filterCategory}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-accent-hover sm:text-sm"
+                  >
+                    <span>{t('common:actions.relatedProjects')}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 rtl:-scale-x-100" aria-hidden="true" />
+                  </Link>
+                </Card>
+              );
+            })}
+          </div>
+        </Reveal>
+      </Container>
+    </Section>
+  );
+}

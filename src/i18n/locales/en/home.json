@@ -1,0 +1,98 @@
+{
+  "hero": {
+    "eyebrow": "MECHATRONICS · HVAC & REFRIGERATION · INDUSTRIAL AUTOMATION",
+    "mobileSummary": "Ain Shams Mechatronics graduate (2026) designing industrial HVAC chillers, cold rooms, sheet metal assemblies, and control & robotics systems.",
+    "profileFrameLabel": "FIG-01 // PROFILE",
+    "degreeTag": "B.ENG {{year}}",
+    "profilePlaceholderTitle": "Engineer Profile Portrait",
+    "profilePlaceholderSubtitle": "Verified portrait asset to be added",
+    "universityTagLabel": "University",
+    "universityTagValue": "Ain Shams Eng",
+    "localeTagLabel": "Languages",
+    "localeTagValue": "EN / AR · RTL",
+    "specDegreeLabel": "Education",
+    "specCurrentLabel": "Current Role",
+    "specFocusLabel": "Core Focus",
+    "specFocusValue": "HVAC · Sheet Metal · CNC · Control · Robotics"
+  },
+  "intro": {
+    "eyebrow": "01 // ENGINEERING PROFILE",
+    "title": "Engineering Profile & Academic Foundation",
+    "conciseSummary": "Bridging Mechatronics Engineering fundamentals with hands-on industrial design-to-manufacturing across HVAC systems, SolidWorks sheet metal, CNC fiber laser production, and classic/PLC control.",
+    "educationLabel": "Academic Education",
+    "graduationProjectLink": "Graduation Project",
+    "pillarsTitle": "Core Engineering Approach",
+    "pillars": [
+      {
+        "code": "SYS-01",
+        "title": "Design-to-Manufacturing Execution",
+        "description": "Developing chillers, cold rooms, and SolidWorks sheet metal assemblies ready for CNC laser cutting and forming."
+      },
+      {
+        "code": "SYS-02",
+        "title": "Control & Industrial Reliability",
+        "description": "Supporting relay-based control panels, PLC tasks, refrigeration troubleshooting, and routine equipment maintenance."
+      },
+      {
+        "code": "SYS-03",
+        "title": "Robotics & Embedded Integration",
+        "description": "Integrating mechanical design, ESP32-S3 motor control, ROS 2 / MoveIt 2 kinematics, and machine vision."
+      }
+    ],
+    "readMoreAbout": "Full Profile & Education"
+  },
+  "companies": {
+    "eyebrow": "05 // INDUSTRIAL EXPOSURE",
+    "title": "Companies & Industrial Clients",
+    "subtitle": "Industrial collaborations and documented engineering engagements.",
+    "compactHeading": "Industrial Case Studies in Documentation",
+    "compactDescription": "Detailed company profiles, verified industrial client engagements, and associated field case studies are published here as each record is documented and approved.",
+    "industryLabel": "Industry",
+    "relationshipLabel": "Relationship",
+    "servicesLabel": "Services Scope",
+    "logoPlaceholder": "Logo pending"
+  },
+  "specializations": {
+    "eyebrow": "02 // CORE SPECIALIZATIONS",
+    "title": "Core Engineering Expertise",
+    "subtitle": "Six integrated disciplines across thermal systems, industrial automation, maintenance, mechanical CAD, sheet metal, and mechatronics."
+  },
+  "projects": {
+    "eyebrow": "03 // FEATURED PROJECTS",
+    "title": "Featured Engineering Projects",
+    "subtitle": "Selected engineering work including the Flex Bot hospital mobile manipulator graduation project and core mechanical and robotics builds."
+  },
+  "experience": {
+    "eyebrow": "04 // PROFESSIONAL EXPERIENCE",
+    "title": "Experience & Industrial Training",
+    "subtitle": "Industrial design, production line manufacturing, and hands-on plant training.",
+    "responsibilitiesLabel": "Scope & Responsibilities"
+  },
+  "skills": {
+    "eyebrow": "06 // TECHNICAL SKILLS",
+    "title": "Technical Capabilities & Tooling",
+    "subtitle": "Categorized engineering disciplines, CAD/simulation platforms, manufacturing workflows, and robotics tooling."
+  },
+  "certifications": {
+    "eyebrow": "07 // COURSES & CERTIFICATIONS",
+    "title": "Technical Courses & Credentials",
+    "subtitle": "Technical training across SolidWorks sheet metal design, classic control, and modern engineering tools.",
+    "issuerLabel": "Issuing Organization",
+    "dateLabel": "Issue Date"
+  },
+  "contact": {
+    "eyebrow": "08 // CONTACT",
+    "title": "Start an Engineering Conversation",
+    "subtitle": "For HVAC & refrigeration design, industrial projects, control panels, mechanical CAD, or engineering roles.",
+    "emailTitle": "Email Address",
+    "emailNote": "Direct email for engineering inquiries",
+    "linkedinTitle": "LinkedIn Profile",
+    "linkedinNote": "Connect for engineering roles & collaboration",
+    "githubTitle": "GitHub Profile",
+    "githubNote": "Repository profile coming soon",
+    "ctaEyebrow": "Direct Inquiry",
+    "ctaTitle": "Send a Direct Inquiry",
+    "ctaDescription": "Use the contact form to share project scope, technical requirements, or engineering opportunities.",
+    "ctaButton": "Open Contact Form"
+  }
+}

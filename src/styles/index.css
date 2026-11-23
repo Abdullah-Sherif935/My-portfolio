@@ -1,0 +1,104 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-border: var(--accent-border);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-error: var(--error);
+  --color-error-subtle: var(--error-subtle);
+  --color-nav-bg: var(--nav-bg);
+
+  --font-sans: var(--font-sans-en);
+  --font-arabic: var(--font-sans-ar);
+  --font-mono: var(--font-mono);
+
+  --radius-card: var(--radius-card);
+  --radius-card-sm: var(--radius-card-sm);
+  --radius-input: var(--radius-input);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+}
+
+@layer base {
+  html {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans-en);
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+
+  html[lang='ar'] {
+    font-family: var(--font-sans-ar);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: clip;
+    line-height: 1.65;
+  }
+
+  /* Accessible focus styling */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--accent-subtle);
+    color: var(--text-primary);
+  }
+}
+
+/* Unlayered Arabic typography safeguards (higher cascade priority than @layer utilities) */
+html[lang='ar'] .tracking-wider,
+html[lang='ar'] .tracking-wide,
+html[lang='ar'] .tracking-tight {
+  letter-spacing: 0;
+}
+
+html[lang='ar'] .font-mono {
+  font-family: var(--font-sans-ar);
+  letter-spacing: 0;
+}
+
+/* Blueprint / technical drafting grid background */
+.engineering-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Reduced motion safeguard */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

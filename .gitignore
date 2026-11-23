@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.*
+
+# Build output
+dist
+dist-ssr
+*.local
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Editor & OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+.DS_Store
+Thumbs.db
+*.log
+*.crdownload
+*.tmp
+*.part
