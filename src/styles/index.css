@@ -105,57 +105,97 @@ html[lang='ar'] .font-mono {
 
 /* ============================================================================
    Phase 05 — Client-Side A4 Multi-Page Vector Print-to-PDF Rules
+   Forces pure white A4 paper canvas even when site is in Dark Theme.
    ============================================================================ */
 @page {
   size: A4 portrait;
-  margin: 12mm;
+  margin: 12mm 14mm;
+  background: #ffffff;
 }
 
 @media print {
+
+  :root,
+  :root[data-theme='dark'],
+  :root[data-theme='light'] {
+    color-scheme: light !important;
+    --bg-primary: #ffffff !important;
+    --bg-secondary: #ffffff !important;
+    --bg-elevated: #ffffff !important;
+    --text-primary: #0f172a !important;
+    --text-secondary: #475569 !important;
+  }
+
   html,
-  body {
-    background: #ffffff !important;
-    color: #0f172a !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    min-height: auto !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
 
-  .no-print {
-    display: none !important;
-  }
+    body,
+    #root,
+    #root>div,
+    main {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      min-height: 0 !important;
+      height: auto !important;
+      overflow: visible !important;
+      box-shadow: none !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
-  main {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
+    /* Neutralize PageTransition motion wrappers during print to avoid stacking/clip artifacts */
+    main>div {
+      transform: none !important;
+      opacity: 1 !important;
+      background: #ffffff !important;
+    }
 
-  .cv-print-sheet {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    background: #ffffff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+    .no-print {
+      display: none !important;
+    }
 
-  .cv-section-heading {
-    break-after: avoid;
-    page-break-after: avoid;
-  }
+    .cv-print-sheet {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
-  .cv-entry-block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
+    .cv-modern-header {
+      background-color: #0b1120 !important;
+      color: #ffffff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
-  a {
-    text-decoration: underline;
+    .cv-section {
+      break-inside: auto;
+    }
+
+    .cv-section-keep {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .cv-section-heading {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    .cv-entry-block {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    a {
+      text-decoration: underline;
+    }
   }
-}
