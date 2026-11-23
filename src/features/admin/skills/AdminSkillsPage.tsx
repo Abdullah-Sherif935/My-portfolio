@@ -11,6 +11,7 @@ import { AdminPageHeader } from '@/features/admin/components/AdminPageHeader';
 import { PrototypeBanner } from '@/features/admin/components/PrototypeBanner';
 import { ConfirmDeleteModal } from '@/features/admin/components/ConfirmDeleteModal';
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
+import { MatchingMetadataFields } from '@/features/admin/components/MatchingMetadataFields';
 import type { SkillGroup } from '@/types/portfolio';
 
 function createEmptySkillGroup(order: number): SkillGroup {
@@ -250,6 +251,28 @@ export function AdminSkillsPage() {
                 </div>
               ))}
             </div>
+
+            <MatchingMetadataFields
+              idPrefix="skl-match"
+              matchingTags={editing.group.matchingTags ?? []}
+              onTagsChange={(matchingTags) =>
+                setEditing((p) =>
+                  p ? { ...p, group: { ...p.group, matchingTags } } : null
+                )
+              }
+              cvPriority={editing.group.cvPriority ?? 50}
+              onPriorityChange={(cvPriority) =>
+                setEditing((p) =>
+                  p ? { ...p, group: { ...p.group, cvPriority } } : null
+                )
+              }
+              showInCv={editing.group.showInCv !== false}
+              onShowInCvChange={(showInCv) =>
+                setEditing((p) =>
+                  p ? { ...p, group: { ...p.group, showInCv } } : null
+                )
+              }
+            />
 
             <div className="flex justify-end gap-3 border-t border-border-default pt-4">
               <Button variant="secondary" size="md" onClick={() => setEditing(null)}>

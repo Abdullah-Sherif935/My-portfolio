@@ -12,6 +12,7 @@ import { AdminPageHeader } from '@/features/admin/components/AdminPageHeader';
 import { PrototypeBanner } from '@/features/admin/components/PrototypeBanner';
 import { ConfirmDeleteModal } from '@/features/admin/components/ConfirmDeleteModal';
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
+import { MatchingMetadataFields } from '@/features/admin/components/MatchingMetadataFields';
 import type { ExperienceItem, ExperienceKind } from '@/types/portfolio';
 
 function createEmptyExperience(order: number): ExperienceItem {
@@ -445,6 +446,28 @@ export function AdminExperiencePage() {
                 })}
               </div>
             </div>
+
+            <MatchingMetadataFields
+              idPrefix="exp-match"
+              matchingTags={editing.item.matchingTags ?? []}
+              onTagsChange={(matchingTags) =>
+                setEditing((p) =>
+                  p ? { ...p, item: { ...p.item, matchingTags } } : null
+                )
+              }
+              cvPriority={editing.item.cvPriority ?? 50}
+              onPriorityChange={(cvPriority) =>
+                setEditing((p) =>
+                  p ? { ...p, item: { ...p.item, cvPriority } } : null
+                )
+              }
+              showInCv={editing.item.showInCv !== false}
+              onShowInCvChange={(showInCv) =>
+                setEditing((p) =>
+                  p ? { ...p, item: { ...p.item, showInCv } } : null
+                )
+              }
+            />
 
             <div className="flex justify-end gap-3 border-t border-border-default pt-4">
               <Button variant="secondary" size="md" onClick={() => setEditing(null)}>

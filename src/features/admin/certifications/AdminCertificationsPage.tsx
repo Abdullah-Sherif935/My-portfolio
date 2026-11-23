@@ -11,6 +11,7 @@ import { AdminPageHeader } from '@/features/admin/components/AdminPageHeader';
 import { PrototypeBanner } from '@/features/admin/components/PrototypeBanner';
 import { ConfirmDeleteModal } from '@/features/admin/components/ConfirmDeleteModal';
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
+import { MatchingMetadataFields } from '@/features/admin/components/MatchingMetadataFields';
 import type { Certification } from '@/types/portfolio';
 
 function createEmptyCertification(order: number): Certification {
@@ -245,6 +246,23 @@ export function AdminCertificationsPage() {
                 />
               </div>
             </div>
+
+            <MatchingMetadataFields
+              idPrefix="cert-match"
+              matchingTags={editing.cert.matchingTags ?? []}
+              onTagsChange={(matchingTags) =>
+                setEditing((p) =>
+                  p ? { ...p, cert: { ...p.cert, matchingTags } } : null
+                )
+              }
+              showPriority={false}
+              showInCv={editing.cert.showInCv !== false}
+              onShowInCvChange={(showInCv) =>
+                setEditing((p) =>
+                  p ? { ...p, cert: { ...p.cert, showInCv } } : null
+                )
+              }
+            />
 
             <div className="flex justify-end gap-3 border-t border-border-default pt-4">
               <Button variant="secondary" size="md" onClick={() => setEditing(null)}>

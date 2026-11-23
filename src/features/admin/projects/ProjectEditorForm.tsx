@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
+import { MatchingMetadataFields } from '@/features/admin/components/MatchingMetadataFields';
 import { useLanguage } from '@/hooks/useLanguage';
 import { SPECIALIZATIONS } from '@/data';
 import type {
@@ -571,6 +572,22 @@ export function ProjectEditorForm({
                 </span>
               ))}
             </div>
+
+            <MatchingMetadataFields
+              idPrefix="prj-match"
+              matchingTags={form.matchingTags ?? []}
+              onTagsChange={(matchingTags) =>
+                setForm((p) => ({ ...p, matchingTags }))
+              }
+              cvPriority={form.cvPriority ?? 50}
+              onPriorityChange={(cvPriority) =>
+                setForm((p) => ({ ...p, cvPriority }))
+              }
+              showInCv={form.showInCv !== false}
+              onShowInCvChange={(showInCv) =>
+                setForm((p) => ({ ...p, showInCv }))
+              }
+            />
           </div>
         )}
 

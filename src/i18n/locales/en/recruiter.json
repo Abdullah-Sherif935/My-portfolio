@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "entryTitle": "Recruiter Mode — Tailored Engineering Profile",
+    "resultsTitle": "Tailored Profile Results — Recruiter Mode",
+    "cvBuilderTitle": "Smart CV Generator & A4 PDF Export"
+  },
+  "badge": "Recruiter Mode · Deterministic Matching",
+  "entry": {
+    "title": "Explore This Profile by Target Engineering Role",
+    "subtitle": "Select a target job position and optional technical focus areas to prioritize verified experience, projects, skills, and certifications — without hiding the complete portfolio or requiring an account.",
+    "noAccountNote": "No sign-in or recruiter account required · Powered strictly by verified portfolio records",
+    "stepRole": "1. Select Target Job Position",
+    "stepCustomPlaceholder": "e.g., HVAC Project Engineer, Maintenance Engineer, Mechatronics R&D...",
+    "stepCustomLabel": "Custom Job Title",
+    "stepCustomHint": "A custom title is used strictly to rank the closest verified records via keyword matching. It does not claim an additional specialization outside the verified profile.",
+    "stepSkills": "2. Optional Technical Focus Areas",
+    "stepSkillsHint": "Optionally select skills or domains to give extra priority in the tailored view and generated CV.",
+    "stepLanguage": "3. Preferred CV Language",
+    "langEn": "English (LTR)",
+    "langAr": "Arabic (RTL)",
+    "langNote": "Switching CV language adapts headings and verified bilingual records without changing any underlying facts.",
+    "analyzeCta": "View Tailored Profile",
+    "directCvCta": "Open Smart CV Generator",
+    "fullPortfolioCta": "Explore Full Portfolio",
+    "disabledTitle": "Recruiter Mode Is Currently Paused",
+    "disabledDescription": "The portfolio owner has temporarily hidden Recruiter Mode. You can still browse the complete engineering portfolio, projects, and experience freely."
+  },
+  "tiers": {
+    "strong": "Strong Match",
+    "relevant": "Relevant",
+    "supporting": "Supporting Background"
+  },
+  "results": {
+    "eyebrow": "Tailored Recruiter View",
+    "targetRoleLabel": "Target Position",
+    "cvLangLabel": "CV Language",
+    "changeRole": "Change Position",
+    "generateCv": "Generate Tailored CV (PDF)",
+    "viewFullPortfolio": "View Full Portfolio",
+    "quickSwitchLabel": "Switch target role:",
+    "transparencyNote": "Relevance is computed deterministically from verified portfolio records, tags, and technical keywords — never from an arbitrary percentage score or external AI.",
+    "customRoleNotice": "Custom position \"{{role}}\" is used strictly to prioritize the closest verified records in this portfolio. It does not represent an unverified title or claim.",
+    "insufficientMatchNotice": "No direct keyword overlap was found for this custom role in the current portfolio records. Displaying verified engineering records ordered by core priority.",
+    "matchedKeywordsLabel": "Matched",
+    "sections": {
+      "summary": "Professional Summary",
+      "focusAreas": "Top Matched Verified Areas",
+      "skills": "Relevant Technical Skills",
+      "experience": "Relevant Experience & Industrial Training",
+      "projects": "Relevant Engineering Projects",
+      "supportingProjects": "Additional Portfolio Projects (Always Accessible)",
+      "showSupporting": "Show additional projects ({{count}})",
+      "hideSupporting": "Hide additional projects",
+      "education": "Education",
+      "certifications": "Courses & Certifications",
+      "contact": "Contact & Professional Links"
+    },
+    "openProject": "Open Case Study",
+    "openCompany": "Company Profile",
+    "openContactPage": "Send Direct Message"
+  },
+  "cv": {
+    "eyebrow": "Smart CV Generator · Live Verified Data",
+    "title": "Tailored Engineering CV & A4 PDF Export",
+    "subtitle": "Derived directly from verified portfolio records without altering source data. Choose a target role, language, and A4 template, preview live, and export a clean print-ready PDF.",
+    "readOnlyNotice": "Read-only public generator · Source portfolio records cannot be modified here",
+    "controlsHeading": "CV Configuration",
+    "roleLabel": "Target Job Position",
+    "customRoleLabel": "Custom Target Title",
+    "customRolePlaceholder": "Optional custom job title...",
+    "languageLabel": "CV Language",
+    "templateLabel": "CV Template",
+    "templates": {
+      "ats": {
+        "name": "ATS Single-Column",
+        "desc": "Clean single-column hierarchy optimized for Applicant Tracking Systems and crisp text parsing."
+      },
+      "modern": {
+        "name": "Modern Engineering",
+        "desc": "Structured Navy & Orange engineering header with clear scannable blocks and ATS-safe text."
+      }
+    },
+    "sectionsLabel": "Preview Sections",
+    "sectionNames": {
+      "summary": "Professional Summary",
+      "experience": "Work Experience & Training",
+      "projects": "Engineering Projects",
+      "skills": "Technical Skills",
+      "education": "Education",
+      "certifications": "Courses & Certifications"
+    },
+    "downloadPdf": "Download / Save as PDF (A4)",
+    "printHint": "Tip: In the browser print dialog, choose \"Save as PDF\", paper size \"A4\", and enable background graphics for the Modern template.",
+    "filenameLabel": "Suggested PDF Filename",
+    "backToRecruiter": "Recruiter View",
+    "backToPortfolio": "Full Portfolio",
+    "previewHeading": "Live A4 Document Preview",
+    "documentLabels": {
+      "en": {
+        "targetFocus": "Tailored Focus",
+        "summary": "Professional Summary",
+        "experience": "Experience & Industrial Training",
+        "projects": "Engineering Projects",
+        "skills": "Technical Skills",
+        "education": "Education",
+        "certifications": "Courses & Certifications",
+        "languages": "Languages",
+        "technologies": "Technologies",
+        "grade": "Grade",
+        "portfolio": "Portfolio",
+        "linkedin": "LinkedIn",
+        "github": "GitHub",
+        "email": "Email",
+        "location": "Location",
+        "credentialId": "ID",
+        "customNote": "Tailored view prepared from verified engineering records for target role:"
+      },
+      "ar": {
+        "targetFocus": "التخصص المستهدف",
+        "summary": "الملخص المهني",
+        "experience": "الخبرات المهنية والتدريب الصناعي",
+        "projects": "المشاريع الهندسية",
+        "skills": "المهارات التقنية",
+        "education": "التعليم الأكاديمي",
+        "certifications": "الدورات والشهادات",
+        "languages": "اللغات",
+        "technologies": "التقنيات",
+        "grade": "التقدير",
+        "portfolio": "الموقع الهندسي",
+        "linkedin": "لينكدإن",
+        "github": "جيت هاب",
+        "email": "البريد الإلكتروني",
+        "location": "الموقع",
+        "credentialId": "الرمز",
+        "customNote": "نسخة مخصصة مبنية من السجلات الهندسية الموثّقة للوظيفة المستهدفة:"
+      }
+    }
+  }
+}

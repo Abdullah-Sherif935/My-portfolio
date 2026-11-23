@@ -19,10 +19,20 @@ import type {
   AdminActivityItem,
   AdminSiteSettings,
   CvSectionConfig,
+  CvTemplateId,
   CvWorkspaceConfig,
   MediaAsset,
   MediaCategory,
 } from '@/types/admin';
+
+const DEFAULT_CV_SECTION_ORDER: CvSectionConfig[] = [
+  { key: 'summary', visible: true },
+  { key: 'experience', visible: true },
+  { key: 'projects', visible: true },
+  { key: 'skills', visible: true },
+  { key: 'education', visible: true },
+  { key: 'certifications', visible: true },
+];
 
 // ============================================================================
 // Raw PostgreSQL Row Shapes (snake_case)
@@ -91,6 +101,9 @@ export interface ProjectRow {
   is_editable: boolean;
   display_order: number;
   is_published: boolean;
+  matching_tags?: string[] | null;
+  cv_priority?: number | null;
+  show_in_cv?: boolean | null;
   updated_at?: string;
 }
 
@@ -113,6 +126,9 @@ export interface ExperienceRow {
   is_editable: boolean;
   display_order: number;
   is_published: boolean;
+  matching_tags?: string[] | null;
+  cv_priority?: number | null;
+  show_in_cv?: boolean | null;
   updated_at?: string;
 }
 
@@ -146,6 +162,9 @@ export interface SkillGroupRow {
   is_editable: boolean;
   display_order: number;
   is_published: boolean;
+  matching_tags?: string[] | null;
+  cv_priority?: number | null;
+  show_in_cv?: boolean | null;
   updated_at?: string;
 }
 
@@ -163,6 +182,8 @@ export interface CertificationRow {
   is_editable: boolean;
   display_order: number;
   is_published: boolean;
+  matching_tags?: string[] | null;
+  show_in_cv?: boolean | null;
   updated_at?: string;
 }
 
@@ -204,6 +225,9 @@ export interface SiteSettingsRow {
   show_contact_email: boolean;
   show_linkedin_link: boolean;
   show_courses_section: boolean;
+  recruiter_mode_enabled?: boolean | null;
+  default_cv_template?: CvTemplateId | null;
+  cv_section_order?: CvSectionConfig[] | null;
 }
 
 export interface ActivityLogRow {
@@ -324,6 +348,9 @@ export function mapProjectFromRow(row: ProjectRow): Project {
     isEditable: row.is_editable,
     displayOrder: row.display_order,
     updatedAt: row.updated_at ? row.updated_at.slice(0, 10) : undefined,
+    matchingTags: row.matching_tags ?? [],
+    cvPriority: row.cv_priority ?? 50,
+    showInCv: row.show_in_cv ?? true,
   };
 }
 
@@ -354,6 +381,9 @@ export function mapProjectToRow(data: Project): ProjectRow {
     is_editable: data.isEditable,
     display_order: data.displayOrder,
     is_published: true,
+    matching_tags: data.matchingTags ?? [],
+    cv_priority: Math.min(100, Math.max(1, data.cvPriority ?? 50)),
+    show_in_cv: data.showInCv !== false,
   };
 }
 
@@ -376,6 +406,9 @@ export function mapExperienceFromRow(row: ExperienceRow): ExperienceItem {
     dataSource: row.data_source,
     isEditable: row.is_editable,
     displayOrder: row.display_order,
+    matchingTags: row.matching_tags ?? [],
+    cvPriority: row.cv_priority ?? 50,
+    showInCv: row.show_in_cv ?? true,
   };
 }
 
@@ -399,6 +432,9 @@ export function mapExperienceToRow(data: ExperienceItem): ExperienceRow {
     is_editable: data.isEditable,
     display_order: data.displayOrder,
     is_published: true,
+    matching_tags: data.matchingTags ?? [],
+    cv_priority: Math.min(100, Math.max(1, data.cvPriority ?? 50)),
+    show_in_cv: data.showInCv !== false,
   };
 }
 
@@ -452,6 +488,9 @@ export function mapSkillGroupFromRow(row: SkillGroupRow): SkillGroup {
     dataSource: row.data_source,
     isEditable: row.is_editable,
     displayOrder: row.display_order,
+    matchingTags: row.matching_tags ?? [],
+    cvPriority: row.cv_priority ?? 50,
+    showInCv: row.show_in_cv ?? true,
   };
 }
 
@@ -467,6 +506,9 @@ export function mapSkillGroupToRow(data: SkillGroup): SkillGroupRow {
     is_editable: data.isEditable,
     display_order: data.displayOrder,
     is_published: true,
+    matching_tags: data.matchingTags ?? [],
+    cv_priority: Math.min(100, Math.max(1, data.cvPriority ?? 50)),
+    show_in_cv: data.showInCv !== false,
   };
 }
 
@@ -484,6 +526,8 @@ export function mapCertificationFromRow(row: CertificationRow): Certification {
     dataSource: row.data_source,
     isEditable: row.is_editable,
     displayOrder: row.display_order,
+    matchingTags: row.matching_tags ?? [],
+    showInCv: row.show_in_cv ?? true,
   };
 }
 
@@ -502,6 +546,8 @@ export function mapCertificationToRow(data: Certification): CertificationRow {
     is_editable: data.isEditable,
     display_order: data.displayOrder,
     is_published: true,
+    matching_tags: data.matchingTags ?? [],
+    show_in_cv: data.showInCv !== false,
   };
 }
 
@@ -559,6 +605,13 @@ export function mapSiteSettingsFromRow(row: SiteSettingsRow): AdminSiteSettings 
     showContactEmail: row.show_contact_email,
     showLinkedinLink: row.show_linkedin_link,
     showCoursesSection: row.show_courses_section,
+    recruiterModeEnabled: row.recruiter_mode_enabled ?? true,
+    defaultCvTemplate:
+      row.default_cv_template === 'modern' ? 'modern' : 'ats',
+    cvSectionOrder:
+      Array.isArray(row.cv_section_order) && row.cv_section_order.length > 0
+        ? row.cv_section_order
+        : DEFAULT_CV_SECTION_ORDER,
   };
 }
 
@@ -572,6 +625,13 @@ export function mapSiteSettingsToRow(data: AdminSiteSettings): SiteSettingsRow {
     show_contact_email: data.showContactEmail,
     show_linkedin_link: data.showLinkedinLink,
     show_courses_section: data.showCoursesSection,
+    recruiter_mode_enabled: data.recruiterModeEnabled !== false,
+    default_cv_template:
+      data.defaultCvTemplate === 'modern' ? 'modern' : 'ats',
+    cv_section_order:
+      Array.isArray(data.cvSectionOrder) && data.cvSectionOrder.length > 0
+        ? data.cvSectionOrder
+        : DEFAULT_CV_SECTION_ORDER,
   };
 }
 

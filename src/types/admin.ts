@@ -50,6 +50,8 @@ export interface CvWorkspaceConfig {
   sections: CvSectionConfig[];
 }
 
+export type CvTemplateId = 'ats' | 'modern';
+
 export interface AdminSiteSettings {
   siteName: LocalizedText;
   seoTitle: LocalizedText;
@@ -58,4 +60,7 @@ export interface AdminSiteSettings {
   showContactEmail: boolean;
   showLinkedinLink: boolean;
   showCoursesSection: boolean;
+  recruiterModeEnabled: boolean;
+  defaultCvTemplate: CvTemplateId;
+  cvSectionOrder: CvSectionConfig[];
 }

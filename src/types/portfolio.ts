@@ -139,6 +139,9 @@ export interface Project extends EditableRecord {
   statusLabel: LocalizedText;
   featured: boolean;
   updatedAt?: string;
+  matchingTags?: string[];
+  cvPriority?: number;
+  showInCv?: boolean;
 }
 
 export type ExperienceKind = 'employment' | 'training';
@@ -157,6 +160,9 @@ export interface ExperienceItem extends EditableRecord {
   summary?: LocalizedText;
   responsibilities: LocalizedText[];
   relatedProjectSlugs: string[];
+  matchingTags?: string[];
+  cvPriority?: number;
+  showInCv?: boolean;
 }
 
 export interface SkillGroup extends EditableRecord {
@@ -165,6 +171,9 @@ export interface SkillGroup extends EditableRecord {
   description: LocalizedText;
   skills: LocalizedText[];
   isVisible?: boolean;
+  matchingTags?: string[];
+  cvPriority?: number;
+  showInCv?: boolean;
 }
 
 export interface Certification extends EditableRecord {
@@ -176,4 +185,6 @@ export interface Certification extends EditableRecord {
   category: LocalizedText;
   description?: LocalizedText;
   mediaUrl?: string | null;
+  matchingTags?: string[];
+  showInCv?: boolean;
 }

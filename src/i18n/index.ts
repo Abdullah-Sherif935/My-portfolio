@@ -5,10 +5,12 @@ import enCommon from './locales/en/common.json';
 import enHome from './locales/en/home.json';
 import enPages from './locales/en/pages.json';
 import enAdmin from './locales/en/admin.json';
+import enRecruiter from './locales/en/recruiter.json';
 import arCommon from './locales/ar/common.json';
 import arHome from './locales/ar/home.json';
 import arPages from './locales/ar/pages.json';
 import arAdmin from './locales/ar/admin.json';
+import arRecruiter from './locales/ar/recruiter.json';
 
 function getInitialLanguage(): 'en' | 'ar' {
   try {
@@ -26,18 +28,20 @@ void i18n.use(initReactI18next).init({
       home: enHome,
       pages: enPages,
       admin: enAdmin,
+      recruiter: enRecruiter,
     },
     ar: {
       common: arCommon,
       home: arHome,
       pages: arPages,
       admin: arAdmin,
+      recruiter: arRecruiter,
     },
   },
   lng: getInitialLanguage(),
   fallbackLng: 'en',
   defaultNS: 'common',
-  ns: ['common', 'home', 'pages', 'admin'],
+  ns: ['common', 'home', 'pages', 'admin', 'recruiter'],
   interpolation: {
     escapeValue: false,
   },

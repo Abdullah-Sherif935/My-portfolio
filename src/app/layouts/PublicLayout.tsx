@@ -9,7 +9,7 @@ export function PublicLayout() {
   useScrollToTop();
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg-primary text-text-primary">
+    <div className="flex min-h-screen flex-col bg-bg-primary text-text-primary print:min-h-0 print:bg-white print:text-slate-900">
       <Navbar />
       <main id="main-content" className="flex-1">
         <PageTransition key={pathname}>

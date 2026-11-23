@@ -15,6 +15,23 @@ import { ContactPage } from '@/features/contact/ContactPage';
 import { FutureModulePlaceholderPage } from '@/features/future/FutureModulePlaceholderPage';
 import { NotFoundPage } from '@/features/future/NotFoundPage';
 
+// Lazy-loaded Phase 05 Recruiter Mode & Smart CV Builder Modules
+const RecruiterEntryPage = lazy(() =>
+  import('@/features/recruiter/RecruiterEntryPage').then((m) => ({
+    default: m.RecruiterEntryPage,
+  }))
+);
+const RecruiterResultsPage = lazy(() =>
+  import('@/features/recruiter/RecruiterResultsPage').then((m) => ({
+    default: m.RecruiterResultsPage,
+  }))
+);
+const CvBuilderPage = lazy(() =>
+  import('@/features/cv/CvBuilderPage').then((m) => ({
+    default: m.CvBuilderPage,
+  }))
+);
+
 // Lazy-loaded Phase 03 Admin Dashboard Modules (keeps public bundle lean)
 const AdminLayout = lazy(() =>
   import('@/features/admin/layout/AdminLayout').then((m) => ({ default: m.AdminLayout }))
@@ -94,7 +111,6 @@ function withSuspense(node: ReactNode) {
 
 const FUTURE_CAREER_ROUTES = [
   '/career',
-  '/career/cv-builder',
   '/career/jobs',
   '/career/applications',
 ] as const;
@@ -114,6 +130,9 @@ export const router = createBrowserRouter([
       { path: 'skills', element: <SkillsPage /> },
       { path: 'certifications', element: <CertificationsPage /> },
       { path: 'contact', element: <ContactPage /> },
+      { path: 'recruiter', element: withSuspense(<RecruiterEntryPage />) },
+      { path: 'recruiter/results', element: withSuspense(<RecruiterResultsPage />) },
+      { path: 'career/cv-builder', element: withSuspense(<CvBuilderPage />) },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

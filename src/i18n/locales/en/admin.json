@@ -397,6 +397,22 @@
     "showGraduationPortrait": "Display graduation portrait in Hero section",
     "showContactEmail": "Display public contact email",
     "showLinkedinLink": "Display LinkedIn profile link",
-    "showCoursesSection": "Display Courses & Certifications section"
+    "showCoursesSection": "Display Courses & Certifications section",
+    "recruiterModeEnabled": "Enable Recruiter Mode entry points on public portfolio",
+    "recruiterCvHeading": "Recruiter Mode & Public Smart CV Defaults",
+    "recruiterCvDescription": "Configure the default A4 CV template and section ordering used by the public Smart CV Generator.",
+    "defaultCvTemplate": "Default Public CV Template",
+    "templateAts": "ATS Single-Column (Recommended for ATS)",
+    "templateModern": "Modern Engineering (Navy & Orange Header)",
+    "cvSectionOrderLabel": "Default Public CV Section Order & Visibility"
+  },
+  "matching": {
+    "heading": "Recruiter Matching & Smart CV Metadata",
+    "description": "Control deterministic keyword tags, relative CV priority (1–100), and whether this record appears in generated public CVs.",
+    "tagsLabel": "Matching Tags (comma-separated, lowercase)",
+    "tagsPlaceholder": "e.g. hvac, solidworks, sheet-metal, plc, ros2",
+    "addTag": "Add Tags",
+    "cvPriorityLabel": "CV Relevance Priority (1–100)",
+    "showInCvLabel": "Include this record in generated public CVs"
   }
 }

@@ -140,4 +140,14 @@ export const INITIAL_SITE_SETTINGS: AdminSiteSettings = {
   showContactEmail: true,
   showLinkedinLink: true,
   showCoursesSection: true,
+  recruiterModeEnabled: true,
+  defaultCvTemplate: 'ats',
+  cvSectionOrder: [
+    { key: 'summary', visible: true },
+    { key: 'experience', visible: true },
+    { key: 'projects', visible: true },
+    { key: 'skills', visible: true },
+    { key: 'education', visible: true },
+    { key: 'certifications', visible: true },
+  ],
 };

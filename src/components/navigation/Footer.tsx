@@ -26,7 +26,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="border-t border-border-default bg-bg-secondary">
+    <footer className="no-print border-t border-border-default bg-bg-secondary">
       <Container className="py-12 sm:py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
           {/* Branding Column */}
@@ -56,6 +56,24 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              {siteSettings.recruiterModeEnabled && (
+                <li>
+                  <Link
+                    to="/recruiter"
+                    className="font-medium text-accent transition-colors hover:underline"
+                  >
+                    {t('nav.recruiterMode')}
+                  </Link>
+                </li>
+              )}
+              <li>
+                <Link
+                  to="/career/cv-builder"
+                  className="text-text-secondary transition-colors hover:text-accent"
+                >
+                  {t('nav.cvBuilder')}
+                </Link>
+              </li>
             </ul>
           </div>
 

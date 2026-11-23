@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Download, Menu, X } from 'lucide-react';
+import { BriefcaseBusiness, Download, Menu, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Container } from '@/components/layout/Container';
 import { BrandMark } from '@/components/common/BrandMark';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Modal } from '@/components/ui/Modal';
+import { ButtonLink } from '@/components/ui/Button';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { cn } from '@/utils/cn';
@@ -24,9 +23,9 @@ const PRIMARY_NAV_ITEMS = [
 export function Navbar() {
   const { t } = useTranslation('common');
   const { pathname } = useLocation();
+  const { siteSettings } = usePortfolioData();
   const prefersReducedMotion = useReducedMotion();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cvModalOpen, setCvModalOpen] = useState(false);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -52,7 +51,7 @@ export function Navbar() {
         {t('nav.skipToContent')}
       </a>
 
-      <header className="sticky top-0 z-40 border-b border-border-default bg-nav-bg backdrop-blur-md">
+      <header className="no-print sticky top-0 z-40 border-b border-border-default bg-nav-bg backdrop-blur-md">
         <Container>
           <div className="flex h-[72px] items-center justify-between gap-3 xl:gap-4">
             <BrandMark />
@@ -83,17 +82,33 @@ export function Navbar() {
 
             {/* Right-side Controls */}
             <div className="hidden shrink-0 items-center gap-2 lg:flex xl:gap-2.5">
+              {siteSettings.recruiterModeEnabled && (
+                <NavLink
+                  to="/recruiter"
+                  className={({ isActive }) =>
+                    cn(
+                      'inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-[10px] border px-3 text-xs font-semibold transition-colors xl:text-sm',
+                      isActive
+                        ? 'border-accent bg-accent-subtle text-accent'
+                        : 'border-border-default bg-bg-secondary text-text-primary hover:border-accent hover:text-accent'
+                    )
+                  }
+                >
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                  <span>{t('nav.recruiterMode')}</span>
+                </NavLink>
+              )}
               <LanguageSwitcher />
               <ThemeToggle />
-              <Button
+              <ButtonLink
+                to="/career/cv-builder"
                 variant="primary"
                 size="sm"
-                onClick={() => setCvModalOpen(true)}
                 className="h-10 px-3.5 xl:px-4"
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
                 <span>{t('nav.downloadCv')}</span>
-              </Button>
+              </ButtonLink>
             </div>
 
             {/* Mobile Controls */}
@@ -179,19 +194,29 @@ export function Navbar() {
                       {t('nav.certifications')}
                     </NavLink>
                   </div>
-                  <div className="mt-3 pt-1">
-                    <Button
+                  <div className="mt-3 flex flex-col gap-2 pt-1">
+                    {siteSettings.recruiterModeEnabled && (
+                      <ButtonLink
+                        to="/recruiter"
+                        variant="secondary"
+                        size="md"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="w-full"
+                      >
+                        <BriefcaseBusiness className="h-4 w-4 text-accent" aria-hidden="true" />
+                        <span>{t('nav.recruiterMode')}</span>
+                      </ButtonLink>
+                    )}
+                    <ButtonLink
+                      to="/career/cv-builder"
                       variant="primary"
                       size="md"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setCvModalOpen(true);
-                      }}
+                      onClick={() => setMobileMenuOpen(false)}
                       className="w-full"
                     >
                       <Download className="h-4 w-4" aria-hidden="true" />
                       <span>{t('nav.downloadCv')}</span>
-                    </Button>
+                    </ButtonLink>
                   </div>
                 </nav>
               </Container>
@@ -199,26 +224,6 @@ export function Navbar() {
           )}
         </AnimatePresence>
       </header>
-
-      <Modal
-        isOpen={cvModalOpen}
-        onClose={() => setCvModalOpen(false)}
-        title={t('cvModal.title')}
-      >
-        <div className="space-y-4">
-          <Badge variant="accent" mono>
-            {t('cvModal.badge')}
-          </Badge>
-          <p className="text-sm leading-relaxed text-text-secondary">
-            {t('cvModal.description')}
-          </p>
-          <div className="flex justify-end pt-2">
-            <Button variant="primary" size="sm" onClick={() => setCvModalOpen(false)}>
-              {t('cvModal.close')}
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 }
