@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowUpRight, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
@@ -11,10 +11,25 @@ import { useAdminData } from '@/features/admin/context/useAdminData';
 import { PageEditorShell } from '@/features/admin/components/PageEditorShell';
 import { SectionMappingBadge } from '@/features/admin/components/SectionMappingBadge';
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
+import { HomeIntroAcademicTab } from './HomeIntroAcademicTab';
+import { HomeSpecializationsTab } from './HomeSpecializationsTab';
 import type { ProfileData } from '@/types/portfolio';
 import { cn } from '@/utils/cn';
 
-type HomeSubTab = 'hero' | 'featured' | 'sections';
+type HomeSubTab =
+  | 'hero'
+  | 'profile-academic'
+  | 'specializations'
+  | 'featured'
+  | 'sections';
+
+const VALID_TABS: HomeSubTab[] = [
+  'hero',
+  'profile-academic',
+  'specializations',
+  'featured',
+  'sections',
+];
 
 export function AdminHomePageManager() {
   const { t } = useTranslation('admin');
@@ -31,7 +46,12 @@ export function AdminHomePageManager() {
     isSaving,
   } = useAdminData();
 
-  const [activeTab, setActiveTab] = useState<HomeSubTab>('hero');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTabParam = searchParams.get('tab') as HomeSubTab | null;
+  const [activeTab, setActiveTab] = useState<HomeSubTab>(
+    initialTabParam && VALID_TABS.includes(initialTabParam) ? initialTabParam : 'hero'
+  );
+  const [subTabDirty, setSubTabDirty] = useState(false);
   const [heroForm, setHeroForm] = useState<ProfileData>(() => structuredClone(profile));
   const [showPortrait, setShowPortrait] = useState<boolean>(
     siteSettings.showGraduationPortrait
@@ -39,6 +59,12 @@ export function AdminHomePageManager() {
   const [error, setError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+
+  const handleSelectTab = (tabId: HomeSubTab) => {
+    setActiveTab(tabId);
+    setSubTabDirty(false);
+    setSearchParams(tabId === 'hero' ? {} : { tab: tabId }, { replace: true });
+  };
 
   useEffect(() => {
     setHeroForm(structuredClone(profile));
@@ -48,7 +74,7 @@ export function AdminHomePageManager() {
     setShowPortrait(siteSettings.showGraduationPortrait);
   }, [siteSettings.showGraduationPortrait]);
 
-  const isDirty = useMemo(() => {
+  const heroDirty = useMemo(() => {
     return (
       JSON.stringify({
         fullName: heroForm.fullName,
@@ -69,6 +95,8 @@ export function AdminHomePageManager() {
     );
   }, [heroForm, showPortrait, profile, siteSettings.showGraduationPortrait]);
 
+  const isDirty = heroDirty || subTabDirty;
+
   useEffect(() => {
     if (!isDirty) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -79,10 +107,10 @@ export function AdminHomePageManager() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [isDirty]);
 
-  const stampSaved = () => {
+  const stampSaved = useCallback(() => {
     setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     setPreviewRefreshKey((k) => k + 1);
-  };
+  }, []);
 
   const handleSaveHero = async (e: FormEvent) => {
     e.preventDefault();
@@ -145,6 +173,8 @@ export function AdminHomePageManager() {
         {(
           [
             ['hero', t('homeMgr.tabs.hero')],
+            ['profile-academic', t('homeMgr.tabs.profileAcademic')],
+            ['specializations', t('homeMgr.tabs.specializations')],
             ['featured', t('homeMgr.tabs.featured')],
             ['sections', t('homeMgr.tabs.sections')],
           ] as const
@@ -154,7 +184,7 @@ export function AdminHomePageManager() {
             type="button"
             role="tab"
             aria-selected={activeTab === tabId}
-            onClick={() => setActiveTab(tabId)}
+            onClick={() => handleSelectTab(tabId)}
             className={cn(
               'rounded-[10px] border px-4 py-2 text-xs font-semibold transition-colors sm:text-sm cursor-pointer',
               activeTab === tabId
@@ -252,7 +282,7 @@ export function AdminHomePageManager() {
               type="button"
               variant="secondary"
               size="md"
-              disabled={!isDirty}
+              disabled={!heroDirty}
               onClick={() => {
                 setHeroForm(structuredClone(profile));
                 setShowPortrait(siteSettings.showGraduationPortrait);
@@ -261,14 +291,30 @@ export function AdminHomePageManager() {
             >
               {t('common.cancel')}
             </Button>
-            <Button type="submit" variant="primary" size="md" disabled={isSaving || !isDirty}>
+            <Button type="submit" variant="primary" size="md" disabled={isSaving || !heroDirty}>
               {isSaving ? t('prototype.saving') : t('common.save')}
             </Button>
           </div>
         </form>
       )}
 
-      {/* Sub-Tab 2: Featured Projects */}
+      {/* Sub-Tab 2: Engineering Profile & Academic Foundation */}
+      {activeTab === 'profile-academic' && (
+        <HomeIntroAcademicTab
+          onSaved={stampSaved}
+          onDirtyChange={setSubTabDirty}
+        />
+      )}
+
+      {/* Sub-Tab 3: Core Specializations */}
+      {activeTab === 'specializations' && (
+        <HomeSpecializationsTab
+          onSaved={stampSaved}
+          onDirtyChange={setSubTabDirty}
+        />
+      )}
+
+      {/* Sub-Tab 4: Featured Projects */}
       {activeTab === 'featured' && (
         <Card className="space-y-4 p-5 sm:p-6">
           <SectionMappingBadge

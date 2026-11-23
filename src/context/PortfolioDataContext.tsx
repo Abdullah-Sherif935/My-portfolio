@@ -14,6 +14,7 @@ import {
   PROFILE,
   PROJECTS,
   SKILL_GROUPS,
+  SPECIALIZATIONS,
 } from '@/data';
 import { isSupabaseReady } from '@/lib/supabase';
 import { fetchPublicPortfolioBundle } from '@/services/portfolioService';
@@ -29,6 +30,7 @@ import type {
   ProfileData,
   Project,
   SkillGroup,
+  Specialization,
 } from '@/types/portfolio';
 import type { AdminSiteSettings } from '@/types/admin';
 
@@ -41,6 +43,8 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
   const [skills, setSkills] = useState<SkillGroup[]>(SKILL_GROUPS);
   const [certifications, setCertifications] =
     useState<Certification[]>(CERTIFICATIONS);
+  const [specializations, setSpecializations] =
+    useState<Specialization[]>(SPECIALIZATIONS);
   const [siteSettings, setSiteSettings] =
     useState<AdminSiteSettings>(INITIAL_SITE_SETTINGS);
   const [isLoading, setIsLoading] = useState<boolean>(isSupabaseReady);
@@ -69,6 +73,7 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
       setExperience(bundle.experience);
       setSkills(bundle.skills);
       setCertifications(bundle.certifications);
+      setSpecializations(bundle.specializations);
       if (bundle.siteSettings) setSiteSettings(bundle.siteSettings);
       setIsLive(true);
     } catch (err) {
@@ -94,6 +99,7 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
       experience,
       skills,
       certifications,
+      specializations,
       siteSettings,
       isLoading,
       isLive,
@@ -108,6 +114,7 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
       experience,
       skills,
       certifications,
+      specializations,
       siteSettings,
       isLoading,
       isLive,

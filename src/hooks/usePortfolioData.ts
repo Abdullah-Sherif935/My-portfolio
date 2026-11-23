@@ -7,6 +7,7 @@ import type {
   ProfileData,
   Project,
   SkillGroup,
+  Specialization,
 } from '@/types/portfolio';
 import type { AdminSiteSettings } from '@/types/admin';
 
@@ -18,6 +19,7 @@ export interface PortfolioDataContextValue {
   experience: ExperienceItem[];
   skills: SkillGroup[];
   certifications: Certification[];
+  specializations: Specialization[];
   siteSettings: AdminSiteSettings;
   isLoading: boolean;
   isLive: boolean;

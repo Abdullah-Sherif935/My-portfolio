@@ -10,12 +10,11 @@ import { ButtonLink } from '@/components/ui/Button';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
-import { SPECIALIZATIONS } from '@/data';
 
 export function AboutPage() {
   const { t } = useTranslation(['pages', 'common', 'home']);
   const { pick } = useLanguage();
-  const { profile, education, projects } = usePortfolioData();
+  const { profile, education, projects, specializations } = usePortfolioData();
   useDocumentTitle(t('pages:about.pageTitle'));
 
   return (
@@ -161,7 +160,9 @@ export function AboutPage() {
               {t('pages:about.disciplinesHeading')}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {SPECIALIZATIONS.map((spec) => (
+              {specializations
+                .filter((spec) => spec.isPublished !== false)
+                .map((spec) => (
                 <Card key={spec.id} className="p-4 sm:p-5">
                   <p className="mb-1 font-mono text-xs text-accent">{spec.code}</p>
                   <h3 className="mb-1.5 text-base font-semibold text-text-primary sm:mb-2">

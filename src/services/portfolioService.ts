@@ -8,6 +8,7 @@ import type {
   ProfileData,
   Project,
   SkillGroup,
+  Specialization,
 } from '@/types/portfolio';
 import type {
   AdminActivityItem,
@@ -36,6 +37,8 @@ import {
   mapSiteSettingsToRow,
   mapSkillGroupFromRow,
   mapSkillGroupToRow,
+  mapSpecializationFromRow,
+  mapSpecializationToRow,
   type ActivityLogRow,
   type CertificationRow,
   type CompanyRow,
@@ -47,6 +50,7 @@ import {
   type ProjectRow,
   type SiteSettingsRow,
   type SkillGroupRow,
+  type SpecializationRow,
 } from './mappers';
 
 export interface PublicPortfolioBundle {
@@ -57,6 +61,7 @@ export interface PublicPortfolioBundle {
   experience: ExperienceItem[];
   skills: SkillGroup[];
   certifications: Certification[];
+  specializations: Specialization[];
   siteSettings: AdminSiteSettings | null;
 }
 
@@ -81,6 +86,7 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     experienceRes,
     skillsRes,
     certificationsRes,
+    specializationsRes,
     settingsRes,
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('is_published', true).limit(1).maybeSingle(),
@@ -90,6 +96,7 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     supabase.from('experience').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('skill_groups').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('certifications').select('*').eq('is_published', true).order('display_order', { ascending: true }),
+    supabase.from('specializations').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('site_settings').select('*').eq('id', 'default').maybeSingle(),
   ]);
 
@@ -101,6 +108,7 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     experienceRes.error ||
     skillsRes.error ||
     certificationsRes.error ||
+    specializationsRes.error ||
     settingsRes.error;
 
   if (firstError) {
@@ -116,6 +124,9 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     skills: ((skillsRes.data ?? []) as SkillGroupRow[]).map(mapSkillGroupFromRow),
     certifications: ((certificationsRes.data ?? []) as CertificationRow[]).map(
       mapCertificationFromRow
+    ),
+    specializations: ((specializationsRes.data ?? []) as SpecializationRow[]).map(
+      mapSpecializationFromRow
     ),
     siteSettings: settingsRes.data
       ? mapSiteSettingsFromRow(settingsRes.data as SiteSettingsRow)
@@ -137,6 +148,7 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     experienceRes,
     skillsRes,
     certificationsRes,
+    specializationsRes,
     settingsRes,
     mediaRes,
     cvRes,
@@ -149,6 +161,7 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     client.from('experience').select('*').order('display_order', { ascending: true }),
     client.from('skill_groups').select('*').order('display_order', { ascending: true }),
     client.from('certifications').select('*').order('display_order', { ascending: true }),
+    client.from('specializations').select('*').order('display_order', { ascending: true }),
     client.from('site_settings').select('*').eq('id', 'default').maybeSingle(),
     client.from('media_assets').select('*').order('created_at', { ascending: false }),
     client.from('cv_workspace_config').select('*').eq('id', 'default').maybeSingle(),
@@ -167,6 +180,7 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     experienceRes.error ||
     skillsRes.error ||
     certificationsRes.error ||
+    specializationsRes.error ||
     settingsRes.error ||
     mediaRes.error ||
     cvRes.error ||
@@ -185,6 +199,9 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     skills: ((skillsRes.data ?? []) as SkillGroupRow[]).map(mapSkillGroupFromRow),
     certifications: ((certificationsRes.data ?? []) as CertificationRow[]).map(
       mapCertificationFromRow
+    ),
+    specializations: ((specializationsRes.data ?? []) as SpecializationRow[]).map(
+      mapSpecializationFromRow
     ),
     siteSettings: settingsRes.data
       ? mapSiteSettingsFromRow(settingsRes.data as SiteSettingsRow)
@@ -402,4 +419,40 @@ export async function saveSiteSettingsRecord(
     .single();
   if (error || !data) throw new Error(error?.message || 'Failed to save site settings.');
   return mapSiteSettingsFromRow(data as SiteSettingsRow);
+}
+
+export async function saveSpecializationRecord(
+  spec: Specialization
+): Promise<Specialization> {
+  const client = requireSupabase();
+  const { data, error } = await client
+    .from('specializations')
+    .upsert(mapSpecializationToRow(spec), { onConflict: 'id' })
+    .select('*')
+    .single();
+  if (error || !data) {
+    throw new Error(error?.message || 'Failed to save specialization.');
+  }
+  return mapSpecializationFromRow(data as SpecializationRow);
+}
+
+export async function deleteSpecializationRecord(id: string): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('specializations').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function persistSpecializationOrder(
+  items: Specialization[]
+): Promise<void> {
+  const client = requireSupabase();
+  await Promise.all(
+    items.map(async (item, idx) => {
+      const { error } = await client
+        .from('specializations')
+        .update({ display_order: item.displayOrder ?? idx + 1 })
+        .eq('id', item.id);
+      if (error) throw new Error(error.message);
+    })
+  );
 }

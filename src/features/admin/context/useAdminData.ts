@@ -7,6 +7,7 @@ import type {
   ProfileData,
   Project,
   SkillGroup,
+  Specialization,
 } from '@/types/portfolio';
 import type {
   AdminActivityItem,
@@ -24,6 +25,7 @@ export interface AdminDataContextValue {
   experience: ExperienceItem[];
   skills: SkillGroup[];
   certifications: Certification[];
+  specializations: Specialization[];
   media: MediaAsset[];
   activities: AdminActivityItem[];
   cvConfig: CvWorkspaceConfig;
@@ -56,6 +58,11 @@ export interface AdminDataContextValue {
 
   saveCertification: (cert: Certification) => Promise<void>;
   deleteCertification: (id: string) => Promise<void>;
+
+  saveSpecialization: (spec: Specialization) => Promise<void>;
+  deleteSpecialization: (id: string) => Promise<void>;
+  reorderSpecialization: (id: string, direction: 'up' | 'down') => Promise<void>;
+  toggleSpecializationPublished: (id: string) => Promise<void>;
 
   uploadMedia: (file: File, category: MediaCategory) => Promise<MediaAsset>;
   deleteMedia: (id: string) => Promise<void>;

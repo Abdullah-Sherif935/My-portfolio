@@ -66,14 +66,18 @@ export type SpecializationId =
   | 'sheet-metal-design'
   | 'robotics-mechatronics';
 
+export type SpecializationIcon = 'wind' | 'cpu' | 'wrench' | 'cog' | 'layers' | 'bot';
+
 export interface Specialization {
-  id: SpecializationId;
+  id: string;
   code: string;
-  icon: 'wind' | 'cpu' | 'wrench' | 'cog' | 'layers' | 'bot';
+  icon: SpecializationIcon;
   title: LocalizedText;
   description: LocalizedText;
   highlights: LocalizedText[];
   filterCategory: string;
+  displayOrder?: number;
+  isPublished?: boolean;
 }
 
 export type CompanyRelationshipCategory =

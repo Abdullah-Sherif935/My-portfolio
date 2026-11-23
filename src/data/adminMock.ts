@@ -2,6 +2,7 @@ import type {
   AdminActivityItem,
   AdminSiteSettings,
   CvWorkspaceConfig,
+  HomeSectionsConfig,
   MediaAsset,
 } from '@/types/admin';
 import { CERTIFICATIONS } from './certifications';
@@ -123,6 +124,73 @@ export const INITIAL_CV_CONFIG: CvWorkspaceConfig = {
   ],
 };
 
+export const DEFAULT_HOME_SECTIONS_CONFIG: HomeSectionsConfig = {
+  intro: {
+    visible: true,
+    eyebrow: { en: '01 // ENGINEERING PROFILE', ar: '01 // التعريف الهندسي' },
+    title: {
+      en: 'Engineering Profile & Academic Foundation',
+      ar: 'الملف الهندسي والأساس الأكاديمي',
+    },
+    description: {
+      en: 'Bridging Mechatronics Engineering fundamentals with hands-on industrial design-to-manufacturing across HVAC systems, SolidWorks sheet metal, CNC fiber laser production, and classic/PLC control.',
+      ar: 'الربط بين أسس هندسة الميكاترونكس والخبرة الصناعية من التصميم إلى التصنيع في أنظمة التكييف والصاج بـ SolidWorks والقطع بالليزر CNC والتحكم الكلاسيكي و PLC.',
+    },
+    educationLabel: { en: 'Academic Education', ar: 'التعليم الأكاديمي' },
+    graduationProjectLabel: { en: 'Graduation Project', ar: 'مشروع التخرج' },
+    ctaLabel: { en: 'Full Profile & Education', ar: 'الملف الكامل والتعليم' },
+    showEducationCard: true,
+    showGpa: true,
+    showGraduationProject: true,
+    showPillars: true,
+    pillarsTitle: { en: 'Core Engineering Approach', ar: 'ركائز العمل الهندسي' },
+    pillars: [
+      {
+        code: 'SYS-01',
+        title: {
+          en: 'Design-to-Manufacturing Execution',
+          ar: 'من التصميم إلى التصنيع الفعلي',
+        },
+        description: {
+          en: 'Developing chillers, cold rooms, and SolidWorks sheet metal assemblies ready for CNC laser cutting and forming.',
+          ar: 'تطوير التشيلرات وغرف التبريد وتجميعات الصاج بـ SolidWorks جاهزة للقطع بالليزر CNC والثني.',
+        },
+      },
+      {
+        code: 'SYS-02',
+        title: {
+          en: 'Control & Industrial Reliability',
+          ar: 'التحكم وموثوقية التشغيل الصناعي',
+        },
+        description: {
+          en: 'Supporting relay-based control panels, PLC tasks, refrigeration troubleshooting, and routine equipment maintenance.',
+          ar: 'دعم لوحات التحكم الكلاسيكي ومهام PLC وتشخيص أعطال التبريد والصيانة الدورية للمعدات.',
+        },
+      },
+      {
+        code: 'SYS-03',
+        title: {
+          en: 'Robotics & Embedded Integration',
+          ar: 'الروبوتات والأنظمة المدمجة',
+        },
+        description: {
+          en: 'Integrating mechanical design, ESP32-S3 motor control, ROS 2 / MoveIt 2 kinematics, and machine vision.',
+          ar: 'دمج التصميم الميكانيكي والتحكم بـ ESP32-S3 وكينماتيكا ROS 2 / MoveIt 2 والرؤية الحاسوبية.',
+        },
+      },
+    ],
+  },
+  specializations: {
+    visible: true,
+    eyebrow: { en: '02 // CORE SPECIALIZATIONS', ar: '02 // التخصصات الأساسية' },
+    title: { en: 'Core Engineering Expertise', ar: 'مجالات الخبرة الهندسية' },
+    subtitle: {
+      en: 'Six integrated disciplines across thermal systems, industrial automation, maintenance, mechanical CAD, sheet metal, and mechatronics.',
+      ar: 'ستة مجالات مترابطة تغطي الأنظمة الحرارية، الأتمتة الصناعية، الصيانة، التصميم الميكانيكي، الصاج، والميكاترونكس.',
+    },
+  },
+};
+
 export const INITIAL_SITE_SETTINGS: AdminSiteSettings = {
   siteName: {
     en: 'Abdullah Sherif Abdulraouf — Engineering Portfolio',
@@ -150,4 +218,5 @@ export const INITIAL_SITE_SETTINGS: AdminSiteSettings = {
     { key: 'education', visible: true },
     { key: 'certifications', visible: true },
   ],
+  homeSections: DEFAULT_HOME_SECTIONS_CONFIG,
 };

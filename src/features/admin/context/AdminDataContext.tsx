@@ -16,6 +16,7 @@ import {
   PROFILE,
   PROJECTS,
   SKILL_GROUPS,
+  SPECIALIZATIONS,
 } from '@/data';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import {
@@ -25,9 +26,11 @@ import {
   deleteExperienceRecord,
   deleteProjectRecord,
   deleteSkillGroupRecord,
+  deleteSpecializationRecord,
   fetchAdminWorkspaceBundle,
   persistExperienceOrder,
   persistSkillGroupOrder,
+  persistSpecializationOrder,
   recordAdminActivity,
   saveCertificationRecord,
   saveCompanyRecord,
@@ -38,6 +41,7 @@ import {
   saveProjectRecord,
   saveSiteSettingsRecord,
   saveSkillGroupRecord,
+  saveSpecializationRecord,
 } from '@/services/portfolioService';
 import { deleteMediaAsset, uploadMediaFile } from '@/services/storageService';
 import type {
@@ -49,6 +53,7 @@ import type {
   ProfileData,
   Project,
   SkillGroup,
+  Specialization,
 } from '@/types/portfolio';
 import type {
   AdminActivityItem,
@@ -73,6 +78,8 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [skills, setSkills] = useState<SkillGroup[]>(SKILL_GROUPS);
   const [certifications, setCertifications] =
     useState<Certification[]>(CERTIFICATIONS);
+  const [specializations, setSpecializations] =
+    useState<Specialization[]>(SPECIALIZATIONS);
   const [media, setMedia] = useState<MediaAsset[]>(INITIAL_MEDIA_ASSETS);
   const [activities, setActivities] = useState<AdminActivityItem[]>([]);
   const [cvConfig, setCvConfig] = useState<CvWorkspaceConfig>(INITIAL_CV_CONFIG);
@@ -97,6 +104,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       setExperience(bundle.experience);
       setSkills(bundle.skills);
       setCertifications(bundle.certifications);
+      setSpecializations(bundle.specializations);
       setMedia(bundle.media);
       setActivities(bundle.activities);
       if (bundle.cvConfig) setCvConfig(bundle.cvConfig);
@@ -609,6 +617,87 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     [runMutation, appendActivity]
   );
 
+  const saveSpecialization = useCallback(
+    async (spec: Specialization) => {
+      await runMutation(async () => {
+        const saved = await saveSpecializationRecord(spec);
+        setSpecializations((prev) => {
+          const exists = prev.some((s) => s.id === saved.id);
+          const list = exists
+            ? prev.map((s) => (s.id === saved.id ? saved : s))
+            : [...prev, saved];
+          return list.sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99));
+        });
+        await appendActivity(
+          'specializations',
+          { en: 'Saved specialization', ar: 'تم حفظ التخصص الهندسي' },
+          saved.title
+        );
+      });
+    },
+    [runMutation, appendActivity]
+  );
+
+  const deleteSpecialization = useCallback(
+    async (id: string) => {
+      await runMutation(async () => {
+        const target = specializations.find((s) => s.id === id);
+        await deleteSpecializationRecord(id);
+        setSpecializations((prev) => prev.filter((s) => s.id !== id));
+        if (target) {
+          await appendActivity(
+            'specializations',
+            { en: 'Deleted specialization', ar: 'تم حذف التخصص الهندسي' },
+            target.title
+          );
+        }
+      });
+    },
+    [runMutation, appendActivity, specializations]
+  );
+
+  const reorderSpecialization = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      const sorted = [...specializations].sort(
+        (a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99)
+      );
+      const index = sorted.findIndex((item) => item.id === id);
+      const swapIndex = direction === 'up' ? index - 1 : index + 1;
+      if (index < 0 || swapIndex < 0 || swapIndex >= sorted.length) return;
+      const a = sorted[index]!;
+      const b = sorted[swapIndex]!;
+      sorted[index] = b;
+      sorted[swapIndex] = a;
+      const reindexed = sorted.map((item, idx) => ({
+        ...item,
+        displayOrder: idx + 1,
+      }));
+      setSpecializations(reindexed);
+      await runMutation(async () => {
+        await persistSpecializationOrder(reindexed);
+      });
+    },
+    [specializations, runMutation]
+  );
+
+  const toggleSpecializationPublished = useCallback(
+    async (id: string) => {
+      const target = specializations.find((item) => item.id === id);
+      if (!target) return;
+      const next: Specialization = {
+        ...target,
+        isPublished: target.isPublished === false,
+      };
+      setSpecializations((prev) =>
+        prev.map((item) => (item.id === id ? next : item))
+      );
+      await runMutation(async () => {
+        await saveSpecializationRecord(next);
+      });
+    },
+    [specializations, runMutation]
+  );
+
   const value = useMemo<AdminDataContextValue>(
     () => ({
       profile,
@@ -618,6 +707,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       experience,
       skills,
       certifications,
+      specializations,
       media,
       activities,
       cvConfig,
@@ -642,6 +732,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       toggleSkillGroupVisibility,
       saveCertification,
       deleteCertification,
+      saveSpecialization,
+      deleteSpecialization,
+      reorderSpecialization,
+      toggleSpecializationPublished,
       uploadMedia,
       deleteMedia,
       updateCvConfig,
@@ -656,6 +750,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       experience,
       skills,
       certifications,
+      specializations,
       media,
       activities,
       cvConfig,
@@ -680,6 +775,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       toggleSkillGroupVisibility,
       saveCertification,
       deleteCertification,
+      saveSpecialization,
+      deleteSpecialization,
+      reorderSpecialization,
+      toggleSpecializationPublished,
       uploadMedia,
       deleteMedia,
       updateCvConfig,

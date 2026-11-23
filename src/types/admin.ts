@@ -52,6 +52,40 @@ export interface CvWorkspaceConfig {
 
 export type CvTemplateId = 'ats' | 'modern';
 
+export interface HomeIntroPillar {
+  code: string;
+  title: LocalizedText;
+  description: LocalizedText;
+}
+
+export interface HomeIntroSectionConfig {
+  visible: boolean;
+  eyebrow: LocalizedText;
+  title: LocalizedText;
+  description: LocalizedText;
+  educationLabel: LocalizedText;
+  graduationProjectLabel: LocalizedText;
+  ctaLabel: LocalizedText;
+  showEducationCard: boolean;
+  showGpa: boolean;
+  showGraduationProject: boolean;
+  showPillars: boolean;
+  pillarsTitle: LocalizedText;
+  pillars: HomeIntroPillar[];
+}
+
+export interface HomeSpecializationsSectionConfig {
+  visible: boolean;
+  eyebrow: LocalizedText;
+  title: LocalizedText;
+  subtitle: LocalizedText;
+}
+
+export interface HomeSectionsConfig {
+  intro: HomeIntroSectionConfig;
+  specializations: HomeSpecializationsSectionConfig;
+}
+
 export interface AdminSiteSettings {
   siteName: LocalizedText;
   seoTitle: LocalizedText;
@@ -63,4 +97,5 @@ export interface AdminSiteSettings {
   recruiterModeEnabled: boolean;
   defaultCvTemplate: CvTemplateId;
   cvSectionOrder: CvSectionConfig[];
+  homeSections: HomeSectionsConfig;
 }

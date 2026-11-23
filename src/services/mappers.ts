@@ -13,6 +13,8 @@ import type {
   ProjectGalleryImage,
   ProjectKind,
   SkillGroup,
+  Specialization,
+  SpecializationIcon,
   SpecializationId,
 } from '@/types/portfolio';
 import type {
@@ -21,9 +23,11 @@ import type {
   CvSectionConfig,
   CvTemplateId,
   CvWorkspaceConfig,
+  HomeSectionsConfig,
   MediaAsset,
   MediaCategory,
 } from '@/types/admin';
+import { DEFAULT_HOME_SECTIONS_CONFIG } from '@/data/adminMock';
 
 const DEFAULT_CV_SECTION_ORDER: CvSectionConfig[] = [
   { key: 'summary', visible: true },
@@ -228,6 +232,20 @@ export interface SiteSettingsRow {
   recruiter_mode_enabled?: boolean | null;
   default_cv_template?: CvTemplateId | null;
   cv_section_order?: CvSectionConfig[] | null;
+  home_sections_config?: Partial<HomeSectionsConfig> | null;
+}
+
+export interface SpecializationRow {
+  id: string;
+  code: string;
+  icon: SpecializationIcon;
+  title: LocalizedText;
+  description: LocalizedText;
+  highlights: LocalizedText[];
+  filter_category: string;
+  display_order: number;
+  is_published: boolean;
+  updated_at?: string;
 }
 
 export interface ActivityLogRow {
@@ -596,7 +614,51 @@ export function mapCvConfigToRow(data: CvWorkspaceConfig): CvWorkspaceConfigRow 
   };
 }
 
+export function mapSpecializationFromRow(row: SpecializationRow): Specialization {
+  return {
+    id: row.id,
+    code: row.code,
+    icon: row.icon ?? 'cog',
+    title: row.title,
+    description: row.description,
+    highlights: row.highlights ?? [],
+    filterCategory: row.filter_category ?? '',
+    displayOrder: row.display_order ?? 1,
+    isPublished: row.is_published !== false,
+  };
+}
+
+export function mapSpecializationToRow(data: Specialization): SpecializationRow {
+  return {
+    id: data.id,
+    code: data.code,
+    icon: data.icon ?? 'cog',
+    title: data.title,
+    description: data.description,
+    highlights: data.highlights ?? [],
+    filter_category: data.filterCategory ?? '',
+    display_order: data.displayOrder ?? 1,
+    is_published: data.isPublished !== false,
+  };
+}
+
 export function mapSiteSettingsFromRow(row: SiteSettingsRow): AdminSiteSettings {
+  const rawHome = row.home_sections_config;
+  const homeSections: HomeSectionsConfig = {
+    intro: {
+      ...DEFAULT_HOME_SECTIONS_CONFIG.intro,
+      ...(rawHome?.intro ?? {}),
+      pillars:
+        Array.isArray(rawHome?.intro?.pillars) && rawHome.intro.pillars.length > 0
+          ? rawHome.intro.pillars
+          : DEFAULT_HOME_SECTIONS_CONFIG.intro.pillars,
+    },
+    specializations: {
+      ...DEFAULT_HOME_SECTIONS_CONFIG.specializations,
+      ...(rawHome?.specializations ?? {}),
+    },
+  };
+
   return {
     siteName: row.site_name,
     seoTitle: row.seo_title,
@@ -612,6 +674,7 @@ export function mapSiteSettingsFromRow(row: SiteSettingsRow): AdminSiteSettings 
       Array.isArray(row.cv_section_order) && row.cv_section_order.length > 0
         ? row.cv_section_order
         : DEFAULT_CV_SECTION_ORDER,
+    homeSections,
   };
 }
 
@@ -632,6 +695,7 @@ export function mapSiteSettingsToRow(data: AdminSiteSettings): SiteSettingsRow {
       Array.isArray(data.cvSectionOrder) && data.cvSectionOrder.length > 0
         ? data.cvSectionOrder
         : DEFAULT_CV_SECTION_ORDER,
+    home_sections_config: data.homeSections ?? DEFAULT_HOME_SECTIONS_CONFIG,
   };
 }
 
