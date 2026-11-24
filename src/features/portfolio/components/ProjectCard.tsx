@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useLanguage } from '@/hooks/useLanguage';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import type { Project } from '@/types/portfolio';
 import { ProjectThumbnail } from './ProjectThumbnail';
 
@@ -14,6 +15,8 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
   const { t } = useTranslation('common');
   const { pick } = useLanguage();
+  const { isLoading, isLive } = usePortfolioData();
+  const showImageSkeleton = isLoading && !isLive && !project.coverImageUrl;
 
   return (
     <Card interactive className="group flex h-full flex-col overflow-hidden">
@@ -22,12 +25,18 @@ export function ProjectCard({ project }: ProjectCardProps) {
         className="block focus-visible:outline-none"
         aria-label={pick(project.title)}
       >
-        <ProjectThumbnail
-          variant={project.coverVariant}
-          code={project.code}
-          imageUrl={project.coverImageUrl}
-          imageAlt={project.coverImageAlt ? pick(project.coverImageAlt) : pick(project.title)}
-        />
+        {showImageSkeleton ? (
+          <div className="aspect-[16/10] w-full animate-pulse border-b border-border-default bg-bg-secondary" />
+        ) : (
+          <ProjectThumbnail
+            variant={project.coverVariant}
+            code={project.code}
+            imageUrl={project.coverImageUrl}
+            imageAlt={
+              project.coverImageAlt ? pick(project.coverImageAlt) : pick(project.title)
+            }
+          />
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col p-4 sm:p-6">
