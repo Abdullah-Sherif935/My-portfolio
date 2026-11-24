@@ -338,6 +338,10 @@
       "imageCaption": "Caption (Optional)",
       "relatedCompany": "Associated Company (Optional)",
       "noCompany": "None / Independent",
+      "addCompanyInline": "+ Add New Company",
+      "newCompanyHeading": "Quick-Add Company (Saved to Companies)",
+      "newCompanyNameEn": "Company Name (English) — e.g. Sccoder",
+      "newCompanyNameAr": "Company Name (Arabic) — e.g. سكودر",
       "relatedProjects": "Related Projects"
     }
   },

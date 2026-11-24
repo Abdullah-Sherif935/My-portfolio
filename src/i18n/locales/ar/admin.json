@@ -338,6 +338,10 @@
       "imageCaption": "التعليق التوضيحي (اختياري)",
       "relatedCompany": "الشركة المرتبطة (اختياري)",
       "noCompany": "بدون شركة / مشروع مستقل",
+      "addCompanyInline": "+ إضافة شركة جديدة",
+      "newCompanyHeading": "إضافة شركة سريعة (تُحفظ في سجل الشركات)",
+      "newCompanyNameEn": "اسم الشركة بالإنجليزية (مثال: Sccoder)",
+      "newCompanyNameAr": "اسم الشركة بالعربية (مثال: سكودر)",
       "relatedProjects": "المشاريع ذات الصلة"
     }
   },
