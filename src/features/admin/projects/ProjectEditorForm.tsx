@@ -479,21 +479,12 @@ return (
 
           <div className="grid gap-4 sm:grid-cols-4">
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <label
-                  htmlFor="proj-company"
-                  className="block text-xs font-medium text-text-primary"
-                >
-                  {t('projects.fields.relatedCompany')}
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setNewCompOpen((prev) => !prev)}
-                  className="cursor-pointer text-[11px] font-medium text-accent hover:underline"
-                >
-                  {t('projects.fields.addCompanyInline')}
-                </button>
-              </div>
+              <label
+                htmlFor="proj-company"
+                className="block text-xs font-medium text-text-primary"
+              >
+                {t('projects.fields.relatedCompany')}
+              </label>
               <select
                 id="proj-company"
                 value={form.companyId ?? ''}
