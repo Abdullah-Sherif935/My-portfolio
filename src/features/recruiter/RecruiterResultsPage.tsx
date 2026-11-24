@@ -457,7 +457,7 @@ export function RecruiterResultsPage() {
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-mono text-xs text-text-secondary">
-                        {project.code} · {pick(project.categoryLabel)}
+                        {pick(project.categoryLabel)}
                       </span>
                       <TierBadge tier={tier} />
                     </div>
@@ -536,7 +536,7 @@ export function RecruiterResultsPage() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-mono text-xs text-text-secondary">
-                              {project.code} · {pick(project.categoryLabel)}
+                              {pick(project.categoryLabel)}
                             </span>
                             <TierBadge tier={tier} />
                           </div>

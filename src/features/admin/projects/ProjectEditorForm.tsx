@@ -232,8 +232,7 @@ export function ProjectEditorForm({
     if (
       !form.title.en.trim() ||
       !form.title.ar.trim() ||
-      !form.slug.trim() ||
-      !form.code.trim()
+      !form.slug.trim()
     ) {
       setError(t('common.validationRequired'));
       setActiveTab('basic');
@@ -272,9 +271,14 @@ export function ProjectEditorForm({
         : [form.category];
     const primaryCat = dynamicCategories.find((c) => c.id === catIds[0]);
 
+    // Internal-only identifier (DB requires NOT NULL); no longer edited or shown publicly
+    const internalCode =
+      form.code.trim() || `PRJ-${cleanSlug.slice(0, 24).toUpperCase() || Date.now()}`;
+
     setError(null);
     onSave({
       ...form,
+      code: internalCode,
       slug: cleanSlug,
       category: (catIds[0] as SpecializationId) || form.category,
       categoryLabel: primaryCat ? { ...primaryCat.label } : form.categoryLabel,
@@ -384,7 +388,7 @@ export function ProjectEditorForm({
               }
             />
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label
                   htmlFor="proj-slug"
@@ -400,25 +404,6 @@ export function ProjectEditorForm({
                     setForm((prev) => ({ ...prev, slug: e.target.value }))
                   }
                   placeholder="industrial-chiller-enclosure"
-                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 font-mono text-xs text-text-primary focus:border-accent focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="proj-code"
-                  className="block text-xs font-medium text-text-primary"
-                >
-                  {t('projects.fields.code')} *
-                </label>
-                <input
-                  id="proj-code"
-                  dir="ltr"
-                  value={form.code}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, code: e.target.value }))
-                  }
-                  placeholder="PRJ-IND-06"
                   className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 font-mono text-xs text-text-primary focus:border-accent focus:outline-none"
                 />
               </div>
@@ -548,15 +533,6 @@ export function ProjectEditorForm({
                 />
               </div>
             </div>
-
-            <LocalizedFieldGroup
-              idPrefix="proj-status"
-              label={t('projects.fields.statusLabel')}
-              value={form.statusLabel}
-              onChange={(statusLabel) =>
-                setForm((prev) => ({ ...prev, statusLabel }))
-              }
-            />
 
             <LocalizedFieldGroup
               idPrefix="proj-short"

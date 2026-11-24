@@ -252,12 +252,6 @@ export function ProjectThumbnail({
         </>
       )}
 
-      {/* Corner Reference Code Label */}
-      <div className="pointer-events-none absolute top-3 start-3">
-        <span className="inline-flex items-center rounded-md border border-border-default bg-bg-secondary/90 px-2.5 py-1 font-mono text-[11px] font-medium text-text-secondary backdrop-blur-xs">
-          {code}
-        </span>
-      </div>
     </div>
   );
 }
