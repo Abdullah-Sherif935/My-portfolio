@@ -262,6 +262,9 @@ export function ProjectEditorForm({
     const cleanContributions = (form.contributions ?? []).filter(
       (c) => c.title.en.trim() || c.title.ar.trim() || c.description.en.trim()
     );
+    const cleanDeliverables = form.deliverables.filter(
+      (d) => d.en.trim() || d.ar.trim()
+    );
 
     const catIds =
       form.categoryIds && form.categoryIds.length > 0
@@ -277,6 +280,7 @@ export function ProjectEditorForm({
       categoryLabel: primaryCat ? { ...primaryCat.label } : form.categoryLabel,
       categoryIds: catIds,
       contributions: cleanContributions,
+      deliverables: cleanDeliverables,
       dataSource: isNew ? 'cms' : form.dataSource,
       updatedAt: new Date().toISOString().slice(0, 10),
     });
@@ -835,6 +839,127 @@ export function ProjectEditorForm({
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Verified Scope & Contributions Bullet List (Deliverables) */}
+            <div className="space-y-3 border-t border-border-default pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-text-primary">
+                    {t('projects.contributionsMgr.bulletsHeading')} (
+                    {form.deliverables.length})
+                  </p>
+                  <p className="text-[11px] text-text-secondary">
+                    {t('projects.contributionsMgr.bulletsHint')}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      deliverables: [...prev.deliverables, { en: '', ar: '' }],
+                    }))
+                  }
+                >
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{t('projects.contributionsMgr.addBullet')}</span>
+                </Button>
+              </div>
+
+              {form.deliverables.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-border-default bg-bg-primary p-3 text-xs text-text-secondary">
+                  {t('projects.contributionsMgr.bulletsEmpty')}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {form.deliverables.map((item, idx) => (
+                    <div
+                      key={`deliverable-${idx}`}
+                      className="space-y-3 rounded-xl border border-border-default bg-bg-primary p-4"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant="muted" mono>
+                          #{idx + 1}
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={idx === 0}
+                            onClick={() =>
+                              setForm((prev) => {
+                                const next = [...prev.deliverables];
+                                const [moved] = next.splice(idx, 1);
+                                if (!moved) return prev;
+                                next.splice(idx - 1, 0, moved);
+                                return { ...prev, deliverables: next };
+                              })
+                            }
+                            aria-label={t('common.moveUp')}
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={idx === form.deliverables.length - 1}
+                            onClick={() =>
+                              setForm((prev) => {
+                                const next = [...prev.deliverables];
+                                const [moved] = next.splice(idx, 1);
+                                if (!moved) return prev;
+                                next.splice(idx + 1, 0, moved);
+                                return { ...prev, deliverables: next };
+                              })
+                            }
+                            aria-label={t('common.moveDown')}
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setForm((prev) => ({
+                                ...prev,
+                                deliverables: prev.deliverables.filter(
+                                  (_, i) => i !== idx
+                                ),
+                              }))
+                            }
+                            aria-label={t('common.delete')}
+                            className="text-error hover:text-error"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <LocalizedFieldGroup
+                        idPrefix={`proj-deliverable-${idx}`}
+                        label={t('projects.contributionsMgr.bulletLabel')}
+                        multiline
+                        rows={2}
+                        value={item}
+                        onChange={(val) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            deliverables: prev.deliverables.map((d, i) =>
+                              i === idx ? val : d
+                            ),
+                          }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Optional Engineering Process (Challenge & Solution) */}

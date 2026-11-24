@@ -243,11 +243,16 @@
       "newCategoryHeading": "Create New Live Category (Saved to Specializations)"
     },
     "contributionsMgr": {
-      "heading": "Structured Contributions",
-      "hint": "Add unlimited titled contributions detailing your exact engineering role and work on this project.",
-      "addButton": "Add Contribution",
+      "heading": "Structured Contributions (Titled Cards)",
+      "hint": "Add unlimited titled contributions with detailed descriptions (shown inside the Verified Scope & Contributions section).",
+      "addButton": "Add Contribution Card",
       "titleLabel": "Contribution Title",
       "descLabel": "Detailed Description",
+      "bulletsHeading": "Verified Scope & Contributions (Bullet Points)",
+      "bulletsHint": "Quick bullet-point deliverables displayed inside the Verified Scope & Contributions card on the public project page. You can edit, reorder, delete, or add bullets here.",
+      "addBullet": "Add Bullet Point",
+      "bulletLabel": "Scope / Contribution Point",
+      "bulletsEmpty": "No bullet points added. Click \"Add Bullet Point\" to add items, or use Structured Contributions above.",
       "processHeading": "Optional Engineering Process (Challenge & Solution — hidden publicly when empty)"
     },
     "toolsMgr": {
