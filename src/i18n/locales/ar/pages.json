@@ -28,7 +28,14 @@
     "emptyDescription": "جرّب تعديل عبارة البحث أو نوع المشروع أو التخصص. سيتم نشر دراسات حالة هندسية إضافية فور توثيقها.",
     "countSingle": "مشروع هندسي واحد",
     "countLabel": "{{count}} مشاريع هندسية",
-    "filteredBySpecialization": "عرض المشاريع المرتبطة بتخصص: {{name}}"
+    "filteredBySpecialization": "عرض المشاريع المرتبطة بتخصص: {{name}}",
+    "featuredFilter": "المميزة",
+    "groupProfessional": "المشاريع المهنية ومشاريع العملاء",
+    "groupProfessionalDesc": "المشاريع الهندسية الصناعية والتجارية ومشاريع العملاء.",
+    "groupAcademic": "المشاريع الأكاديمية",
+    "groupAcademicDesc": "مشروع التخرج والمشاريع الهندسية الجامعية.",
+    "groupPersonal": "المشاريع الشخصية",
+    "groupPersonalDesc": "مشاريع النماذج الأولية والأتمتة والتصميم الميكانيكي المستقلة."
   },
   "projectDetail": {
     "notFoundCode": "خطأ // المشروع غير موجود",
@@ -53,7 +60,14 @@
     "companyLabel": "الشركة المرتبطة",
     "codeLabel": "الرمز المرجعي",
     "relatedHeading": "مشاريع هندسية ذات صلة",
-    "navigationLabel": "التنقل بين المشاريع"
+    "navigationLabel": "التنقل بين المشاريع",
+    "viewerHeading": "عارض النموذج ثلاثي الأبعاد التفاعلي",
+    "openViewerExternal": "فتح بملء الشاشة",
+    "viewerFallback": "تعذر تحميل العارض ثلاثي الأبعاد التفاعلي حالياً.",
+    "attachmentsHeading": "الوثائق والمرفقات الهندسية",
+    "downloadAttachment": "تحميل الملف",
+    "statusLabel": "حالة المشروع",
+    "timelineLabel": "الفترة الزمنية"
   },
   "companies": {
     "pageTitle": "الشركات والعملاء",

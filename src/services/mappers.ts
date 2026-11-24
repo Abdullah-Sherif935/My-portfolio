@@ -9,9 +9,14 @@ import type {
   LocalizedText,
   ProfileData,
   Project,
+  ProjectAttachment,
   ProjectCaseStudy,
+  ProjectContribution,
   ProjectGalleryImage,
+  ProjectGroup,
   ProjectKind,
+  ProjectSeoMeta,
+  ProjectViewerConfig,
   SkillGroup,
   Specialization,
   SpecializationIcon,
@@ -85,11 +90,14 @@ export interface ProjectRow {
   code: string;
   kind: ProjectKind;
   kind_label: LocalizedText;
+  project_group?: ProjectGroup | null;
   title: LocalizedText;
   short_description: LocalizedText;
   overview: LocalizedText;
   category: SpecializationId;
   category_label: LocalizedText;
+  start_date?: string | null;
+  completion_date?: string | null;
   cover_variant: Project['coverVariant'];
   cover_image_url: string | null;
   cover_image_alt: LocalizedText | null;
@@ -97,6 +105,8 @@ export interface ProjectRow {
   case_study: ProjectCaseStudy | null;
   technologies: string[];
   deliverables: LocalizedText[];
+  viewer_config?: ProjectViewerConfig | null;
+  seo_meta?: ProjectSeoMeta | null;
   company_id: string | null;
   related_project_slugs: string[];
   status_label: LocalizedText;
@@ -258,6 +268,32 @@ export interface SpecializationProjectLinkRow {
   display_order: number;
 }
 
+export interface ProjectCategoryLinkRow {
+  project_id: string;
+  category_id: string;
+  display_order: number;
+}
+
+export interface ProjectContributionRow {
+  id: string;
+  project_id: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  display_order: number;
+}
+
+export interface ProjectAttachmentRow {
+  id: string;
+  project_id: string;
+  title: LocalizedText;
+  file_type: string;
+  file_url: string;
+  storage_path: string | null;
+  file_size_label: string | null;
+  downloadable: boolean;
+  display_order: number;
+}
+
 export interface ActivityLogRow {
   id: string;
   action: LocalizedText;
@@ -346,18 +382,42 @@ export function mapCompanyToRow(data: Company): CompanyRow {
   };
 }
 
-export function mapProjectFromRow(row: ProjectRow): Project {
+export interface ProjectRowExtras {
+  categoryIds?: string[];
+  contributions?: ProjectContribution[];
+  attachments?: ProjectAttachment[];
+}
+
+export function mapProjectFromRow(
+  row: ProjectRow,
+  extras?: ProjectRowExtras
+): Project {
+  const categoryIds =
+    extras?.categoryIds && extras.categoryIds.length > 0
+      ? extras.categoryIds
+      : row.category
+        ? [row.category]
+        : [];
   return {
     id: row.id,
     slug: row.slug,
     code: row.code,
     kind: row.kind,
     kindLabel: row.kind_label,
+    projectGroup:
+      row.project_group === 'professional' ||
+      row.project_group === 'personal' ||
+      row.project_group === 'academic'
+        ? row.project_group
+        : 'academic',
     title: row.title,
     shortDescription: row.short_description,
     overview: row.overview,
     category: row.category,
     categoryLabel: row.category_label,
+    categoryIds,
+    startDate: row.start_date ?? null,
+    completionDate: row.completion_date ?? null,
     coverVariant: row.cover_variant,
     coverImageUrl: row.cover_image_url,
     coverImageAlt: row.cover_image_alt ?? undefined,
@@ -365,6 +425,10 @@ export function mapProjectFromRow(row: ProjectRow): Project {
     caseStudy: row.case_study ?? undefined,
     technologies: row.technologies ?? [],
     deliverables: row.deliverables ?? [],
+    contributions: extras?.contributions ?? [],
+    attachments: extras?.attachments ?? [],
+    viewerConfig: row.viewer_config ?? null,
+    seoMeta: row.seo_meta ?? null,
     companyId: row.company_id ?? undefined,
     relatedProjectSlugs:
       row.related_project_slugs && row.related_project_slugs.length > 0
@@ -390,11 +454,14 @@ export function mapProjectToRow(data: Project): ProjectRow {
     code: data.code,
     kind: data.kind,
     kind_label: data.kindLabel,
+    project_group: data.projectGroup ?? 'academic',
     title: data.title,
     short_description: data.shortDescription,
     overview: data.overview,
     category: data.category,
     category_label: data.categoryLabel,
+    start_date: data.startDate ?? null,
+    completion_date: data.completionDate ?? null,
     cover_variant: data.coverVariant,
     cover_image_url: data.coverImageUrl ?? null,
     cover_image_alt: data.coverImageAlt ?? null,
@@ -402,6 +469,8 @@ export function mapProjectToRow(data: Project): ProjectRow {
     case_study: data.caseStudy ?? null,
     technologies: data.technologies,
     deliverables: data.deliverables,
+    viewer_config: data.viewerConfig ?? null,
+    seo_meta: data.seoMeta ?? null,
     company_id: data.companyId ?? null,
     related_project_slugs: data.relatedProjectSlugs ?? [],
     status_label: data.statusLabel,

@@ -208,15 +208,95 @@
     "notAvailable": "—",
     "tabs": {
       "basic": "Basic Info",
+      "categories": "Categories",
+      "contributions": "My Contributions",
       "engineering": "Engineering Details",
-      "technologies": "Technologies",
-      "media": "Media",
+      "technologies": "Tools & Tech",
+      "media": "Media Gallery",
+      "attachments": "Attachments",
+      "viewer": "3D Viewer",
+      "seoPublishing": "SEO & Publishing",
       "relationships": "Relationships"
+    },
+    "groups": {
+      "professional": "Professional / Client Project",
+      "academic": "Academic Project",
+      "personal": "Personal Project"
+    },
+    "draftBadge": "Draft",
+    "unsavedTag": "Unsaved",
+    "publishAction": "Publish project",
+    "unpublishAction": "Unpublish project (Draft)",
+    "duplicateAction": "Duplicate project as draft",
+    "duplicatedFeedback": "Project duplicated as a draft in Supabase.",
+    "mapBasic": "Portfolio (/portfolio & /portfolio/:slug) → Header, Overview, Group & Dates",
+    "mapCategories": "Portfolio (/portfolio & /portfolio/:slug) → Multi-Category Badges & Filters",
+    "mapContributions": "Project Details (/portfolio/:slug) → My Role & Contributions + Engineering Process",
+    "mapTools": "Project Details (/portfolio/:slug) → Tools & Technologies Tags",
+    "mapMedia": "Portfolio Cards & Project Details → Cover Image & Multi-Image Gallery",
+    "mapAttachments": "Project Details (/portfolio/:slug) → Downloadable Engineering Attachments",
+    "mapViewer": "Project Details (/portfolio/:slug) → Optional Interactive 3D / eDrawings Viewer",
+    "mapSeo": "Project Details (/portfolio/:slug) → SEO Meta, Related Projects & Recruiter Matching",
+    "categoriesMgr": {
+      "hint": "Select one or more live categories for this project. The first selected category also acts as the primary category.",
+      "addCategory": "Add New Portfolio Category",
+      "newCategoryHeading": "Create New Live Category (Saved to Specializations)"
+    },
+    "contributionsMgr": {
+      "heading": "Structured Contributions",
+      "hint": "Add unlimited titled contributions detailing your exact engineering role and work on this project.",
+      "addButton": "Add Contribution",
+      "titleLabel": "Contribution Title",
+      "descLabel": "Detailed Description",
+      "processHeading": "Optional Engineering Process (Challenge & Solution — hidden publicly when empty)"
+    },
+    "toolsMgr": {
+      "pickFromSkills": "Quick-pick from existing Technical Skills"
+    },
+    "mediaMgr": {
+      "currentCover": "Current Cover Image",
+      "clearCover": "Clear Cover",
+      "noCover": "Using schematic fallback",
+      "uploadHint": "Upload multiple JPG, PNG, WebP, or SVG images (max 5 MB each) to Supabase Storage.",
+      "uploadImages": "Upload Images",
+      "coverBadge": "Cover Image",
+      "setAsCover": "Set as Cover",
+      "replaceImage": "Replace"
+    },
+    "attachmentsMgr": {
+      "heading": "Engineering Attachments",
+      "hint": "Upload PDF documentation, DXF drawings, STEP/DWG/ZIP/DOCX/XLSX files (max 25 MB) to Supabase Storage (portfolio-attachments).",
+      "uploadButton": "Upload Attachment",
+      "empty": "No attachments uploaded yet. Upload PDFs, DXF files, or engineering documents above.",
+      "openFile": "Open",
+      "downloadable": "Downloadable",
+      "fileTitle": "Attachment Display Title"
+    },
+    "viewerMgr": {
+      "securityTitle": "Isolated 3D / eDrawings Hosting Security",
+      "securityBody": "Arbitrary same-origin HTML execution is blocked for security. Host self-contained SolidWorks eDrawings HTML exports on an isolated HTTPS origin (e.g., viewer.eng-abdullah.work or GitHub Pages) and link the HTTPS URL below. The iframe is sandboxed automatically.",
+      "enableToggle": "Enable Interactive 3D Viewer on this project's public page",
+      "embedUrlLabel": "Isolated HTTPS Viewer URL",
+      "httpsRequired": "Viewer URL must start with https://",
+      "heightLabel": "Viewer Height (px)",
+      "titleLabel": "Viewer Section Title",
+      "fallbackLabel": "Fallback Message (if viewer cannot load)",
+      "previewIframe": "Preview Viewer",
+      "openExternal": "Open in New Tab"
+    },
+    "seoMgr": {
+      "titleLabel": "Custom SEO Title (Optional)",
+      "descLabel": "Custom Meta Description (Optional)"
     },
     "fields": {
       "title": "Project Title",
       "slug": "URL Slug",
       "code": "Reference Code",
+      "projectGroup": "Project Type Group",
+      "startDate": "Start Date",
+      "completionDate": "Completion Date",
+      "statusLabel": "Project Status Label",
+      "published": "Published (visible on public Portfolio)",
       "category": "Discipline Category",
       "kind": "Project Type",
       "featured": "Feature on Home Page",

@@ -7,6 +7,8 @@ import type {
   LocalizedText,
   ProfileData,
   Project,
+  ProjectAttachment,
+  ProjectContribution,
   SkillGroup,
   Specialization,
 } from '@/types/portfolio';
@@ -47,6 +49,9 @@ import {
   type ExperienceRow,
   type MediaAssetRow,
   type ProfileRow,
+  type ProjectAttachmentRow,
+  type ProjectCategoryLinkRow,
+  type ProjectContributionRow,
   type ProjectRow,
   type SiteSettingsRow,
   type SkillGroupRow,
@@ -62,6 +67,56 @@ function groupProjectLinksBySpecialization(
     const list = map.get(row.specialization_id) ?? [];
     list.push(row.project_id);
     map.set(row.specialization_id, list);
+  }
+  return map;
+}
+
+function groupCategoryIdsByProject(
+  rows: ProjectCategoryLinkRow[]
+): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const row of rows) {
+    const list = map.get(row.project_id) ?? [];
+    list.push(row.category_id);
+    map.set(row.project_id, list);
+  }
+  return map;
+}
+
+function groupContributionsByProject(
+  rows: ProjectContributionRow[]
+): Map<string, ProjectContribution[]> {
+  const map = new Map<string, ProjectContribution[]>();
+  for (const row of rows) {
+    const list = map.get(row.project_id) ?? [];
+    list.push({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      displayOrder: row.display_order,
+    });
+    map.set(row.project_id, list);
+  }
+  return map;
+}
+
+function groupAttachmentsByProject(
+  rows: ProjectAttachmentRow[]
+): Map<string, ProjectAttachment[]> {
+  const map = new Map<string, ProjectAttachment[]>();
+  for (const row of rows) {
+    const list = map.get(row.project_id) ?? [];
+    list.push({
+      id: row.id,
+      title: row.title,
+      fileType: row.file_type,
+      fileUrl: row.file_url,
+      storagePath: row.storage_path,
+      fileSizeLabel: row.file_size_label,
+      downloadable: row.downloadable,
+      displayOrder: row.display_order,
+    });
+    map.set(row.project_id, list);
   }
   return map;
 }
@@ -95,6 +150,9 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     profileRes,
     educationRes,
     projectsRes,
+    projectCatsRes,
+    projectContribsRes,
+    projectAttachRes,
     companiesRes,
     experienceRes,
     skillsRes,
@@ -106,6 +164,9 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     supabase.from('profiles').select('*').eq('is_published', true).limit(1).maybeSingle(),
     supabase.from('education').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('projects').select('*').eq('is_published', true).order('display_order', { ascending: true }),
+    supabase.from('project_categories').select('*').order('display_order', { ascending: true }),
+    supabase.from('project_contributions').select('*').order('display_order', { ascending: true }),
+    supabase.from('project_attachments').select('*').order('display_order', { ascending: true }),
     supabase.from('companies').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('experience').select('*').eq('is_published', true).order('display_order', { ascending: true }),
     supabase.from('skill_groups').select('*').eq('is_published', true).order('display_order', { ascending: true }),
@@ -119,6 +180,9 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
     profileRes.error ||
     educationRes.error ||
     projectsRes.error ||
+    projectCatsRes.error ||
+    projectContribsRes.error ||
+    projectAttachRes.error ||
     companiesRes.error ||
     experienceRes.error ||
     skillsRes.error ||
@@ -134,11 +198,26 @@ export async function fetchPublicPortfolioBundle(): Promise<PublicPortfolioBundl
   const linkMap = groupProjectLinksBySpecialization(
     (specLinksRes.data ?? []) as SpecializationProjectLinkRow[]
   );
+  const projCatMap = groupCategoryIdsByProject(
+    (projectCatsRes.data ?? []) as ProjectCategoryLinkRow[]
+  );
+  const projContribMap = groupContributionsByProject(
+    (projectContribsRes.data ?? []) as ProjectContributionRow[]
+  );
+  const projAttachMap = groupAttachmentsByProject(
+    (projectAttachRes.data ?? []) as ProjectAttachmentRow[]
+  );
 
   return {
     profile: profileRes.data ? mapProfileFromRow(profileRes.data as ProfileRow) : null,
     education: ((educationRes.data ?? []) as EducationRow[]).map(mapEducationFromRow),
-    projects: ((projectsRes.data ?? []) as ProjectRow[]).map(mapProjectFromRow),
+    projects: ((projectsRes.data ?? []) as ProjectRow[]).map((row) =>
+      mapProjectFromRow(row, {
+        categoryIds: projCatMap.get(row.id) ?? [],
+        contributions: projContribMap.get(row.id) ?? [],
+        attachments: projAttachMap.get(row.id) ?? [],
+      })
+    ),
     companies: ((companiesRes.data ?? []) as CompanyRow[]).map(mapCompanyFromRow),
     experience: ((experienceRes.data ?? []) as ExperienceRow[]).map(mapExperienceFromRow),
     skills: ((skillsRes.data ?? []) as SkillGroupRow[]).map(mapSkillGroupFromRow),
@@ -164,6 +243,9 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     profileRes,
     educationRes,
     projectsRes,
+    projectCatsRes,
+    projectContribsRes,
+    projectAttachRes,
     companiesRes,
     experienceRes,
     skillsRes,
@@ -178,6 +260,9 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     client.from('profiles').select('*').limit(1).maybeSingle(),
     client.from('education').select('*').order('display_order', { ascending: true }),
     client.from('projects').select('*').order('display_order', { ascending: true }),
+    client.from('project_categories').select('*').order('display_order', { ascending: true }),
+    client.from('project_contributions').select('*').order('display_order', { ascending: true }),
+    client.from('project_attachments').select('*').order('display_order', { ascending: true }),
     client.from('companies').select('*').order('display_order', { ascending: true }),
     client.from('experience').select('*').order('display_order', { ascending: true }),
     client.from('skill_groups').select('*').order('display_order', { ascending: true }),
@@ -198,6 +283,9 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
     profileRes.error ||
     educationRes.error ||
     projectsRes.error ||
+    projectCatsRes.error ||
+    projectContribsRes.error ||
+    projectAttachRes.error ||
     companiesRes.error ||
     experienceRes.error ||
     skillsRes.error ||
@@ -216,11 +304,26 @@ export async function fetchAdminWorkspaceBundle(): Promise<AdminWorkspaceBundle>
   const linkMap = groupProjectLinksBySpecialization(
     (specLinksRes.data ?? []) as SpecializationProjectLinkRow[]
   );
+  const projCatMap = groupCategoryIdsByProject(
+    (projectCatsRes.data ?? []) as ProjectCategoryLinkRow[]
+  );
+  const projContribMap = groupContributionsByProject(
+    (projectContribsRes.data ?? []) as ProjectContributionRow[]
+  );
+  const projAttachMap = groupAttachmentsByProject(
+    (projectAttachRes.data ?? []) as ProjectAttachmentRow[]
+  );
 
   return {
     profile: profileRes.data ? mapProfileFromRow(profileRes.data as ProfileRow) : null,
     education: ((educationRes.data ?? []) as EducationRow[]).map(mapEducationFromRow),
-    projects: ((projectsRes.data ?? []) as ProjectRow[]).map(mapProjectFromRow),
+    projects: ((projectsRes.data ?? []) as ProjectRow[]).map((row) =>
+      mapProjectFromRow(row, {
+        categoryIds: projCatMap.get(row.id) ?? [],
+        contributions: projContribMap.get(row.id) ?? [],
+        attachments: projAttachMap.get(row.id) ?? [],
+      })
+    ),
     companies: ((companiesRes.data ?? []) as CompanyRow[]).map(mapCompanyFromRow),
     experience: ((experienceRes.data ?? []) as ExperienceRow[]).map(mapExperienceFromRow),
     skills: ((skillsRes.data ?? []) as SkillGroupRow[]).map(mapSkillGroupFromRow),
@@ -281,7 +384,243 @@ export async function saveProjectRecord(project: Project): Promise<Project> {
     .select('*')
     .single();
   if (error || !data) throw new Error(error?.message || 'Failed to save project.');
-  return mapProjectFromRow(data as ProjectRow);
+
+  // 1. Sync multi-category assignments
+  const dedupedCatIds = Array.from(
+    new Set(
+      (project.categoryIds && project.categoryIds.length > 0
+        ? project.categoryIds
+        : project.category
+          ? [project.category]
+          : []
+      ).filter(Boolean)
+    )
+  );
+  const { error: delCatsErr } = await client
+    .from('project_categories')
+    .delete()
+    .eq('project_id', project.id);
+  if (delCatsErr) throw new Error(delCatsErr.message);
+
+  if (dedupedCatIds.length > 0) {
+    const catRows: ProjectCategoryLinkRow[] = dedupedCatIds.map((catId, idx) => ({
+      project_id: project.id,
+      category_id: catId,
+      display_order: idx + 1,
+    }));
+    const { error: insCatsErr } = await client
+      .from('project_categories')
+      .insert(catRows);
+    if (insCatsErr) throw new Error(insCatsErr.message);
+  }
+
+  // 2. Sync structured contributions
+  const contributions = (project.contributions ?? []).map((item, idx) => ({
+    ...item,
+    id: item.id || `contrib-${project.id}-${idx + 1}-${Date.now().toString(36)}`,
+    displayOrder: idx + 1,
+  }));
+  const { error: delContribErr } = await client
+    .from('project_contributions')
+    .delete()
+    .eq('project_id', project.id);
+  if (delContribErr) throw new Error(delContribErr.message);
+
+  if (contributions.length > 0) {
+    const contribRows: ProjectContributionRow[] = contributions.map((c) => ({
+      id: c.id,
+      project_id: project.id,
+      title: c.title,
+      description: c.description,
+      display_order: c.displayOrder,
+    }));
+    const { error: insContribErr } = await client
+      .from('project_contributions')
+      .insert(contribRows);
+    if (insContribErr) throw new Error(insContribErr.message);
+  }
+
+  // 3. Sync attachments
+  const attachments = (project.attachments ?? []).map((item, idx) => ({
+    ...item,
+    id: item.id || `att-${project.id}-${idx + 1}-${Date.now().toString(36)}`,
+    displayOrder: idx + 1,
+  }));
+  const { error: delAttachErr } = await client
+    .from('project_attachments')
+    .delete()
+    .eq('project_id', project.id);
+  if (delAttachErr) throw new Error(delAttachErr.message);
+
+  if (attachments.length > 0) {
+    const attachRows: ProjectAttachmentRow[] = attachments.map((a) => ({
+      id: a.id,
+      project_id: project.id,
+      title: a.title,
+      file_type: a.fileType,
+      file_url: a.fileUrl,
+      storage_path: a.storagePath ?? null,
+      file_size_label: a.fileSizeLabel ?? null,
+      downloadable: a.downloadable !== false,
+      display_order: a.displayOrder,
+    }));
+    const { error: insAttachErr } = await client
+      .from('project_attachments')
+      .insert(attachRows);
+    if (insAttachErr) throw new Error(insAttachErr.message);
+  }
+
+  return mapProjectFromRow(data as ProjectRow, {
+    categoryIds: dedupedCatIds,
+    contributions,
+    attachments,
+  });
+}
+
+export async function persistProjectOrder(items: Project[]): Promise<void> {
+  const client = requireSupabase();
+  await Promise.all(
+    items.map(async (item, idx) => {
+      const { error } = await client
+        .from('projects')
+        .update({ display_order: item.displayOrder ?? idx + 1 })
+        .eq('id', item.id);
+      if (error) throw new Error(error.message);
+    })
+  );
+}
+
+const ALLOWED_GALLERY_MIMES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/svg+xml',
+]);
+const MAX_GALLERY_BYTES = 5 * 1024 * 1024; // 5 MB
+
+export async function uploadProjectGalleryImage(
+  file: File,
+  projectId: string
+): Promise<{ url: string; storagePath: string }> {
+  if (!ALLOWED_GALLERY_MIMES.has(file.type)) {
+    throw new Error('Only JPG, PNG, WebP, and SVG images are supported.');
+  }
+  if (file.size > MAX_GALLERY_BYTES) {
+    throw new Error('Image size must be 5 MB or smaller.');
+  }
+  const client = requireSupabase();
+  const ext =
+    file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+  const safeId = projectId.replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
+  const storagePath = `projects/${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+
+  const { error } = await client.storage
+    .from('portfolio-media')
+    .upload(storagePath, file, {
+      contentType: file.type,
+      cacheControl: '3600',
+      upsert: false,
+    });
+  if (error) throw new Error(error.message);
+
+  const { data } = client.storage.from('portfolio-media').getPublicUrl(storagePath);
+  return { url: data.publicUrl, storagePath };
+}
+
+export async function deleteProjectGalleryAsset(storagePath: string): Promise<void> {
+  if (!storagePath.trim()) return;
+  const client = requireSupabase();
+  const { error } = await client.storage
+    .from('portfolio-media')
+    .remove([storagePath]);
+  if (error) throw new Error(error.message);
+}
+
+const ALLOWED_ATTACHMENT_EXTS = new Set([
+  'pdf',
+  'dxf',
+  'dwg',
+  'step',
+  'stp',
+  'iges',
+  'igs',
+  'zip',
+  'docx',
+  'xlsx',
+  'txt',
+]);
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024; // 25 MB
+
+function formatBytesLabel(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+export async function uploadProjectAttachment(
+  file: File,
+  projectId: string
+): Promise<{
+  url: string;
+  storagePath: string;
+  fileType: string;
+  fileSizeLabel: string;
+}> {
+  const ext =
+    file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || '';
+  if (!ALLOWED_ATTACHMENT_EXTS.has(ext)) {
+    throw new Error(
+      'Supported attachment formats: PDF, DXF, DWG, STEP/STP, IGES, ZIP, DOCX, XLSX, TXT.'
+    );
+  }
+  if (file.size > MAX_ATTACHMENT_BYTES) {
+    throw new Error('Attachment size must be 25 MB or smaller.');
+  }
+
+  const client = requireSupabase();
+  const safeId = projectId.replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
+  const storagePath = `projects/${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+  const contentType =
+    ext === 'pdf'
+      ? 'application/pdf'
+      : ext === 'dxf'
+        ? 'application/dxf'
+        : ext === 'txt'
+          ? 'text/plain'
+          : ext === 'zip'
+            ? 'application/zip'
+            : file.type || 'application/octet-stream';
+
+  const { error } = await client.storage
+    .from('portfolio-attachments')
+    .upload(storagePath, file, {
+      contentType,
+      cacheControl: '3600',
+      upsert: false,
+    });
+  if (error) throw new Error(error.message);
+
+  const { data } = client.storage
+    .from('portfolio-attachments')
+    .getPublicUrl(storagePath);
+
+  return {
+    url: data.publicUrl,
+    storagePath,
+    fileType: ext.toUpperCase(),
+    fileSizeLabel: formatBytesLabel(file.size),
+  };
+}
+
+export async function deleteProjectAttachmentAsset(
+  storagePath: string
+): Promise<void> {
+  if (!storagePath.trim()) return;
+  const client = requireSupabase();
+  const { error } = await client.storage
+    .from('portfolio-attachments')
+    .remove([storagePath]);
+  if (error) throw new Error(error.message);
 }
 
 export async function deleteProjectRecord(id: string): Promise<void> {

@@ -29,6 +29,7 @@ import {
   deleteSpecializationRecord,
   fetchAdminWorkspaceBundle,
   persistExperienceOrder,
+  persistProjectOrder,
   persistSkillGroupOrder,
   persistSpecializationOrder,
   recordAdminActivity,
@@ -214,6 +215,94 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       });
     },
     [runMutation, appendActivity, projects, cvConfig]
+  );
+
+  const reorderProject = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      const sorted = [...projects].sort((a, b) => a.displayOrder - b.displayOrder);
+      const index = sorted.findIndex((item) => item.id === id);
+      const swapIndex = direction === 'up' ? index - 1 : index + 1;
+      if (index < 0 || swapIndex < 0 || swapIndex >= sorted.length) return;
+      const a = sorted[index]!;
+      const b = sorted[swapIndex]!;
+      sorted[index] = b;
+      sorted[swapIndex] = a;
+      const reindexed = sorted.map((item, idx) => ({
+        ...item,
+        displayOrder: idx + 1,
+      }));
+      setProjects(reindexed);
+      await runMutation(async () => {
+        await persistProjectOrder(reindexed);
+      });
+    },
+    [projects, runMutation]
+  );
+
+  const toggleProjectPublished = useCallback(
+    async (id: string) => {
+      const target = projects.find((p) => p.id === id);
+      if (!target) return;
+      const updated: Project = {
+        ...target,
+        isPublished: target.isPublished === false,
+      };
+      await runMutation(async () => {
+        const saved = await saveProjectRecord(updated);
+        setProjects((prev) => prev.map((p) => (p.id === saved.id ? saved : p)));
+        await appendActivity(
+          'projects',
+          saved.isPublished !== false
+            ? { en: 'Published project', ar: 'تم نشر المشروع' }
+            : { en: 'Unpublished project (Draft)', ar: 'تم إخفاء المشروع (مسودة)' },
+          saved.title
+        );
+      });
+    },
+    [projects, runMutation, appendActivity]
+  );
+
+  const duplicateProject = useCallback(
+    async (id: string) => {
+      const target = projects.find((p) => p.id === id);
+      if (!target) return;
+      const stamp = Date.now().toString(36);
+      const copy: Project = {
+        ...structuredClone(target),
+        id: `proj-${stamp}`,
+        slug: `${target.slug}-copy-${stamp.slice(-4)}`,
+        code: `${target.code}-CPY`,
+        title: {
+          en: `${target.title.en} (Copy)`,
+          ar: `${target.title.ar} (نسخة)`,
+        },
+        featured: false,
+        isPublished: false,
+        displayOrder: projects.length + 1,
+        dataSource: 'cms',
+        contributions: (target.contributions ?? []).map((c, idx) => ({
+          ...c,
+          id: `contrib-${stamp}-${idx + 1}`,
+        })),
+        attachments: (target.attachments ?? []).map((a, idx) => ({
+          ...a,
+          id: `att-${stamp}-${idx + 1}`,
+          storagePath: null,
+        })),
+      };
+      await runMutation(async () => {
+        const saved = await saveProjectRecord(copy);
+        setProjects((prev) =>
+          [...prev, saved].sort((a, b) => a.displayOrder - b.displayOrder)
+        );
+        await appendActivity(
+          'projects',
+          { en: 'Duplicated project as draft', ar: 'تم نسخ المشروع كمسودة' },
+          saved.title
+        );
+      });
+    },
+    [projects, runMutation, appendActivity]
   );
 
   const saveCompany = useCallback(
@@ -719,6 +808,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       updateProfile,
       saveProject,
       deleteProject,
+      reorderProject,
+      toggleProjectPublished,
+      duplicateProject,
       saveCompany,
       deleteCompany,
       saveExperience,
@@ -762,6 +854,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       updateProfile,
       saveProject,
       deleteProject,
+      reorderProject,
+      toggleProjectPublished,
+      duplicateProject,
       saveCompany,
       deleteCompany,
       saveExperience,

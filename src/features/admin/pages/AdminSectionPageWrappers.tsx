@@ -27,6 +27,10 @@ export function AdminExperiencePageManager() {
 
 export function AdminPortfolioPageManager() {
   const { t } = useTranslation('admin');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+
   return (
     <PageEditorShell
       title={t('nav.pagePortfolio')}
@@ -34,8 +38,19 @@ export function AdminPortfolioPageManager() {
       publicRoute="/portfolio"
       mappingPath={t('pageWrappers.portfolioMap')}
       sharedPages={[t('nav.pageHome'), t('nav.featureRecruiter'), t('nav.featureCvBuilder')]}
+      hasUnsavedChanges={hasUnsavedChanges}
+      lastSavedLabel={lastSaved}
+      previewRefreshKey={previewRefreshKey}
     >
-      <AdminProjectsPage />
+      <AdminProjectsPage
+        onDirtyChange={setHasUnsavedChanges}
+        onSaved={() => {
+          setLastSaved(
+            new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          );
+          setPreviewRefreshKey((k) => k + 1);
+        }}
+      />
     </PageEditorShell>
   );
 }

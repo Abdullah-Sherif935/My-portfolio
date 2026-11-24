@@ -208,15 +208,95 @@
     "notAvailable": "—",
     "tabs": {
       "basic": "البيانات الأساسية",
+      "categories": "الفئات",
+      "contributions": "مساهماتي",
       "engineering": "التفاصيل الهندسية",
-      "technologies": "التقنيات",
-      "media": "الوسائط",
+      "technologies": "الأدوات والتقنيات",
+      "media": "معرض الصور",
+      "attachments": "المرفقات",
+      "viewer": "العارض 3D",
+      "seoPublishing": "SEO والنشر",
       "relationships": "الروابط"
+    },
+    "groups": {
+      "professional": "مشروع مهني / عملاء",
+      "academic": "مشروع أكاديمي",
+      "personal": "مشروع شخصي"
+    },
+    "draftBadge": "مسودة",
+    "unsavedTag": "غير محفوظ",
+    "publishAction": "نشر المشروع",
+    "unpublishAction": "إخفاء المشروع (مسودة)",
+    "duplicateAction": "نسخ المشروع كمسودة",
+    "duplicatedFeedback": "تم نسخ المشروع كمسودة في Supabase.",
+    "mapBasic": "المشاريع (/portfolio و /portfolio/:slug) ← الترويسة والنظرة العامة والنوع والتواريخ",
+    "mapCategories": "المشاريع (/portfolio و /portfolio/:slug) ← الفئات المتعددة وشارات التصفية",
+    "mapContributions": "تفاصيل المشروع (/portfolio/:slug) ← دوري ومساهماتي والمنهجية الهندسية",
+    "mapTools": "تفاصيل المشروع (/portfolio/:slug) ← وسوم الأدوات والتقنيات",
+    "mapMedia": "بطاقات المعرض وتفاصيل المشروع ← صورة الغلاف ومعرض الصور المتعددة",
+    "mapAttachments": "تفاصيل المشروع (/portfolio/:slug) ← المرفقات والوثائق الهندسية القابلة للتحميل",
+    "mapViewer": "تفاصيل المشروع (/portfolio/:slug) ← عارض النماذج التفاعلي ثلاثي الأبعاد / eDrawings",
+    "mapSeo": "تفاصيل المشروع (/portfolio/:slug) ← بيانات SEO والمشاريع ذات الصلة ومطابقة التوظيف",
+    "categoriesMgr": {
+      "hint": "اختر فئة واحدة أو أكثر لهذا المشروع من الفئات الحية. الفئة الأولى تعمل أيضاً كفئة رئيسية.",
+      "addCategory": "إضافة فئة معرض جديدة",
+      "newCategoryHeading": "إنشاء فئة حية جديدة (تُحفظ في جدول التخصصات)"
+    },
+    "contributionsMgr": {
+      "heading": "المساهمات المنظّمة",
+      "hint": "أضف عدداً غير محدود من المساهمات بعناوين وأوصاف تفصيلية توضح دورك الهندسي الفعلي في المشروع.",
+      "addButton": "إضافة مساهمة",
+      "titleLabel": "عنوان المساهمة",
+      "descLabel": "الوصف التفصيلي",
+      "processHeading": "المنهجية الهندسية الاختيارية (التحدي والحل — تُخفى تلقائياً إذا كانت فارغة)"
+    },
+    "toolsMgr": {
+      "pickFromSkills": "اختيار سريع من المهارات التقنية المسجّلة"
+    },
+    "mediaMgr": {
+      "currentCover": "صورة الغلاف الحالية",
+      "clearCover": "إزالة الغلاف",
+      "noCover": "استخدام المخطط البديل",
+      "uploadHint": "ارفع عدة صور بصيغة JPG أو PNG أو WebP أو SVG (بحد أقصى 5 ميجابايت لكل صورة) إلى Supabase Storage.",
+      "uploadImages": "رفع صور",
+      "coverBadge": "صورة الغلاف",
+      "setAsCover": "تعيين كغلاف",
+      "replaceImage": "استبدال"
+    },
+    "attachmentsMgr": {
+      "heading": "المرفقات والوثائق الهندسية",
+      "hint": "ارفع ملفات PDF ورسومات DXF وملفات STEP/DWG/ZIP/DOCX/XLSX (بحد أقصى 25 ميجابايت) إلى حاوية portfolio-attachments.",
+      "uploadButton": "رفع مرفق",
+      "empty": "لا توجد مرفقات مرفوعة بعد. ارفع ملفات PDF أو DXF أو وثائق هندسية أعلاه.",
+      "openFile": "فتح",
+      "downloadable": "متاح للتحميل",
+      "fileTitle": "عنوان عرض المرفق"
+    },
+    "viewerMgr": {
+      "securityTitle": "أمان استضافة العارض ثلاثي الأبعاد / eDrawings",
+      "securityBody": "يُمنع تشغيل ملفات HTML عشوائية على نفس نطاق الموقع لأسباب أمنية. استضف ملفات SolidWorks eDrawings على نطاق ثابت معزول عبر HTTPS (مثل viewer.eng-abdullah.work أو GitHub Pages) وأدرج الرابط أدناه مع تفعيل عزل iframe تلقائياً.",
+      "enableToggle": "تفعيل العارض ثلاثي الأبعاد التفاعلي في صفحة هذا المشروع العامة",
+      "embedUrlLabel": "رابط العارض المعزول (HTTPS)",
+      "httpsRequired": "يجب أن يبدأ رابط العارض بـ https://",
+      "heightLabel": "ارتفاع العارض (px)",
+      "titleLabel": "عنوان قسم العارض",
+      "fallbackLabel": "رسالة بديلة (في حال تعذر تحميل العارض)",
+      "previewIframe": "معاينة العارض",
+      "openExternal": "فتح في تبويب جديد"
+    },
+    "seoMgr": {
+      "titleLabel": "عنوان SEO مخصص (اختياري)",
+      "descLabel": "وصف تعريفي Meta مخصص (اختياري)"
     },
     "fields": {
       "title": "عنوان المشروع",
       "slug": "المعرّف النصي (Slug)",
       "code": "الرمز المرجعي",
+      "projectGroup": "تصنيف نوع المشروع",
+      "startDate": "تاريخ البداية",
+      "completionDate": "تاريخ الانتهاء",
+      "statusLabel": "حالة المشروع",
+      "published": "منشور (ظاهر في المعرض العام)",
       "category": "التخصص الهندسي",
       "kind": "نوع المشروع",
       "featured": "عرض في المشاريع المختارة بالرئيسية",

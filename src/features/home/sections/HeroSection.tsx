@@ -242,37 +242,37 @@ export function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Public Engineering Specification Strip (2 Editable Cards: Current Role & Core Focus) */}
-        {visibleHeroCards.length > 0 && (
-          <div
-            className={
-              visibleHeroCards.length === 1
-                ? 'mt-7 grid gap-2.5 border-t border-border-default pt-5 sm:mt-12 sm:grid-cols-1 sm:gap-4 sm:pt-8'
-                : 'mt-7 grid gap-2.5 border-t border-border-default pt-5 sm:mt-12 sm:grid-cols-2 sm:gap-4 sm:pt-8'
-            }
-          >
-            {visibleHeroCards.map((card, idx) => {
-              const subtextValue = pick(card.subtext).trim();
-              return (
-                <div
-                  key={idx}
-                  className="rounded-xl border border-border-default bg-bg-secondary/80 px-3.5 py-3 sm:px-4 sm:py-3.5"
-                >
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary sm:text-[11px]">
-                    {pick(card.label)}
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-text-primary sm:mt-1 sm:text-sm">
-                    {pick(card.value)}
-                  </p>
-                  {subtextValue && (
-                    <p className="mt-0.5 text-[11px] text-text-secondary sm:text-xs">
-                      {subtextValue}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+            {/* Public Engineering Specification Strip (2 Editable Cards: Current Role & Core Focus) */}
+            {visibleHeroCards.length > 0 && (
+              <div
+                className={
+                  visibleHeroCards.length === 1
+                    ? 'mt-7 grid gap-2.5 border-t border-border-default pt-5 sm:mt-12 sm:grid-cols-1 sm:gap-4 sm:pt-8'
+                    : 'mt-7 grid gap-2.5 border-t border-border-default pt-5 sm:mt-12 sm:grid-cols-2 sm:gap-4 sm:pt-8'
+                }
+              >
+                {visibleHeroCards.map((card, idx) => {
+                  const subtextValue = pick(card.subtext).trim();
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-xl border border-border-default bg-bg-secondary/80 px-3.5 py-3 sm:px-4 sm:py-3.5"
+                    >
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary sm:text-[11px]">
+                        {pick(card.label)}
+                      </p>
+                      <p className="mt-0.5 text-xs font-medium text-text-primary sm:mt-1 sm:text-sm">
+                        {pick(card.value)}
+                      </p>
+                      {subtextValue && (
+                        <p className="mt-0.5 text-[11px] text-text-secondary sm:text-xs">
+                          {subtextValue}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
         )}
       </Container >
     </section >

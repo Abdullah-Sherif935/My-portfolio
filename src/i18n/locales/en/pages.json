@@ -28,7 +28,14 @@
     "emptyDescription": "Try adjusting your search query, project type, or discipline filter. Additional engineering case studies will be published as they are documented.",
     "countSingle": "1 engineering project",
     "countLabel": "{{count}} engineering projects",
-    "filteredBySpecialization": "Showing related projects for: {{name}}"
+    "filteredBySpecialization": "Showing related projects for: {{name}}",
+    "featuredFilter": "Featured",
+    "groupProfessional": "Professional & Client Projects",
+    "groupProfessionalDesc": "Industrial, commercial, and client-delivered engineering projects.",
+    "groupAcademic": "Academic Projects",
+    "groupAcademicDesc": "University graduation and engineering curriculum projects.",
+    "groupPersonal": "Personal Projects",
+    "groupPersonalDesc": "Independent prototyping, automation, and mechanical design builds."
   },
   "projectDetail": {
     "notFoundCode": "ERR // PROJECT_NOT_FOUND",
@@ -53,7 +60,14 @@
     "companyLabel": "Associated Company",
     "codeLabel": "Reference Code",
     "relatedHeading": "Related Engineering Projects",
-    "navigationLabel": "Project navigation"
+    "navigationLabel": "Project navigation",
+    "viewerHeading": "Interactive 3D CAD Viewer",
+    "openViewerExternal": "Open Fullscreen",
+    "viewerFallback": "The interactive 3D viewer could not be loaded right now.",
+    "attachmentsHeading": "Engineering Documents & Attachments",
+    "downloadAttachment": "Download",
+    "statusLabel": "Project Status",
+    "timelineLabel": "Project Timeline"
   },
   "companies": {
     "pageTitle": "Companies & Clients",

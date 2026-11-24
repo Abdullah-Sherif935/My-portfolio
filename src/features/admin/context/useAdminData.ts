@@ -40,6 +40,9 @@ export interface AdminDataContextValue {
 
   saveProject: (project: Project) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  reorderProject: (id: string, direction: 'up' | 'down') => Promise<void>;
+  toggleProjectPublished: (id: string) => Promise<void>;
+  duplicateProject: (id: string) => Promise<void>;
 
   saveCompany: (company: Company, linkedExperienceIds?: string[]) => Promise<void>;
   deleteCompany: (id: string) => Promise<void>;

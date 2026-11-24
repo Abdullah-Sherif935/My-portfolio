@@ -198,20 +198,26 @@ export function resolvePortfolioCategories(
   }
 
   for (const project of projects) {
-    const slug = (project.category || '').trim();
-    if (!slug) continue;
-    const existing = map.get(slug);
+    const projectCatIds = Array.from(
+      new Set([
+        ...(project.categoryIds ?? []),
+        ...(project.category ? [project.category] : []),
+      ])
+    ).filter(Boolean);
     const isPub = project.isPublished !== false;
-    if (existing) {
-      existing.totalProjectCount += 1;
-      if (isPub) existing.publishedProjectCount += 1;
-    } else {
-      map.set(slug, {
-        id: slug,
-        label: project.categoryLabel,
-        publishedProjectCount: isPub ? 1 : 0,
-        totalProjectCount: 1,
-      });
+    for (const slug of projectCatIds) {
+      const existing = map.get(slug);
+      if (existing) {
+        existing.totalProjectCount += 1;
+        if (isPub) existing.publishedProjectCount += 1;
+      } else {
+        map.set(slug, {
+          id: slug,
+          label: project.categoryLabel,
+          publishedProjectCount: isPub ? 1 : 0,
+          totalProjectCount: 1,
+        });
+      }
     }
   }
 
@@ -242,7 +248,9 @@ export function resolveSpecializationProjects(
 
   const category = (spec.filterCategory || '').trim();
   if (!category) return [];
-  return publishedProjects.filter((p) => p.category === category);
+  return publishedProjects.filter(
+    (p) => p.category === category || (p.categoryIds ?? []).includes(category)
+  );
 }
 
 /**

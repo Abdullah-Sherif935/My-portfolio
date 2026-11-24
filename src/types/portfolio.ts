@@ -130,10 +130,44 @@ export interface Company extends EditableRecord {
 
 export type ProjectKind = 'graduation' | 'engineering' | 'industrial';
 
+export type ProjectGroup = 'professional' | 'academic' | 'personal';
+
 export interface ProjectGalleryImage {
   url: string;
   alt: LocalizedText;
   caption?: LocalizedText;
+  storagePath?: string | null;
+}
+
+export interface ProjectContribution {
+  id: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  displayOrder: number;
+}
+
+export interface ProjectAttachment {
+  id: string;
+  title: LocalizedText;
+  fileType: string;
+  fileUrl: string;
+  storagePath?: string | null;
+  fileSizeLabel?: string | null;
+  downloadable: boolean;
+  displayOrder: number;
+}
+
+export interface ProjectViewerConfig {
+  enabled: boolean;
+  embedUrl: string;
+  title?: LocalizedText;
+  fallbackMessage?: LocalizedText;
+  heightPx?: number;
+}
+
+export interface ProjectSeoMeta {
+  title?: LocalizedText;
+  description?: LocalizedText;
 }
 
 export interface ProjectSpecification {
@@ -153,11 +187,15 @@ export interface Project extends EditableRecord {
   code: string;
   kind: ProjectKind;
   kindLabel: LocalizedText;
+  projectGroup?: ProjectGroup;
   title: LocalizedText;
   shortDescription: LocalizedText;
   overview: LocalizedText;
   category: SpecializationId;
   categoryLabel: LocalizedText;
+  categoryIds?: string[];
+  startDate?: string | null;
+  completionDate?: string | null;
   coverVariant: 'hvac' | 'plc' | 'maintenance' | 'mechanical' | 'sheet-metal' | 'robotics';
   coverImageUrl?: string | null;
   coverImageAlt?: LocalizedText;
@@ -165,6 +203,10 @@ export interface Project extends EditableRecord {
   caseStudy?: ProjectCaseStudy;
   technologies: string[];
   deliverables: LocalizedText[];
+  contributions?: ProjectContribution[];
+  attachments?: ProjectAttachment[];
+  viewerConfig?: ProjectViewerConfig | null;
+  seoMeta?: ProjectSeoMeta | null;
   companyId?: string;
   relatedProjectSlugs?: string[];
   statusLabel: LocalizedText;

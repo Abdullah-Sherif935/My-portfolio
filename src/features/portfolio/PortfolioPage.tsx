@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, X } from 'lucide-react';
+import { Search, Star, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Container } from '@/components/layout/Container';
@@ -15,15 +15,31 @@ import {
   resolvePortfolioCategories,
   resolveSpecializationProjects,
 } from '@/utils/specializationHelpers';
-import type { ProjectKind } from '@/types/portfolio';
+import type { Project, ProjectGroup } from '@/types/portfolio';
 import { ProjectCard } from './components/ProjectCard';
 import { cn } from '@/utils/cn';
 
-const KIND_LABELS: Record<ProjectKind, string> = {
-  graduation: 'pages:portfolio.kindGraduation',
-  engineering: 'pages:portfolio.kindEngineering',
-  industrial: 'pages:portfolio.kindIndustrial',
-};
+const PROJECT_GROUPS: Array<{
+  id: ProjectGroup;
+  headingKey: string;
+  descKey: string;
+}> = [
+  {
+    id: 'professional',
+    headingKey: 'pages:portfolio.groupProfessional',
+    descKey: 'pages:portfolio.groupProfessionalDesc',
+  },
+  {
+    id: 'academic',
+    headingKey: 'pages:portfolio.groupAcademic',
+    descKey: 'pages:portfolio.groupAcademicDesc',
+  },
+  {
+    id: 'personal',
+    headingKey: 'pages:portfolio.groupPersonal',
+    descKey: 'pages:portfolio.groupPersonalDesc',
+  },
+];
 
 export function PortfolioPage() {
   const { t } = useTranslation(['pages', 'home', 'common']);
@@ -34,8 +50,23 @@ export function PortfolioPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSpecializationId = searchParams.get('specialization') || '';
   const activeCategory = searchParams.get('category') || 'all';
-  const activeType = searchParams.get('type') || 'all';
+  const activeGroup = (searchParams.get('group') || 'all') as 'all' | ProjectGroup;
+  const featuredOnly = searchParams.get('featured') === '1';
   const urlQuery = searchParams.get('q') || '';
+
+  const [searchInput, setSearchInput] = useState(urlQuery);
+
+  useEffect(() => {
+    setSearchInput(urlQuery);
+  }, [urlQuery]);
+
+  const publishedProjects = useMemo(
+    () =>
+      projects
+        .filter((p) => p.isPublished !== false)
+        .sort((a, b) => a.displayOrder - b.displayOrder),
+    [projects]
+  );
 
   const publishedSpecializations = useMemo(
     () =>
@@ -45,9 +76,13 @@ export function PortfolioPage() {
     [specializations]
   );
 
+  // Dynamic category filters derived strictly from categories assigned to published projects
   const dynamicCategories = useMemo(
-    () => resolvePortfolioCategories(publishedSpecializations, projects),
-    [publishedSpecializations, projects]
+    () =>
+      resolvePortfolioCategories(publishedSpecializations, publishedProjects).filter(
+        (cat) => cat.publishedProjectCount > 0 || cat.id === activeCategory
+      ),
+    [publishedSpecializations, publishedProjects, activeCategory]
   );
 
   const activeSpecialization = useMemo(
@@ -58,28 +93,21 @@ export function PortfolioPage() {
     [activeSpecializationId, publishedSpecializations]
   );
 
-  // Local controlled input state prevents dropped characters during rapid typing
-  // while React Router commits search-param transitions asynchronously.
-  const [searchInput, setSearchInput] = useState(urlQuery);
-
-  useEffect(() => {
-    setSearchInput(urlQuery);
-  }, [urlQuery]);
-
-  const availableKinds = useMemo(() => {
-    const kinds = new Set<ProjectKind>();
-    projects.forEach((p) => kinds.add(p.kind));
-    return Array.from(kinds);
-  }, [projects]);
-
-  const updateParam = (key: 'category' | 'type' | 'q', value: string) => {
+  const updateParam = (
+    key: 'category' | 'group' | 'featured' | 'q',
+    value: string
+  ) => {
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
         if (key === 'category') {
           next.delete('specialization');
         }
-        if (!value || (key !== 'q' && value === 'all') || (key === 'q' && !value.trim())) {
+        if (
+          !value ||
+          (key !== 'q' && (value === 'all' || value === '0')) ||
+          (key === 'q' && !value.trim())
+        ) {
           next.delete(key);
         } else {
           next.set(key, value);
@@ -114,14 +142,26 @@ export function PortfolioPage() {
   const filteredProjects = useMemo(() => {
     const normalizedQuery = searchInput.trim().toLowerCase();
     const baseProjects = activeSpecialization
-      ? resolveSpecializationProjects(activeSpecialization, projects)
-      : projects;
+      ? resolveSpecializationProjects(activeSpecialization, publishedProjects)
+      : publishedProjects;
 
     return baseProjects.filter((project) => {
-      if (!activeSpecialization && activeCategory !== 'all' && project.category !== activeCategory) {
+      if (!activeSpecialization && activeCategory !== 'all') {
+        const cats =
+          project.categoryIds && project.categoryIds.length > 0
+            ? project.categoryIds
+            : [project.category];
+        if (!cats.includes(activeCategory) && project.category !== activeCategory) {
+          return false;
+        }
+      }
+      if (
+        activeGroup !== 'all' &&
+        (project.projectGroup ?? 'academic') !== activeGroup
+      ) {
         return false;
       }
-      if (activeType !== 'all' && project.kind !== activeType) {
+      if (featuredOnly && !project.featured) {
         return false;
       }
       if (!normalizedQuery) {
@@ -138,8 +178,6 @@ export function PortfolioPage() {
         project.overview.ar,
         project.categoryLabel.en,
         project.categoryLabel.ar,
-        project.kindLabel.en,
-        project.kindLabel.ar,
         ...project.technologies,
       ]
         .join(' ')
@@ -147,12 +185,33 @@ export function PortfolioPage() {
 
       return haystack.includes(normalizedQuery);
     });
-  }, [projects, activeSpecialization, activeCategory, activeType, searchInput]);
+  }, [
+    publishedProjects,
+    activeSpecialization,
+    activeCategory,
+    activeGroup,
+    featuredOnly,
+    searchInput,
+  ]);
+
+  const groupedProjects = useMemo(() => {
+    const map: Record<ProjectGroup, Project[]> = {
+      professional: [],
+      academic: [],
+      personal: [],
+    };
+    for (const proj of filteredProjects) {
+      const grp: ProjectGroup = proj.projectGroup ?? 'academic';
+      map[grp].push(proj);
+    }
+    return map;
+  }, [filteredProjects]);
 
   const hasActiveFilters =
     Boolean(activeSpecialization) ||
     activeCategory !== 'all' ||
-    activeType !== 'all' ||
+    activeGroup !== 'all' ||
+    featuredOnly ||
     searchInput.trim().length > 0;
 
   const countText =
@@ -175,9 +234,9 @@ export function PortfolioPage() {
 
       <Section>
         <Container>
-          {/* Search & Project Type Controls */}
-          <div className="mb-6 grid gap-3 sm:grid-cols-12">
-            <div className="relative sm:col-span-7 lg:col-span-8">
+          {/* Search, Project Type Group & Featured Controls */}
+          <div className="mb-5 grid gap-3 sm:grid-cols-12">
+            <div className="relative sm:col-span-6 lg:col-span-6">
               <label htmlFor="portfolio-search" className="sr-only">
                 {t('pages:portfolio.searchLabel')}
               </label>
@@ -198,34 +257,55 @@ export function PortfolioPage() {
                   type="button"
                   onClick={() => handleSearchChange('')}
                   aria-label={t('common:actions.clearSearch')}
-                  className="absolute top-1/2 end-2.5 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary cursor-pointer"
+                  className="absolute top-1/2 end-2.5 inline-flex h-7 w-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               )}
             </div>
 
-            <div className="sm:col-span-5 lg:col-span-4">
-              <label htmlFor="portfolio-kind-filter" className="sr-only">
+            <div className="sm:col-span-4 lg:col-span-4">
+              <label htmlFor="portfolio-group-filter" className="sr-only">
                 {t('pages:portfolio.kindFilterLabel')}
               </label>
               <select
-                id="portfolio-kind-filter"
-                value={activeType}
-                onChange={(e) => updateParam('type', e.target.value)}
-                className="h-11 w-full rounded-[10px] border border-border-default bg-bg-secondary px-3.5 text-sm text-text-primary transition-colors focus:border-accent focus:outline-none cursor-pointer"
+                id="portfolio-group-filter"
+                value={activeGroup}
+                onChange={(e) => updateParam('group', e.target.value)}
+                className="h-11 w-full cursor-pointer rounded-[10px] border border-border-default bg-bg-secondary px-3.5 text-sm text-text-primary transition-colors focus:border-accent focus:outline-none"
               >
                 <option value="all">{t('pages:portfolio.allKinds')}</option>
-                {availableKinds.map((kind) => (
-                  <option key={kind} value={kind}>
-                    {t(KIND_LABELS[kind])}
-                  </option>
-                ))}
+                <option value="professional">
+                  {t('pages:portfolio.groupProfessional')}
+                </option>
+                <option value="academic">
+                  {t('pages:portfolio.groupAcademic')}
+                </option>
+                <option value="personal">
+                  {t('pages:portfolio.groupPersonal')}
+                </option>
               </select>
+            </div>
+
+            <div className="sm:col-span-2 lg:col-span-2">
+              <button
+                type="button"
+                aria-pressed={featuredOnly}
+                onClick={() => updateParam('featured', featuredOnly ? '0' : '1')}
+                className={cn(
+                  'inline-flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border px-3 text-xs font-semibold transition-colors sm:text-sm',
+                  featuredOnly
+                    ? 'border-accent bg-accent text-accent-foreground'
+                    : 'border-border-default bg-bg-secondary text-text-secondary hover:border-border-strong hover:text-text-primary'
+                )}
+              >
+                <Star className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{t('pages:portfolio.featuredFilter')}</span>
+              </button>
             </div>
           </div>
 
-          {/* Discipline Filter Tabs */}
+          {/* Dynamic Category Filter Tabs */}
           <div
             role="tablist"
             aria-label={t('pages:portfolio.title')}
@@ -237,7 +317,7 @@ export function PortfolioPage() {
               aria-selected={!activeSpecialization && activeCategory === 'all'}
               onClick={() => updateParam('category', 'all')}
               className={cn(
-                'rounded-[10px] border px-4 py-2 text-sm font-medium transition-colors cursor-pointer',
+                'cursor-pointer rounded-[10px] border px-4 py-2 text-sm font-medium transition-colors',
                 !activeSpecialization && activeCategory === 'all'
                   ? 'border-accent bg-accent text-accent-foreground'
                   : 'border-border-default bg-bg-secondary text-text-secondary hover:border-border-strong hover:text-text-primary'
@@ -256,7 +336,7 @@ export function PortfolioPage() {
                   aria-selected={isSelected}
                   onClick={() => updateParam('category', cat.id)}
                   className={cn(
-                    'rounded-[10px] border px-4 py-2 text-sm font-medium transition-colors cursor-pointer',
+                    'cursor-pointer rounded-[10px] border px-4 py-2 text-sm font-medium transition-colors',
                     isSelected
                       ? 'border-accent bg-accent text-accent-foreground'
                       : 'border-border-default bg-bg-secondary text-text-secondary hover:border-border-strong hover:text-text-primary'
@@ -292,10 +372,33 @@ export function PortfolioPage() {
           )}
 
           {filteredProjects.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
+            <div className="space-y-12">
+              {PROJECT_GROUPS.map((group) => {
+                const items = groupedProjects[group.id];
+                if (items.length === 0) return null;
+                return (
+                  <div key={group.id} className="space-y-5">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border-default pb-3">
+                      <div>
+                        <h2 className="text-xl font-semibold text-text-primary sm:text-2xl">
+                          {t(group.headingKey)}
+                        </h2>
+                        <p className="mt-0.5 text-xs text-text-secondary sm:text-sm">
+                          {t(group.descKey)}
+                        </p>
+                      </div>
+                      <Badge variant="muted" mono>
+                        {items.length}
+                      </Badge>
+                    </div>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {items.map((project) => (
+                        <ProjectCard key={project.id} project={project} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <Card className="space-y-4 p-10 text-center">

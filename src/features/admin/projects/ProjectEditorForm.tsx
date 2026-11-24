@@ -1,21 +1,47 @@
-import { useState, type FormEvent } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  ExternalLink,
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
 import { MatchingMetadataFields } from '@/features/admin/components/MatchingMetadataFields';
+import { SectionMappingBadge } from '@/features/admin/components/SectionMappingBadge';
 import { useLanguage } from '@/hooks/useLanguage';
-import { SPECIALIZATIONS } from '@/data';
+import { useAdminData } from '@/features/admin/context/useAdminData';
+import { resolvePortfolioCategories } from '@/utils/specializationHelpers';
+import {
+  ProjectAttachmentsTab,
+  ProjectMediaGalleryTab,
+  ProjectViewerSettingsTab,
+} from './ProjectMediaAndFilesTabs';
 import type {
   Company,
   Project,
+  ProjectContribution,
+  ProjectGroup,
   ProjectKind,
   SpecializationId,
 } from '@/types/portfolio';
 import { cn } from '@/utils/cn';
 
-type EditorTab = 'basic' | 'engineering' | 'technologies' | 'media' | 'relationships';
+type EditorTab =
+  | 'basic'
+  | 'categories'
+  | 'contributions'
+  | 'technologies'
+  | 'media'
+  | 'attachments'
+  | 'viewer'
+  | 'seo-publishing';
 
 interface ProjectEditorFormProps {
   initial: Project;
@@ -24,22 +50,20 @@ interface ProjectEditorFormProps {
   allProjects: Project[];
   onSave: (project: Project) => void;
   onCancel: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
-
-const COVER_VARIANTS: Project['coverVariant'][] = [
-  'hvac',
-  'plc',
-  'maintenance',
-  'mechanical',
-  'sheet-metal',
-  'robotics',
-];
 
 const KIND_LABELS: Record<ProjectKind, { en: string; ar: string }> = {
   graduation: { en: 'Graduation Project', ar: 'مشروع تخرج' },
   engineering: { en: 'Engineering Project', ar: 'مشروع هندسي' },
   industrial: { en: 'Industrial Project', ar: 'مشروع صناعي' },
 };
+
+const GROUP_OPTIONS: Array<{ value: ProjectGroup; labelKey: string }> = [
+  { value: 'professional', labelKey: 'projects.groups.professional' },
+  { value: 'academic', labelKey: 'projects.groups.academic' },
+  { value: 'personal', labelKey: 'projects.groups.personal' },
+];
 
 export function ProjectEditorForm({
   initial,
@@ -48,44 +72,159 @@ export function ProjectEditorForm({
   allProjects,
   onSave,
   onCancel,
+  onDirtyChange,
 }: ProjectEditorFormProps) {
   const { t } = useTranslation('admin');
   const { pick } = useLanguage();
+  const { specializations, skills, saveSpecialization, isSaving } = useAdminData();
+
   const [activeTab, setActiveTab] = useState<EditorTab>('basic');
-  const [form, setForm] = useState<Project>(() => structuredClone(initial));
+  const [form, setForm] = useState<Project>(() => ({
+    ...structuredClone(initial),
+    projectGroup: initial.projectGroup ?? 'academic',
+    categoryIds:
+      initial.categoryIds && initial.categoryIds.length > 0
+        ? [...initial.categoryIds]
+        : initial.category
+          ? [initial.category]
+          : [],
+    contributions: structuredClone(initial.contributions ?? []),
+    attachments: structuredClone(initial.attachments ?? []),
+    isPublished: initial.isPublished !== false,
+  }));
+
   const [techInput, setTechInput] = useState('');
+  const [newCatOpen, setNewCatOpen] = useState(false);
+  const [newCatEn, setNewCatEn] = useState('');
+  const [newCatAr, setNewCatAr] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const isDirty = useMemo(
+    () => JSON.stringify(form) !== JSON.stringify(initial),
+    [form, initial]
+  );
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [isDirty]);
+
+  const dynamicCategories = useMemo(
+    () => resolvePortfolioCategories(specializations, allProjects),
+    [specializations, allProjects]
+  );
+
+  const suggestedTools = useMemo(() => {
+    const set = new Set<string>();
+    for (const group of skills) {
+      for (const sk of group.skills) {
+        if (sk.en.trim()) set.add(sk.en.trim());
+      }
+    }
+    return Array.from(set);
+  }, [skills]);
 
   const tabs: Array<{ id: EditorTab; label: string }> = [
     { id: 'basic', label: t('projects.tabs.basic') },
-    { id: 'engineering', label: t('projects.tabs.engineering') },
+    { id: 'categories', label: t('projects.tabs.categories') },
+    { id: 'contributions', label: t('projects.tabs.contributions') },
     { id: 'technologies', label: t('projects.tabs.technologies') },
     { id: 'media', label: t('projects.tabs.media') },
-    { id: 'relationships', label: t('projects.tabs.relationships') },
+    { id: 'attachments', label: t('projects.tabs.attachments') },
+    { id: 'viewer', label: t('projects.tabs.viewer') },
+    { id: 'seo-publishing', label: t('projects.tabs.seoPublishing') },
   ];
 
-  const handleCategoryChange = (category: SpecializationId) => {
-    const spec = SPECIALIZATIONS.find((s) => s.id === category);
+  const handleToggleCategory = (catId: string) => {
+    setForm((prev) => {
+      const current = prev.categoryIds ?? [];
+      const next = current.includes(catId)
+        ? current.filter((c) => c !== catId)
+        : [...current, catId];
+      const primaryId = next[0] ?? prev.category;
+      const primaryCat = dynamicCategories.find((c) => c.id === primaryId);
+      return {
+        ...prev,
+        categoryIds: next,
+        category: (primaryId as SpecializationId) || prev.category,
+        categoryLabel: primaryCat ? { ...primaryCat.label } : prev.categoryLabel,
+      };
+    });
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCatEn.trim() || !newCatAr.trim()) return;
+    const slug = newCatEn
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    if (!slug) return;
+    const nextOrder = specializations.length + 1;
+    await saveSpecialization({
+      id: slug,
+      code: `DISC-${String(nextOrder).padStart(2, '0')}`,
+      icon: 'cog',
+      iconType: 'library',
+      title: { en: newCatEn.trim(), ar: newCatAr.trim() },
+      description: { en: newCatEn.trim(), ar: newCatAr.trim() },
+      highlights: [],
+      filterCategory: slug,
+      projectRelationMode: 'category',
+      relatedProjectIds: [],
+      displayOrder: nextOrder,
+      isPublished: true,
+    });
+    setNewCatEn('');
+    setNewCatAr('');
+    setNewCatOpen(false);
+    handleToggleCategory(slug);
+  };
+
+  const handleAddContribution = () => {
+    const next: ProjectContribution = {
+      id: `contrib-${Date.now().toString(36)}`,
+      title: { en: '', ar: '' },
+      description: { en: '', ar: '' },
+      displayOrder: (form.contributions?.length ?? 0) + 1,
+    };
     setForm((prev) => ({
       ...prev,
-      category,
-      categoryLabel: spec ? { ...spec.title } : prev.categoryLabel,
+      contributions: [...(prev.contributions ?? []), next],
     }));
   };
 
-  const handleKindChange = (kind: ProjectKind) => {
-    setForm((prev) => ({
-      ...prev,
-      kind,
-      kindLabel: KIND_LABELS[kind],
-    }));
+  const handleMoveContribution = (index: number, direction: 'up' | 'down') => {
+    const list = form.contributions ?? [];
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= list.length) return;
+    setForm((prev) => {
+      const next = [...(prev.contributions ?? [])];
+      const [moved] = next.splice(index, 1);
+      if (!moved) return prev;
+      next.splice(target, 0, moved);
+      return {
+        ...prev,
+        contributions: next.map((c, i) => ({ ...c, displayOrder: i + 1 })),
+      };
+    });
   };
 
-  const addTechnology = () => {
-    const clean = techInput.trim();
+  const addTechnology = (value?: string) => {
+    const clean = (value ?? techInput).trim();
     if (!clean || form.technologies.includes(clean)) return;
     setForm((prev) => ({ ...prev, technologies: [...prev.technologies, clean] }));
-    setTechInput('');
+    if (!value) setTechInput('');
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -100,438 +239,654 @@ export function ProjectEditorForm({
       setActiveTab('basic');
       return;
     }
+    if (
+      form.viewerConfig?.enabled &&
+      form.viewerConfig.embedUrl.trim() &&
+      !/^https:\/\/[^\s]+$/i.test(form.viewerConfig.embedUrl.trim())
+    ) {
+      setError(t('projects.viewerMgr.httpsRequired'));
+      setActiveTab('viewer');
+      return;
+    }
+
+    const cleanSlug = form.slug
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    const cleanContributions = (form.contributions ?? []).filter(
+      (c) => c.title.en.trim() || c.title.ar.trim() || c.description.en.trim()
+    );
+
+    const catIds =
+      form.categoryIds && form.categoryIds.length > 0
+        ? form.categoryIds
+        : [form.category];
+    const primaryCat = dynamicCategories.find((c) => c.id === catIds[0]);
+
     setError(null);
     onSave({
       ...form,
-      slug: form.slug
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9-]+/g, '-'),
+      slug: cleanSlug,
+      category: (catIds[0] as SpecializationId) || form.category,
+      categoryLabel: primaryCat ? { ...primaryCat.label } : form.categoryLabel,
+      categoryIds: catIds,
+      contributions: cleanContributions,
       dataSource: isNew ? 'cms' : form.dataSource,
+      updatedAt: new Date().toISOString().slice(0, 10),
     });
   };
 
-  const otherProjects = allProjects.filter((p) => p.id !== form.id);
-
   return (
-    <Card className="space-y-6 p-5 sm:p-6">
-      <div className="flex items-center justify-between gap-3 border-b border-border-default pb-4">
-        <h2 className="text-lg font-semibold text-text-primary">
-          {isNew ? t('projects.createHeading') : t('projects.editHeading')}
-        </h2>
-        <button
-          type="button"
-          onClick={onCancel}
-          aria-label={t('common.close')}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-elevated hover:text-text-primary cursor-pointer"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Card className="p-5 sm:p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border-default pb-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-text-primary">
+              {isNew ? t('projects.createHeading') : t('projects.editHeading')}
+            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={form.isPublished !== false ? 'accent' : 'default'}>
+                {form.isPublished !== false ? t('common.visible') : t('projects.draftBadge')}
+              </Badge>
+              {isDirty && (
+                <Badge variant="muted">{t('projects.unsavedTag')}</Badge>
+              )}
+            </div>
+          </div>
 
-      {/* Form Section Tabs */}
-      <div role="tablist" className="flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              'rounded-[10px] border px-3.5 py-2 text-xs font-medium transition-colors sm:text-sm cursor-pointer',
-              activeTab === tab.id
-                ? 'border-accent bg-accent text-accent-foreground'
-                : 'border-border-default bg-bg-primary text-text-secondary hover:text-text-primary'
+          <div className="flex flex-wrap items-center gap-2">
+            {!isNew && form.slug && form.isPublished !== false && (
+              <a
+                href={`/portfolio/${form.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs font-medium text-text-secondary hover:border-accent hover:text-accent"
+              >
+                <span>{t('common.viewPublic')}</span>
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
             )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {error && (
-        <div role="alert" className="rounded-xl border border-error/40 bg-error-subtle px-4 py-3 text-xs text-error sm:text-sm">
-          {error}
+            <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" variant="primary" size="sm" disabled={isSaving}>
+              {isSaving
+                ? t('prototype.saving')
+                : isNew
+                  ? t('common.create')
+                  : t('common.save')}
+            </Button>
+          </div>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* A. Basic Information */}
+        {error && (
+          <div
+            role="alert"
+            className="mb-5 rounded-xl border border-error/40 bg-error-subtle px-4 py-3 text-xs text-error"
+          >
+            {error}
+          </div>
+        )}
+
+        {/* 8 Clear Editor Tabs */}
+        <div role="tablist" className="mb-6 flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'cursor-pointer rounded-[10px] border px-3.5 py-2 text-xs font-medium transition-colors',
+                activeTab === tab.id
+                  ? 'border-accent bg-accent text-accent-foreground'
+                  : 'border-border-default bg-bg-primary text-text-secondary hover:text-text-primary'
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* TAB 1: Basic Information */}
         {activeTab === 'basic' && (
           <div className="space-y-5">
+            <SectionMappingBadge location={t('projects.mapBasic')} />
+
             <LocalizedFieldGroup
-              idPrefix="prj-title"
+              idPrefix="proj-title"
               label={t('projects.fields.title')}
               required
               value={form.title}
-              onChange={(title) => setForm((p) => ({ ...p, title }))}
+              onChange={(title) =>
+                setForm((prev) => ({
+                  ...prev,
+                  title,
+                  slug:
+                    isNew && !prev.slug
+                      ? title.en
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/^-|-$/g, '')
+                      : prev.slug,
+                }))
+              }
             />
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-1.5">
-                <label htmlFor="prj-slug" className="block text-xs font-medium text-text-primary">
+                <label
+                  htmlFor="proj-slug"
+                  className="block text-xs font-medium text-text-primary"
+                >
                   {t('projects.fields.slug')} *
                 </label>
                 <input
-                  id="prj-slug"
+                  id="proj-slug"
                   dir="ltr"
                   value={form.slug}
-                  onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, slug: e.target.value }))
+                  }
+                  placeholder="industrial-chiller-enclosure"
                   className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 font-mono text-xs text-text-primary focus:border-accent focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="prj-code" className="block text-xs font-medium text-text-primary">
+                <label
+                  htmlFor="proj-code"
+                  className="block text-xs font-medium text-text-primary"
+                >
                   {t('projects.fields.code')} *
                 </label>
                 <input
-                  id="prj-code"
+                  id="proj-code"
                   dir="ltr"
                   value={form.code}
-                  onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, code: e.target.value }))
+                  }
+                  placeholder="PRJ-IND-06"
                   className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 font-mono text-xs text-text-primary focus:border-accent focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="prj-category" className="block text-xs font-medium text-text-primary">
-                  {t('projects.fields.category')}
+                <label
+                  htmlFor="proj-group"
+                  className="block text-xs font-medium text-text-primary"
+                >
+                  {t('projects.fields.projectGroup')}
                 </label>
                 <select
-                  id="prj-category"
-                  value={form.category}
-                  onChange={(e) => handleCategoryChange(e.target.value as SpecializationId)}
-                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary focus:border-accent focus:outline-none"
+                  id="proj-group"
+                  value={form.projectGroup ?? 'academic'}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      projectGroup: e.target.value as ProjectGroup,
+                    }))
+                  }
+                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary"
                 >
-                  {SPECIALIZATIONS.map((spec) => (
-                    <option key={spec.id} value={spec.id}>
-                      {pick(spec.title)}
+                  {GROUP_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {t(opt.labelKey)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-4">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="proj-company"
+                  className="block text-xs font-medium text-text-primary"
+                >
+                  {t('projects.fields.relatedCompany')}
+                </label>
+                <select
+                  id="proj-company"
+                  value={form.companyId ?? ''}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      companyId: e.target.value || undefined,
+                    }))
+                  }
+                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary"
+                >
+                  <option value="">{t('projects.fields.noCompany')}</option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {pick(c.name)}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="prj-kind" className="block text-xs font-medium text-text-primary">
+                <label
+                  htmlFor="proj-kind"
+                  className="block text-xs font-medium text-text-primary"
+                >
                   {t('projects.fields.kind')}
                 </label>
                 <select
-                  id="prj-kind"
+                  id="proj-kind"
                   value={form.kind}
-                  onChange={(e) => handleKindChange(e.target.value as ProjectKind)}
-                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary focus:border-accent focus:outline-none"
+                  onChange={(e) => {
+                    const kind = e.target.value as ProjectKind;
+                    setForm((prev) => ({
+                      ...prev,
+                      kind,
+                      kindLabel: KIND_LABELS[kind],
+                    }));
+                  }}
+                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary"
                 >
-                  <option value="graduation">{pick(KIND_LABELS.graduation)}</option>
-                  <option value="engineering">{pick(KIND_LABELS.engineering)}</option>
-                  <option value="industrial">{pick(KIND_LABELS.industrial)}</option>
+                  <option value="graduation">Graduation Project</option>
+                  <option value="engineering">Engineering Project</option>
+                  <option value="industrial">Industrial Project</option>
                 </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="proj-start-date"
+                  className="block text-xs font-medium text-text-primary"
+                >
+                  {t('projects.fields.startDate')}
+                </label>
+                <input
+                  id="proj-start-date"
+                  dir="ltr"
+                  value={form.startDate ?? ''}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      startDate: e.target.value.trim() || null,
+                    }))
+                  }
+                  placeholder="2026-01"
+                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="proj-end-date"
+                  className="block text-xs font-medium text-text-primary"
+                >
+                  {t('projects.fields.completionDate')}
+                </label>
+                <input
+                  id="proj-end-date"
+                  dir="ltr"
+                  value={form.completionDate ?? ''}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      completionDate: e.target.value.trim() || null,
+                    }))
+                  }
+                  placeholder="2026-04 / Present"
+                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary"
+                />
               </div>
             </div>
 
-            <label className="inline-flex items-center gap-2.5 text-sm text-text-primary cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.featured}
-                onChange={(e) => setForm((p) => ({ ...p, featured: e.target.checked }))}
-                className="h-4 w-4 rounded accent-accent"
-              />
-              <span>{t('projects.fields.featured')}</span>
-            </label>
+            <LocalizedFieldGroup
+              idPrefix="proj-status"
+              label={t('projects.fields.statusLabel')}
+              value={form.statusLabel}
+              onChange={(statusLabel) =>
+                setForm((prev) => ({ ...prev, statusLabel }))
+              }
+            />
 
             <LocalizedFieldGroup
-              idPrefix="prj-short"
+              idPrefix="proj-short"
               label={t('projects.fields.shortDescription')}
               multiline
               rows={2}
               value={form.shortDescription}
-              onChange={(shortDescription) => setForm((p) => ({ ...p, shortDescription }))}
+              onChange={(shortDescription) =>
+                setForm((prev) => ({ ...prev, shortDescription }))
+              }
             />
 
             <LocalizedFieldGroup
-              idPrefix="prj-overview"
+              idPrefix="proj-overview"
               label={t('projects.fields.overview')}
               multiline
-              rows={3}
+              rows={4}
               value={form.overview}
-              onChange={(overview) => setForm((p) => ({ ...p, overview }))}
+              onChange={(overview) => setForm((prev) => ({ ...prev, overview }))}
             />
+
+            <div className="flex flex-wrap items-center gap-6 border-t border-border-default pt-4">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-text-primary">
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, featured: e.target.checked }))
+                  }
+                  className="h-4 w-4 rounded accent-accent"
+                />
+                <span>{t('projects.fields.featured')}</span>
+              </label>
+
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-text-primary">
+                <input
+                  type="checkbox"
+                  checked={form.isPublished !== false}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, isPublished: e.target.checked }))
+                  }
+                  className="h-4 w-4 rounded accent-accent"
+                />
+                <span>{t('projects.fields.published')}</span>
+              </label>
+
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="proj-order"
+                  className="text-xs font-medium text-text-primary"
+                >
+                  {t('experience.fields.displayOrder')}
+                </label>
+                <input
+                  id="proj-order"
+                  type="number"
+                  min={1}
+                  value={form.displayOrder}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      displayOrder: Math.max(1, Number(e.target.value) || 1),
+                    }))
+                  }
+                  className="h-8 w-20 rounded-lg border border-border-default bg-bg-primary px-2 text-xs text-text-primary"
+                />
+              </div>
+            </div>
           </div>
         )}
 
-        {/* B. Engineering Details */}
-        {activeTab === 'engineering' && (
+        {/* TAB 2: Multi-Categories */}
+        {activeTab === 'categories' && (
+          <div className="space-y-5">
+            <SectionMappingBadge location={t('projects.mapCategories')} />
+            <p className="text-xs text-text-secondary">
+              {t('projects.categoriesMgr.hint')}
+            </p>
+
+            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+              {dynamicCategories.map((cat) => {
+                const selected = (form.categoryIds ?? []).includes(cat.id);
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => handleToggleCategory(cat.id)}
+                    className={cn(
+                      'flex cursor-pointer items-center justify-between gap-2 rounded-xl border p-3.5 text-start transition-colors',
+                      selected
+                        ? 'border-accent bg-accent-subtle text-text-primary'
+                        : 'border-border-default bg-bg-primary text-text-secondary hover:border-border-strong'
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold text-text-primary">
+                        {pick(cat.label)}
+                      </p>
+                      <p className="font-mono text-[10px] text-text-secondary" dir="ltr">
+                        {cat.id}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded border',
+                        selected
+                          ? 'border-accent bg-accent text-accent-foreground'
+                          : 'border-border-default bg-bg-secondary'
+                      )}
+                    >
+                      {selected && <Check className="h-3 w-3" aria-hidden="true" />}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="border-t border-border-default pt-4">
+              {!newCatOpen ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setNewCatOpen(true)}
+                >
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{t('projects.categoriesMgr.addCategory')}</span>
+                </Button>
+              ) : (
+                <div className="space-y-3 rounded-xl border border-accent/40 bg-bg-primary p-4">
+                  <p className="text-xs font-semibold text-text-primary">
+                    {t('projects.categoriesMgr.newCategoryHeading')}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      value={newCatEn}
+                      onChange={(e) => setNewCatEn(e.target.value)}
+                      placeholder="English category name (e.g. Industrial Enclosures)"
+                      className="h-9 rounded-lg border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
+                    />
+                    <input
+                      dir="rtl"
+                      value={newCatAr}
+                      onChange={(e) => setNewCatAr(e.target.value)}
+                      placeholder="اسم الفئة بالعربية (مثل الحاويات الصناعية)"
+                      className="h-9 rounded-lg border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      disabled={isSaving || !newCatEn.trim() || !newCatAr.trim()}
+                      onClick={() => void handleCreateCategory()}
+                    >
+                      {t('common.create')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setNewCatOpen(false)}
+                    >
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: My Contributions & Engineering Process */}
+        {activeTab === 'contributions' && (
           <div className="space-y-6">
-            <LocalizedFieldGroup
-              idPrefix="prj-challenge"
-              label={t('projects.fields.challenge')}
-              multiline
-              rows={3}
-              value={form.caseStudy?.challenge ?? { en: '', ar: '' }}
-              onChange={(challenge) =>
-                setForm((p) => ({
-                  ...p,
-                  caseStudy: {
-                    ...p.caseStudy,
-                    challenge:
-                      challenge.en.trim() || challenge.ar.trim() ? challenge : undefined,
-                  },
-                }))
-              }
-            />
+            <SectionMappingBadge location={t('projects.mapContributions')} />
 
-            <LocalizedFieldGroup
-              idPrefix="prj-solution"
-              label={t('projects.fields.solution')}
-              multiline
-              rows={3}
-              value={form.caseStudy?.solution ?? { en: '', ar: '' }}
-              onChange={(solution) =>
-                setForm((p) => ({
-                  ...p,
-                  caseStudy: {
-                    ...p.caseStudy,
-                    solution:
-                      solution.en.trim() || solution.ar.trim() ? solution : undefined,
-                  },
-                }))
-              }
-            />
-
-            {/* Deliverables / Scope & Contributions */}
+            {/* Structured Contributions */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium text-text-primary">
-                  {t('projects.fields.deliverables')}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setForm((p) => ({
-                      ...p,
-                      deliverables: [...p.deliverables, { en: '', ar: '' }],
-                    }))
-                  }
-                >
-                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t('projects.fields.addDeliverable')}</span>
-                </Button>
-              </div>
-              {form.deliverables.map((item, idx) => (
-                <div key={idx} className="grid gap-2 sm:grid-cols-12">
-                  <input
-                    dir="ltr"
-                    value={item.en}
-                    placeholder="EN"
-                    onChange={(e) => {
-                      const next = [...form.deliverables];
-                      next[idx] = { ...item, en: e.target.value };
-                      setForm((p) => ({ ...p, deliverables: next }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-primary px-3 text-xs text-text-primary sm:col-span-5"
-                  />
-                  <input
-                    dir="rtl"
-                    value={item.ar}
-                    placeholder="AR"
-                    onChange={(e) => {
-                      const next = [...form.deliverables];
-                      next[idx] = { ...item, ar: e.target.value };
-                      setForm((p) => ({ ...p, deliverables: next }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-primary px-3 text-xs text-text-primary sm:col-span-5"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setForm((p) => ({
-                        ...p,
-                        deliverables: p.deliverables.filter((_, i) => i !== idx),
-                      }))
-                    }
-                    className="text-error hover:text-error sm:col-span-2"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Button>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-text-primary">
+                    {t('projects.contributionsMgr.heading')} (
+                    {(form.contributions ?? []).length})
+                  </p>
+                  <p className="text-[11px] text-text-secondary">
+                    {t('projects.contributionsMgr.hint')}
+                  </p>
                 </div>
-              ))}
-            </div>
-
-            {/* Key Specifications */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium text-text-primary">
-                  {t('projects.fields.specifications')}
-                </span>
                 <Button
-                  variant="outline"
+                  type="button"
+                  variant="primary"
                   size="sm"
-                  onClick={() =>
-                    setForm((p) => ({
-                      ...p,
-                      caseStudy: {
-                        ...p.caseStudy,
-                        specifications: [
-                          ...(p.caseStudy?.specifications ?? []),
-                          { label: { en: '', ar: '' }, value: { en: '', ar: '' } },
-                        ],
-                      },
-                    }))
-                  }
+                  onClick={handleAddContribution}
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t('projects.fields.addSpec')}</span>
+                  <span>{t('projects.contributionsMgr.addButton')}</span>
                 </Button>
               </div>
-              {(form.caseStudy?.specifications ?? []).map((spec, idx) => (
+
+              {(form.contributions ?? []).map((contrib, idx) => (
                 <div
-                  key={idx}
-                  className="grid gap-2 rounded-xl border border-border-default bg-bg-primary p-3 sm:grid-cols-2 lg:grid-cols-5"
+                  key={contrib.id}
+                  className="space-y-3 rounded-xl border border-border-default bg-bg-primary p-4"
                 >
-                  <input
-                    dir="ltr"
-                    value={spec.label.en}
-                    placeholder={`${t('projects.fields.specLabel')} (EN)`}
-                    onChange={(e) => {
-                      const list = [...(form.caseStudy?.specifications ?? [])];
-                      list[idx] = { ...spec, label: { ...spec.label, en: e.target.value } };
-                      setForm((p) => ({ ...p, caseStudy: { ...p.caseStudy, specifications: list } }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-secondary px-2.5 text-xs text-text-primary"
-                  />
-                  <input
-                    dir="rtl"
-                    value={spec.label.ar}
-                    placeholder={`${t('projects.fields.specLabel')} (AR)`}
-                    onChange={(e) => {
-                      const list = [...(form.caseStudy?.specifications ?? [])];
-                      list[idx] = { ...spec, label: { ...spec.label, ar: e.target.value } };
-                      setForm((p) => ({ ...p, caseStudy: { ...p.caseStudy, specifications: list } }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-secondary px-2.5 text-xs text-text-primary"
-                  />
-                  <input
-                    dir="ltr"
-                    value={spec.value.en}
-                    placeholder={`${t('projects.fields.specValue')} (EN)`}
-                    onChange={(e) => {
-                      const list = [...(form.caseStudy?.specifications ?? [])];
-                      list[idx] = { ...spec, value: { ...spec.value, en: e.target.value } };
-                      setForm((p) => ({ ...p, caseStudy: { ...p.caseStudy, specifications: list } }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-secondary px-2.5 text-xs text-text-primary"
-                  />
-                  <input
-                    dir="rtl"
-                    value={spec.value.ar}
-                    placeholder={`${t('projects.fields.specValue')} (AR)`}
-                    onChange={(e) => {
-                      const list = [...(form.caseStudy?.specifications ?? [])];
-                      list[idx] = { ...spec, value: { ...spec.value, ar: e.target.value } };
-                      setForm((p) => ({ ...p, caseStudy: { ...p.caseStudy, specifications: list } }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-secondary px-2.5 text-xs text-text-primary"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setForm((p) => ({
-                        ...p,
-                        caseStudy: {
-                          ...p.caseStudy,
-                          specifications: (p.caseStudy?.specifications ?? []).filter(
-                            (_, i) => i !== idx
-                          ),
-                        },
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant="accent" mono>
+                      #{idx + 1}
+                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={idx === 0}
+                        onClick={() => handleMoveContribution(idx, 'up')}
+                        aria-label={t('common.moveUp')}
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={idx === (form.contributions?.length ?? 1) - 1}
+                        onClick={() => handleMoveContribution(idx, 'down')}
+                        aria-label={t('common.moveDown')}
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            contributions: (prev.contributions ?? []).filter(
+                              (_, i) => i !== idx
+                            ),
+                          }))
+                        }
+                        aria-label={t('common.delete')}
+                        className="text-error hover:text-error"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <LocalizedFieldGroup
+                    idPrefix={`proj-contrib-title-${idx}`}
+                    label={t('projects.contributionsMgr.titleLabel')}
+                    value={contrib.title}
+                    onChange={(title) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        contributions: (prev.contributions ?? []).map((c, i) =>
+                          i === idx ? { ...c, title } : c
+                        ),
                       }))
                     }
-                    className="text-error hover:text-error"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Button>
+                  />
+
+                  <LocalizedFieldGroup
+                    idPrefix={`proj-contrib-desc-${idx}`}
+                    label={t('projects.contributionsMgr.descLabel')}
+                    multiline
+                    rows={2}
+                    value={contrib.description}
+                    onChange={(description) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        contributions: (prev.contributions ?? []).map((c, i) =>
+                          i === idx ? { ...c, description } : c
+                        ),
+                      }))
+                    }
+                  />
                 </div>
               ))}
             </div>
 
-            {/* Outcomes */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium text-text-primary">
-                  {t('projects.fields.outcomes')}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setForm((p) => ({
-                      ...p,
-                      caseStudy: {
-                        ...p.caseStudy,
-                        outcomes: [...(p.caseStudy?.outcomes ?? []), { en: '', ar: '' }],
-                      },
-                    }))
-                  }
-                >
-                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t('projects.fields.addOutcome')}</span>
-                </Button>
-              </div>
-              {(form.caseStudy?.outcomes ?? []).map((item, idx) => (
-                <div key={idx} className="grid gap-2 sm:grid-cols-12">
-                  <input
-                    dir="ltr"
-                    value={item.en}
-                    placeholder="EN"
-                    onChange={(e) => {
-                      const list = [...(form.caseStudy?.outcomes ?? [])];
-                      list[idx] = { ...item, en: e.target.value };
-                      setForm((p) => ({ ...p, caseStudy: { ...p.caseStudy, outcomes: list } }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-primary px-3 text-xs text-text-primary sm:col-span-5"
-                  />
-                  <input
-                    dir="rtl"
-                    value={item.ar}
-                    placeholder="AR"
-                    onChange={(e) => {
-                      const list = [...(form.caseStudy?.outcomes ?? [])];
-                      list[idx] = { ...item, ar: e.target.value };
-                      setForm((p) => ({ ...p, caseStudy: { ...p.caseStudy, outcomes: list } }));
-                    }}
-                    className="h-9 rounded-lg border border-border-default bg-bg-primary px-3 text-xs text-text-primary sm:col-span-5"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setForm((p) => ({
-                        ...p,
-                        caseStudy: {
-                          ...p.caseStudy,
-                          outcomes: (p.caseStudy?.outcomes ?? []).filter((_, i) => i !== idx),
-                        },
-                      }))
-                    }
-                    className="text-error hover:text-error sm:col-span-2"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Button>
-                </div>
-              ))}
+            {/* Optional Engineering Process (Challenge & Solution) */}
+            <div className="space-y-4 border-t border-border-default pt-5">
+              <p className="text-xs font-semibold text-text-primary">
+                {t('projects.contributionsMgr.processHeading')}
+              </p>
+              <LocalizedFieldGroup
+                idPrefix="proj-challenge"
+                label={t('projects.fields.challenge')}
+                multiline
+                rows={3}
+                value={form.caseStudy?.challenge ?? { en: '', ar: '' }}
+                onChange={(challenge) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    caseStudy: {
+                      ...prev.caseStudy,
+                      challenge:
+                        challenge.en.trim() || challenge.ar.trim()
+                          ? challenge
+                          : undefined,
+                    },
+                  }))
+                }
+              />
+              <LocalizedFieldGroup
+                idPrefix="proj-solution"
+                label={t('projects.fields.solution')}
+                multiline
+                rows={3}
+                value={form.caseStudy?.solution ?? { en: '', ar: '' }}
+                onChange={(solution) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    caseStudy: {
+                      ...prev.caseStudy,
+                      solution:
+                        solution.en.trim() || solution.ar.trim()
+                          ? solution
+                          : undefined,
+                    },
+                  }))
+                }
+              />
             </div>
           </div>
         )}
 
-        {/* C. Technologies */}
+        {/* TAB 4: Tools & Technologies */}
         {activeTab === 'technologies' && (
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="space-y-5">
+            <SectionMappingBadge location={t('projects.mapTools')} />
+
+            <div className="flex flex-wrap gap-2">
               <input
-                dir="ltr"
                 value={techInput}
                 onChange={(e) => setTechInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -541,10 +896,15 @@ export function ProjectEditorForm({
                   }
                 }}
                 placeholder={t('projects.fields.addTechPlaceholder')}
-                className="h-10 flex-1 rounded-[10px] border border-border-default bg-bg-primary px-3.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+                className="h-10 min-w-[240px] flex-1 rounded-[10px] border border-border-default bg-bg-primary px-3 text-sm text-text-primary focus:border-accent focus:outline-none"
               />
-              <Button variant="secondary" size="sm" onClick={addTechnology} className="h-10">
-                <Plus className="h-4 w-4" aria-hidden="true" />
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => addTechnology()}
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>{t('projects.fields.addTech')}</span>
               </Button>
             </div>
@@ -553,19 +913,19 @@ export function ProjectEditorForm({
               {form.technologies.map((tech) => (
                 <span
                   key={tech}
-                  className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-subtle px-3 py-1.5 font-mono text-xs text-text-primary"
                 >
                   <span>{tech}</span>
                   <button
                     type="button"
                     onClick={() =>
-                      setForm((p) => ({
-                        ...p,
-                        technologies: p.technologies.filter((tItem) => tItem !== tech),
+                      setForm((prev) => ({
+                        ...prev,
+                        technologies: prev.technologies.filter((x) => x !== tech),
                       }))
                     }
-                    aria-label={`${t('common.delete')} ${tech}`}
-                    className="text-text-secondary hover:text-error cursor-pointer"
+                    className="cursor-pointer text-text-secondary hover:text-error"
+                    aria-label={`Remove ${tech}`}
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
@@ -573,245 +933,147 @@ export function ProjectEditorForm({
               ))}
             </div>
 
-            <MatchingMetadataFields
-              idPrefix="prj-match"
-              matchingTags={form.matchingTags ?? []}
-              onTagsChange={(matchingTags) =>
-                setForm((p) => ({ ...p, matchingTags }))
-              }
-              cvPriority={form.cvPriority ?? 50}
-              onPriorityChange={(cvPriority) =>
-                setForm((p) => ({ ...p, cvPriority }))
-              }
-              showInCv={form.showInCv !== false}
-              onShowInCvChange={(showInCv) =>
-                setForm((p) => ({ ...p, showInCv }))
-              }
-            />
+            {/* Quick-pick from existing Skills */}
+            {suggestedTools.length > 0 && (
+              <div className="space-y-2 border-t border-border-default pt-4">
+                <p className="text-xs font-semibold text-text-primary">
+                  {t('projects.toolsMgr.pickFromSkills')}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestedTools.map((tool) => {
+                    const alreadyAdded = form.technologies.includes(tool);
+                    return (
+                      <button
+                        key={tool}
+                        type="button"
+                        disabled={alreadyAdded}
+                        onClick={() => addTechnology(tool)}
+                        className={cn(
+                          'rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors',
+                          alreadyAdded
+                            ? 'border-accent/40 bg-accent-subtle text-accent opacity-60'
+                            : 'cursor-pointer border-border-default bg-bg-primary text-text-secondary hover:border-accent hover:text-text-primary'
+                        )}
+                      >
+                        + {tool}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* D. Media */}
+        {/* TAB 5: Media Gallery */}
         {activeTab === 'media' && (
-          <div className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label htmlFor="prj-variant" className="block text-xs font-medium text-text-primary">
-                  {t('projects.fields.coverVariant')}
-                </label>
-                <select
-                  id="prj-variant"
-                  value={form.coverVariant}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      coverVariant: e.target.value as Project['coverVariant'],
-                    }))
-                  }
-                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary"
-                >
-                  {COVER_VARIANTS.map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <ProjectMediaGalleryTab form={form} setForm={setForm} />
+        )}
 
-              <div className="space-y-1.5">
-                <label htmlFor="prj-cover-url" className="block text-xs font-medium text-text-primary">
-                  {t('projects.fields.coverImageUrl')}
-                </label>
-                <input
-                  id="prj-cover-url"
-                  dir="ltr"
-                  value={form.coverImageUrl ?? ''}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      coverImageUrl: e.target.value.trim() ? e.target.value : null,
-                    }))
-                  }
-                  className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3 text-xs text-text-primary"
-                />
-              </div>
-            </div>
+        {/* TAB 6: Attachments */}
+        {activeTab === 'attachments' && (
+          <ProjectAttachmentsTab form={form} setForm={setForm} />
+        )}
+
+        {/* TAB 7: Interactive 3D / eDrawings Viewer */}
+        {activeTab === 'viewer' && (
+          <ProjectViewerSettingsTab form={form} setForm={setForm} />
+        )}
+
+        {/* TAB 8: SEO, Related Projects & Publishing */}
+        {activeTab === 'seo-publishing' && (
+          <div className="space-y-6">
+            <SectionMappingBadge location={t('projects.mapSeo')} />
 
             <LocalizedFieldGroup
-              idPrefix="prj-cover-alt"
-              label={t('projects.fields.coverImageAlt')}
-              value={form.coverImageAlt ?? { en: '', ar: '' }}
-              onChange={(coverImageAlt) =>
-                setForm((p) => ({
-                  ...p,
-                  coverImageAlt:
-                    coverImageAlt.en.trim() || coverImageAlt.ar.trim()
-                      ? coverImageAlt
-                      : undefined,
+              idPrefix="proj-seo-title"
+              label={t('projects.seoMgr.titleLabel')}
+              value={form.seoMeta?.title ?? { en: '', ar: '' }}
+              onChange={(title) =>
+                setForm((prev) => ({
+                  ...prev,
+                  seoMeta: { ...prev.seoMeta, title },
                 }))
               }
             />
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium text-text-primary">
-                  {t('projects.fields.gallery')}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setForm((p) => ({
-                      ...p,
-                      gallery: [
-                        ...(p.gallery ?? []),
-                        { url: '', alt: { en: '', ar: '' }, caption: { en: '', ar: '' } },
-                      ],
-                    }))
-                  }
-                >
-                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t('projects.fields.addGallery')}</span>
-                </Button>
-              </div>
+            <LocalizedFieldGroup
+              idPrefix="proj-seo-desc"
+              label={t('projects.seoMgr.descLabel')}
+              multiline
+              rows={2}
+              value={form.seoMeta?.description ?? { en: '', ar: '' }}
+              onChange={(description) =>
+                setForm((prev) => ({
+                  ...prev,
+                  seoMeta: { ...prev.seoMeta, description },
+                }))
+              }
+            />
 
-              {(form.gallery ?? []).map((img, idx) => (
-                <div
-                  key={idx}
-                  className="space-y-2.5 rounded-xl border border-border-default bg-bg-primary p-3.5"
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      dir="ltr"
-                      value={img.url}
-                      placeholder={t('projects.fields.imageUrl')}
-                      onChange={(e) => {
-                        const list = [...(form.gallery ?? [])];
-                        list[idx] = { ...img, url: e.target.value };
-                        setForm((p) => ({ ...p, gallery: list }));
-                      }}
-                      className="h-9 flex-1 rounded-lg border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setForm((p) => ({
-                          ...p,
-                          gallery: (p.gallery ?? []).filter((_, i) => i !== idx),
-                        }))
-                      }
-                      className="text-error hover:text-error"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    </Button>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <input
-                      dir="ltr"
-                      value={img.alt.en}
-                      placeholder={`${t('projects.fields.imageAlt')} (EN)`}
-                      onChange={(e) => {
-                        const list = [...(form.gallery ?? [])];
-                        list[idx] = { ...img, alt: { ...img.alt, en: e.target.value } };
-                        setForm((p) => ({ ...p, gallery: list }));
-                      }}
-                      className="h-9 rounded-lg border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
-                    />
-                    <input
-                      dir="rtl"
-                      value={img.alt.ar}
-                      placeholder={`${t('projects.fields.imageAlt')} (AR)`}
-                      onChange={(e) => {
-                        const list = [...(form.gallery ?? [])];
-                        list[idx] = { ...img, alt: { ...img.alt, ar: e.target.value } };
-                        setForm((p) => ({ ...p, gallery: list }));
-                      }}
-                      className="h-9 rounded-lg border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* E. Relationships */}
-        {activeTab === 'relationships' && (
-          <div className="space-y-5">
-            <div className="space-y-1.5">
-              <label htmlFor="prj-company" className="block text-sm font-medium text-text-primary">
-                {t('projects.fields.relatedCompany')}
-              </label>
-              <select
-                id="prj-company"
-                value={form.companyId ?? ''}
-                onChange={(e) =>
-                  setForm((p) => ({
-                    ...p,
-                    companyId: e.target.value || undefined,
-                  }))
-                }
-                className="h-10 w-full max-w-md rounded-[10px] border border-border-default bg-bg-primary px-3 text-sm text-text-primary"
-              >
-                <option value="">{t('projects.fields.noCompany')}</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {pick(c.name)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2.5">
-              <p className="text-sm font-medium text-text-primary">
+            {/* Related Projects Multi-Select */}
+            <div className="space-y-2 border-t border-border-default pt-4">
+              <p className="text-xs font-semibold text-text-primary">
                 {t('projects.fields.relatedProjects')}
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
-                {otherProjects.map((other) => {
-                  const checked = (form.relatedProjectSlugs ?? []).includes(other.slug);
-                  return (
-                    <label
-                      key={other.id}
-                      className="flex items-start gap-2.5 rounded-xl border border-border-default bg-bg-primary p-3 text-xs cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(e) => {
-                          const current = form.relatedProjectSlugs ?? [];
-                          const next = e.target.checked
-                            ? [...current, other.slug]
-                            : current.filter((s) => s !== other.slug);
-                          setForm((p) => ({ ...p, relatedProjectSlugs: next }));
-                        }}
-                        className="mt-0.5 h-4 w-4 rounded accent-accent"
-                      />
-                      <span className="min-w-0">
-                        <span className="block font-medium text-text-primary">
+                {allProjects
+                  .filter((p) => p.id !== form.id)
+                  .map((other) => {
+                    const checked = (form.relatedProjectSlugs ?? []).includes(
+                      other.slug
+                    );
+                    return (
+                      <label
+                        key={other.id}
+                        className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border-default bg-bg-primary px-3 py-2.5 text-xs text-text-primary"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const current = prev.relatedProjectSlugs ?? [];
+                              return {
+                                ...prev,
+                                relatedProjectSlugs: e.target.checked
+                                  ? [...current, other.slug]
+                                  : current.filter((s) => s !== other.slug),
+                              };
+                            })
+                          }
+                          className="h-4 w-4 rounded accent-accent"
+                        />
+                        <span className="truncate font-medium">
                           {pick(other.title)}
                         </span>
-                        <span className="font-mono text-[11px] text-text-secondary">
-                          {other.code}
-                        </span>
-                      </span>
-                    </label>
-                  );
-                })}
+                      </label>
+                    );
+                  })}
               </div>
+            </div>
+
+            {/* Recruiter Mode & CV Metadata */}
+            <div className="border-t border-border-default pt-4">
+              <MatchingMetadataFields
+                idPrefix={`proj-match-${form.id}`}
+                matchingTags={form.matchingTags ?? []}
+                onTagsChange={(matchingTags) =>
+                  setForm((prev) => ({ ...prev, matchingTags }))
+                }
+                cvPriority={form.cvPriority ?? 50}
+                onPriorityChange={(cvPriority) =>
+                  setForm((prev) => ({ ...prev, cvPriority }))
+                }
+                showInCv={form.showInCv !== false}
+                onShowInCvChange={(showInCv) =>
+                  setForm((prev) => ({ ...prev, showInCv }))
+                }
+              />
             </div>
           </div>
         )}
-
-        <div className="flex flex-wrap justify-end gap-3 border-t border-border-default pt-4">
-          <Button variant="secondary" size="md" onClick={onCancel}>
-            {t('common.cancel')}
-          </Button>
-          <Button type="submit" variant="primary" size="md">
-            {isNew ? t('common.create') : t('common.save')}
-          </Button>
-        </div>
-      </form>
-    </Card>
+      </Card>
+    </form>
   );
 }
