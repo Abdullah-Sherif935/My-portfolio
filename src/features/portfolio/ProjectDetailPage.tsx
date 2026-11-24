@@ -513,7 +513,7 @@ export function ProjectDetailPage() {
                       ref={viewerContainerRef}
                       className={
                         isViewerFullscreen
-                          ? 'fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col overflow-hidden bg-bg-primary'
+                          ? 'fixed inset-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden bg-bg-primary'
                           : 'overflow-hidden rounded-xl border border-border-default bg-bg-primary'
                       }
                     >
