@@ -1082,6 +1082,124 @@ export async function deleteCertificateFileAsset(
   }
 }
 
+export async function persistCompanyOrder(items: Company[]): Promise<void> {
+  const client = requireSupabase();
+  await Promise.all(
+    items.map(async (item, index) => {
+      const { error } = await client
+        .from('companies')
+        .update({ display_order: index + 1 })
+        .eq('id', item.id);
+      if (error) throw new Error(error.message);
+    })
+  );
+}
+
+/**
+ * Keeps projects.company_id synchronized as the single source of truth when
+ * linking or unlinking Portfolio projects from the Companies CMS editor.
+ */
+export async function syncCompanyProjectLinks(
+  companyId: string,
+  linkedProjectIds: string[]
+): Promise<void> {
+  const client = requireSupabase();
+  const desired = new Set(linkedProjectIds);
+
+  const { data: currentRows, error: fetchErr } = await client
+    .from('projects')
+    .select('id, company_id');
+  if (fetchErr) throw new Error(fetchErr.message);
+
+  const toUnlink = (currentRows ?? [])
+    .filter((row) => row.company_id === companyId && !desired.has(row.id))
+    .map((row) => row.id);
+  const toLink = (currentRows ?? [])
+    .filter((row) => desired.has(row.id) && row.company_id !== companyId)
+    .map((row) => row.id);
+
+  if (toUnlink.length > 0) {
+    const { error } = await client
+      .from('projects')
+      .update({ company_id: null })
+      .in('id', toUnlink);
+    if (error) throw new Error(error.message);
+  }
+
+  if (toLink.length > 0) {
+    const { error } = await client
+      .from('projects')
+      .update({ company_id: companyId })
+      .in('id', toLink);
+    if (error) throw new Error(error.message);
+  }
+}
+
+const ALLOWED_COMPANY_IMAGE_MIME = new Set([
+  'image/svg+xml',
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+]);
+const MAX_COMPANY_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+export async function uploadCompanyImage(
+  file: File,
+  companyId: string,
+  kind: 'logo' | 'cover'
+): Promise<{ url: string; storagePath: string }> {
+  if (!ALLOWED_COMPANY_IMAGE_MIME.has(file.type)) {
+    throw new Error('Only SVG, PNG, JPG, and WebP images are supported.');
+  }
+  if (file.size > MAX_COMPANY_IMAGE_BYTES) {
+    throw new Error('Image file size must be 5 MB or smaller.');
+  }
+
+  const client = requireSupabase();
+  const ext =
+    file.type === 'image/svg+xml'
+      ? 'svg'
+      : file.type === 'image/png'
+        ? 'png'
+        : file.type === 'image/webp'
+          ? 'webp'
+          : 'jpg';
+  const safeId = companyId.replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
+  const storagePath = `companies/${kind}s/${safeId}-${Date.now()}.${ext}`;
+
+  const { error: uploadError } = await client.storage
+    .from('portfolio-media')
+    .upload(storagePath, file, {
+      contentType: file.type,
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    throw new Error(uploadError.message);
+  }
+
+  const { data: publicUrlData } = client.storage
+    .from('portfolio-media')
+    .getPublicUrl(storagePath);
+
+  return {
+    url: publicUrlData.publicUrl,
+    storagePath,
+  };
+}
+
+export async function deleteCompanyImageAsset(storagePath: string): Promise<void> {
+  if (!storagePath.trim()) return;
+  const client = requireSupabase();
+  const { error } = await client.storage
+    .from('portfolio-media')
+    .remove([storagePath]);
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function deleteSpecializationRecord(id: string): Promise<void> {
   const client = requireSupabase();
   const { error } = await client.from('specializations').delete().eq('id', id);

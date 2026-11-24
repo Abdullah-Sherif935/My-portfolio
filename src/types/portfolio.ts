@@ -130,11 +130,14 @@ export interface Specialization {
 }
 
 export type CompanyRelationshipCategory =
-  | 'employer'
   | 'client'
-  | 'contractor'
-  | 'training'
+  | 'project-client'
+  | 'industrial-partner'
   | 'partner'
+  | 'contractor'
+  | 'employer'
+  | 'training'
+  | 'other'
   | 'unconfirmed';
 
 export interface Company extends EditableRecord {
@@ -142,10 +145,22 @@ export interface Company extends EditableRecord {
   name: LocalizedText;
   monogram: string;
   logoUrl: string | null;
+  logoStoragePath?: string | null;
+  coverImageUrl?: string | null;
+  coverStoragePath?: string | null;
+  shortDescription?: LocalizedText;
   overview?: LocalizedText;
+  websiteUrl?: string | null;
   industry: LocalizedText;
+  location?: LocalizedText;
+  country?: LocalizedText;
   relationshipCategory?: CompanyRelationshipCategory;
   relationshipType: LocalizedText;
+  startDate?: string | null;
+  endDate?: string | null;
+  featured?: boolean;
+  isPublished?: boolean;
+  seoMeta?: ProjectSeoMeta;
   servicesProvided: LocalizedText[];
   relatedProjectSlugs: string[];
 }

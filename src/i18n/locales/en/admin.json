@@ -380,6 +380,51 @@
     },
     "noLinkedExperience": "No experience records are linked yet."
   },
+  "companiesCms": {
+    "subTabs": {
+      "basic": "Basic & Relationship",
+      "media": "Logo, Cover & Scope",
+      "projects": "Linked Projects",
+      "seo": "SEO"
+    },
+    "mapBasic": "Public Companies (/companies & /companies/:slug) → Identity, Relationship & Metadata",
+    "mapMedia": "Public Companies (/companies & /companies/:slug) → Logo, Optional Cover & Scope",
+    "mapProjects": "Public Companies (/companies/:slug) → Published Linked Portfolio Projects",
+    "mapSeo": "Public Company Detail (/companies/:slug) → Custom SEO Title & Description",
+    "accuracyNote": "Professional accuracy: Clients served through Sccoder (such as ARMA, Elsewedy, Abdel Maboud) should be labeled as Client / Project Client — never as a direct employer.",
+    "saveDraft": "Save as Draft",
+    "invalidWebsite": "Website URL must start with https:// or http://",
+    "featuredBadge": "Featured",
+    "uploadLogo": "Upload Logo",
+    "replaceLogo": "Replace Logo",
+    "uploadCover": "Upload Cover",
+    "replaceCover": "Replace Cover",
+    "noCover": "No cover image",
+    "openProjectEditor": "Portfolio CMS",
+    "livePreviewHeading": "LIVE UNSAVED PREVIEW (/companies)",
+    "fields": {
+      "websiteUrl": "Official Website URL (Optional)",
+      "location": "City / Location (Optional)",
+      "country": "Country (Optional)",
+      "featured": "Feature company at top of /companies",
+      "published": "Published (visible on public /companies page)",
+      "logoHeading": "Company Logo (SVG, PNG, JPG, WebP — max 5 MB)",
+      "logoHint": "Uploaded to Supabase Storage (portfolio-media/companies/logos). Displays monogram fallback when empty.",
+      "coverHeading": "Optional Cover Image (max 5 MB)",
+      "coverHint": "Shown as a subtle header banner on /companies/:slug when provided."
+    },
+    "relationships": {
+      "client": "Client",
+      "project-client": "Project Client",
+      "industrial-partner": "Industrial Partner",
+      "partner": "Business Partner",
+      "contractor": "Contractor",
+      "employer": "Employer",
+      "training": "Training Organization",
+      "other": "Other",
+      "unconfirmed": "Unconfirmed Relationship"
+    }
+  },
   "experience": {
     "pageTitle": "Experience Management",
     "title": "Experience & Training Management",

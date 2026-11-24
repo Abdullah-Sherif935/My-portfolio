@@ -380,6 +380,51 @@
     },
     "noLinkedExperience": "لا توجد خبرات مهنية مرتبطة بهذه الشركة حالياً."
   },
+  "companiesCms": {
+    "subTabs": {
+      "basic": "البيانات والعلاقة",
+      "media": "الشعار والغلاف والنطاق",
+      "projects": "المشاريع المرتبطة",
+      "seo": "SEO"
+    },
+    "mapBasic": "الشركات (/companies و /companies/:slug) ← الهوية ونوع العلاقة والبيانات",
+    "mapMedia": "الشركات (/companies و /companies/:slug) ← الشعار والغلاف الاختياري ونطاق العمل",
+    "mapProjects": "تفاصيل الشركة (/companies/:slug) ← المشاريع المنشورة المرتبطة بالشركة",
+    "mapSeo": "تفاصيل الشركة (/companies/:slug) ← عنوان ووصف SEO المخصص",
+    "accuracyNote": "الدقة المهنية: العملاء الذين تم تنفيذ مشاريع لهم عبر Sccoder (مثل ARMA والسويدي وعبد المعبود) يُصنّفون كـ «عميل / عميل مشروع» وليسوا جهة عمل مباشرة.",
+    "saveDraft": "حفظ كمسودة",
+    "invalidWebsite": "يجب أن يبدأ رابط الموقع بـ https:// أو http://",
+    "featuredBadge": "مميز",
+    "uploadLogo": "رفع الشعار",
+    "replaceLogo": "استبدال الشعار",
+    "uploadCover": "رفع صورة الغلاف",
+    "replaceCover": "استبدال الغلاف",
+    "noCover": "بدون صورة غلاف",
+    "openProjectEditor": "محرر المشاريع",
+    "livePreviewHeading": "معاينة حية قبل الحفظ (/companies)",
+    "fields": {
+      "websiteUrl": "الموقع الإلكتروني الرسمي (اختياري)",
+      "location": "المدينة / الموقع (اختياري)",
+      "country": "الدولة (اختياري)",
+      "featured": "تمييز الشركة في أعلى صفحة /companies",
+      "published": "منشورة (ظاهرة في صفحة /companies العامة)",
+      "logoHeading": "شعار الشركة (SVG / PNG / JPG / WebP — حتى 5 ميجابايت)",
+      "logoHint": "يُرفع إلى Supabase Storage (portfolio-media/companies/logos). يظهر الاختصار تلقائياً عند عدم وجود شعار.",
+      "coverHeading": "صورة غلاف اختيارية (حتى 5 ميجابايت)",
+      "coverHint": "تظهر كصورة علوية في صفحة /companies/:slug عند إضافتها."
+    },
+    "relationships": {
+      "client": "عميل",
+      "project-client": "عميل مشروع",
+      "industrial-partner": "شريك صناعي",
+      "partner": "شريك عمل",
+      "contractor": "مقاول / متعاقد",
+      "employer": "جهة عمل",
+      "training": "جهة تدريب",
+      "other": "أخرى",
+      "unconfirmed": "علاقة غير مؤكدة بعد"
+    }
+  },
   "experience": {
     "pageTitle": "إدارة الخبرات",
     "title": "إدارة الخبرات والتدريب الصناعي",

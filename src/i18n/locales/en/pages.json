@@ -75,8 +75,11 @@
     "pageTitle": "Companies & Clients",
     "eyebrow": "COMPANIES // INDUSTRIAL SHOWCASE",
     "title": "Companies & Industrial Clients",
-    "subtitle": "Industrial collaborations and company profiles published as each engagement is verified and documented.",
-    "placeholderBanner": "Company profiles below are currently pending full documentation and official asset approval. No endorsements or unverified commercial relationships are claimed."
+    "subtitle": "Industrial collaborations, project clients, and partner organizations linked to verified engineering work.",
+    "placeholderBanner": "Company profiles below are currently pending full documentation and official asset approval.",
+    "searchPlaceholder": "Search companies or industries...",
+    "filterAll": "All Industries",
+    "emptyState": "No published companies match your current search or filter."
   },
   "companyDetail": {
     "notFoundCode": "ERR // COMPANY_NOT_FOUND",
@@ -89,6 +92,8 @@
     "metadataHeading": "Company Metadata",
     "industryLabel": "Industry Sector",
     "relationshipLabel": "Relationship Type",
+    "locationLabel": "Location",
+    "visitWebsite": "Official Website",
     "relatedProjectsHeading": "Related Engineering Projects",
     "relatedProjectsEmpty": "No portfolio projects are currently linked to this company record. Verified industrial projects will appear here once associated.",
     "relatedExperienceHeading": "Related Professional Experience",
@@ -97,7 +102,6 @@
   "experience": {
     "pageTitle": "Experience",
     "eyebrow": "EXPERIENCE // CAREER TIMELINE",
-    "title": "Professional Experience, Education & Training",
     "subtitle": "Engineering roles, academic foundation in Mechatronics Engineering, and professional development across HVAC equipment & sheet metal design, CNC manufacturing, and control systems.",
     "professionalHeading": "Professional Experience",
     "professionalSubtitle": "Industrial engineering employment and manufacturing plant training.",

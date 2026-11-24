@@ -77,6 +77,10 @@ export function AdminPortfolioPageManager() {
 
 export function AdminClientsPageManager() {
   const { t } = useTranslation('admin');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+
   return (
     <PageEditorShell
       title={t('nav.pageClients')}
@@ -84,8 +88,19 @@ export function AdminClientsPageManager() {
       publicRoute="/companies"
       mappingPath={t('pageWrappers.clientsMap')}
       sharedPages={[t('nav.pageHome'), t('nav.pagePortfolio')]}
+      hasUnsavedChanges={hasUnsavedChanges}
+      lastSavedLabel={lastSaved}
+      previewRefreshKey={previewRefreshKey}
     >
-      <AdminCompaniesPage />
+      <AdminCompaniesPage
+        onDirtyChange={setHasUnsavedChanges}
+        onSaved={() => {
+          setLastSaved(
+            new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          );
+          setPreviewRefreshKey((k) => k + 1);
+        }}
+      />
     </PageEditorShell>
   );
 }

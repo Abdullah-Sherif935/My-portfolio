@@ -22,6 +22,7 @@ import { usePortfolioData } from '@/hooks/usePortfolioData';
 import {
   deleteCertificationRecord,
   deleteCertificateFileAsset,
+  deleteCompanyImageAsset,
   deleteCompanyRecord,
   deleteEducationRecord,
   deleteExperienceRecord,
@@ -30,6 +31,7 @@ import {
   deleteSpecializationRecord,
   fetchAdminWorkspaceBundle,
   persistCertificationOrder,
+  persistCompanyOrder,
   persistEducationOrder,
   persistExperienceOrder,
   persistProjectOrder,
@@ -46,6 +48,7 @@ import {
   saveSiteSettingsRecord,
   saveSkillGroupRecord,
   saveSpecializationRecord,
+  syncCompanyProjectLinks,
 } from '@/services/portfolioService';
 import { deleteMediaAsset, uploadMediaFile } from '@/services/storageService';
 import type {
@@ -309,9 +312,16 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   );
 
   const saveCompany = useCallback(
-    async (company: Company, linkedExperienceIds?: string[]) => {
+    async (
+      company: Company,
+      linkedExperienceIds?: string[],
+      linkedProjectIds?: string[]
+    ) => {
       await runMutation(async () => {
         const saved = await saveCompanyRecord(company, linkedExperienceIds);
+        if (linkedProjectIds) {
+          await syncCompanyProjectLinks(saved.id, linkedProjectIds);
+        }
         setCompanies((prev) => {
           const exists = prev.some((c) => c.id === saved.id);
           const list = exists
@@ -319,6 +329,22 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
             : [...prev, saved];
           return list.sort((a, b) => a.displayOrder - b.displayOrder);
         });
+        if (linkedProjectIds) {
+          const desired = new Set(linkedProjectIds);
+          setProjects((prev) =>
+            prev.map((p) => {
+              if (desired.has(p.id)) {
+                return { ...p, companyId: saved.id };
+              }
+              if (p.companyId === saved.id) {
+                const copy = { ...p };
+                delete copy.companyId;
+                return copy;
+              }
+              return p;
+            })
+          );
+        }
         if (linkedExperienceIds) {
           setExperience((prev) =>
             prev.map((exp) => {
@@ -348,6 +374,16 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     async (id: string) => {
       await runMutation(async () => {
         const target = companies.find((c) => c.id === id);
+        if (target?.logoStoragePath) {
+          await deleteCompanyImageAsset(target.logoStoragePath).catch(
+            () => undefined
+          );
+        }
+        if (target?.coverStoragePath) {
+          await deleteCompanyImageAsset(target.coverStoragePath).catch(
+            () => undefined
+          );
+        }
         await deleteCompanyRecord(id);
         setCompanies((prev) => prev.filter((c) => c.id !== id));
         setProjects((prev) =>
@@ -376,6 +412,86 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       });
     },
     [runMutation, appendActivity, companies]
+  );
+
+  const reorderCompany = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      const sorted = [...companies].sort((a, b) => a.displayOrder - b.displayOrder);
+      const index = sorted.findIndex((item) => item.id === id);
+      const swapIndex = direction === 'up' ? index - 1 : index + 1;
+      if (index < 0 || swapIndex < 0 || swapIndex >= sorted.length) return;
+      const a = sorted[index]!;
+      const b = sorted[swapIndex]!;
+      sorted[index] = b;
+      sorted[swapIndex] = a;
+      const reindexed = sorted.map((item, idx) => ({
+        ...item,
+        displayOrder: idx + 1,
+      }));
+      setCompanies(reindexed);
+      await runMutation(async () => {
+        await persistCompanyOrder(reindexed);
+      });
+    },
+    [companies, runMutation]
+  );
+
+  const toggleCompanyPublished = useCallback(
+    async (id: string) => {
+      const target = companies.find((item) => item.id === id);
+      if (!target) return;
+      const next: Company = {
+        ...target,
+        isPublished: target.isPublished === false,
+      };
+      await runMutation(async () => {
+        const saved = await saveCompanyRecord(next);
+        setCompanies((prev) => prev.map((c) => (c.id === saved.id ? saved : c)));
+        await appendActivity(
+          'companies',
+          saved.isPublished !== false
+            ? { en: 'Published company profile', ar: 'تم نشر ملف الشركة' }
+            : { en: 'Unpublished company (draft)', ar: 'تم تحويل الشركة لمسودة' },
+          saved.name
+        );
+      });
+    },
+    [companies, runMutation, appendActivity]
+  );
+
+  const duplicateCompany = useCallback(
+    async (id: string) => {
+      const target = companies.find((item) => item.id === id);
+      if (!target) return;
+      const stamp = Date.now().toString(36).slice(-4);
+      const copy: Company = {
+        ...structuredClone(target),
+        id: `comp-${Date.now()}`,
+        slug: `${target.slug}-copy-${stamp}`,
+        name: {
+          en: `${target.name.en} (Copy)`,
+          ar: `${target.name.ar} (نسخة)`,
+        },
+        logoStoragePath: null,
+        coverStoragePath: null,
+        relatedProjectSlugs: [],
+        isPublished: false,
+        dataSource: 'cms',
+        displayOrder: companies.length + 1,
+      };
+      await runMutation(async () => {
+        const saved = await saveCompanyRecord(copy);
+        setCompanies((prev) =>
+          [...prev, saved].sort((a, b) => a.displayOrder - b.displayOrder)
+        );
+        await appendActivity(
+          'companies',
+          { en: 'Duplicated company as draft', ar: 'تم نسخ الشركة كمسودة' },
+          saved.name
+        );
+      });
+    },
+    [companies, runMutation, appendActivity]
   );
 
   const saveExperience = useCallback(
@@ -999,6 +1115,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       duplicateProject,
       saveCompany,
       deleteCompany,
+      reorderCompany,
+      toggleCompanyPublished,
+      duplicateCompany,
       saveExperience,
       deleteExperience,
       reorderExperience,
@@ -1052,6 +1171,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       duplicateProject,
       saveCompany,
       deleteCompany,
+      reorderCompany,
+      toggleCompanyPublished,
+      duplicateCompany,
       saveExperience,
       deleteExperience,
       reorderExperience,

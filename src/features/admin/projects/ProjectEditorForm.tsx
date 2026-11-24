@@ -83,11 +83,14 @@ const COMPANY_REL_LABELS: Record<
   CompanyRelationshipCategory,
   { en: string; ar: string }
 > = {
-  employer: { en: 'Employer', ar: 'جهة عمل' },
   client: { en: 'Client', ar: 'عميل' },
-  contractor: { en: 'Contractor', ar: 'مقاول / متعاقد' },
-  training: { en: 'Training Organization', ar: 'جهة تدريب' },
+  'project-client': { en: 'Project Client', ar: 'عميل مشروع' },
+  'industrial-partner': { en: 'Industrial Partner', ar: 'شريك صناعي' },
   partner: { en: 'Business Partner', ar: 'شريك عمل' },
+  contractor: { en: 'Contractor', ar: 'مقاول / متعاقد' },
+  employer: { en: 'Employer', ar: 'جهة عمل' },
+  training: { en: 'Training Organization', ar: 'جهة تدريب' },
+  other: { en: 'Other', ar: 'أخرى' },
   unconfirmed: { en: 'Unconfirmed Relationship', ar: 'علاقة غير مؤكدة بعد' },
 };
 

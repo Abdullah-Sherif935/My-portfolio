@@ -71,10 +71,21 @@ export interface CompanyRow {
   name: LocalizedText;
   monogram: string;
   logo_url: string | null;
+  logo_storage_path?: string | null;
+  cover_image_url?: string | null;
+  cover_storage_path?: string | null;
+  short_description?: LocalizedText | null;
   overview: LocalizedText | null;
+  website_url?: string | null;
   industry: LocalizedText;
+  location?: LocalizedText | null;
+  country?: LocalizedText | null;
   relationship_category: CompanyRelationshipCategory;
   relationship_type: LocalizedText;
+  start_date?: string | null;
+  end_date?: string | null;
+  featured?: boolean | null;
+  seo_meta?: ProjectSeoMeta | null;
   services_provided: LocalizedText[];
   related_project_slugs: string[];
   data_source: DataSource;
@@ -373,10 +384,22 @@ export function mapCompanyFromRow(row: CompanyRow): Company {
     name: row.name,
     monogram: row.monogram,
     logoUrl: row.logo_url,
+    logoStoragePath: row.logo_storage_path ?? null,
+    coverImageUrl: row.cover_image_url ?? null,
+    coverStoragePath: row.cover_storage_path ?? null,
+    shortDescription: row.short_description ?? undefined,
     overview: row.overview ?? undefined,
+    websiteUrl: row.website_url ?? null,
     industry: row.industry,
+    location: row.location ?? undefined,
+    country: row.country ?? undefined,
     relationshipCategory: row.relationship_category,
     relationshipType: row.relationship_type,
+    startDate: row.start_date ?? null,
+    endDate: row.end_date ?? null,
+    featured: Boolean(row.featured),
+    isPublished: row.is_published !== false,
+    seoMeta: row.seo_meta ?? undefined,
     servicesProvided: row.services_provided ?? [],
     relatedProjectSlugs: row.related_project_slugs ?? [],
     dataSource: row.data_source,
@@ -392,16 +415,27 @@ export function mapCompanyToRow(data: Company): CompanyRow {
     name: data.name,
     monogram: data.monogram,
     logo_url: data.logoUrl ?? null,
+    logo_storage_path: data.logoStoragePath ?? null,
+    cover_image_url: data.coverImageUrl ?? null,
+    cover_storage_path: data.coverStoragePath ?? null,
+    short_description: data.shortDescription ?? null,
     overview: data.overview ?? null,
+    website_url: data.websiteUrl ?? null,
     industry: data.industry,
-    relationship_category: data.relationshipCategory ?? 'unconfirmed',
+    location: data.location ?? null,
+    country: data.country ?? null,
+    relationship_category: data.relationshipCategory ?? 'client',
     relationship_type: data.relationshipType,
+    start_date: data.startDate ?? null,
+    end_date: data.endDate ?? null,
+    featured: Boolean(data.featured),
+    seo_meta: data.seoMeta ?? null,
     services_provided: data.servicesProvided,
     related_project_slugs: data.relatedProjectSlugs,
     data_source: data.dataSource,
     is_editable: data.isEditable,
     display_order: data.displayOrder,
-    is_published: true,
+    is_published: data.isPublished !== false,
   };
 }
 
@@ -429,8 +463,8 @@ export function mapProjectFromRow(
     kindLabel: row.kind_label,
     projectGroup:
       row.project_group === 'professional' ||
-      row.project_group === 'personal' ||
-      row.project_group === 'academic'
+        row.project_group === 'personal' ||
+        row.project_group === 'academic'
         ? row.project_group
         : 'academic',
     title: row.title,
@@ -900,19 +934,19 @@ export function mapActivityFromRow(row: ActivityLogRow): AdminActivityItem {
   const formattedEn = Number.isNaN(date.getTime())
     ? row.created_at
     : date.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   const formattedAr = Number.isNaN(date.getTime())
     ? row.created_at
     : date.toLocaleString('ar-EG', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
   return {
     id: row.id,
