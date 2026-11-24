@@ -81,7 +81,20 @@ export interface HomeSpecializationsSectionConfig {
   subtitle: LocalizedText;
 }
 
+export interface HomeHeroHighlightCard {
+  visible: boolean;
+  label: LocalizedText;
+  value: LocalizedText;
+  subtext: LocalizedText;
+}
+
+export interface HomeHeroCardsConfig {
+  currentRole: HomeHeroHighlightCard;
+  coreFocus: HomeHeroHighlightCard;
+}
+
 export interface HomeSectionsConfig {
+  heroCards?: HomeHeroCardsConfig;
   intro: HomeIntroSectionConfig;
   specializations: HomeSpecializationsSectionConfig;
 }

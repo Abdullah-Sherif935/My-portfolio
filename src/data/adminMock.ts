@@ -125,6 +125,29 @@ export const INITIAL_CV_CONFIG: CvWorkspaceConfig = {
 };
 
 export const DEFAULT_HOME_SECTIONS_CONFIG: HomeSectionsConfig = {
+  heroCards: {
+    currentRole: {
+      visible: true,
+      label: { en: 'Current Role', ar: 'الدور الحالي' },
+      value: {
+        en: 'Sccoder — HVAC & Refrigeration',
+        ar: 'Sccoder — أنظمة التكييف والتبريد',
+      },
+      subtext: {
+        en: 'April 2026 – Present',
+        ar: 'أبريل 2026 – حتى الآن',
+      },
+    },
+    coreFocus: {
+      visible: true,
+      label: { en: 'Core Focus', ar: 'مجالات التركيز' },
+      value: {
+        en: 'HVAC Equipment · Sheet Metal · CNC · Control · Robotics',
+        ar: 'معدات التبريد · الصاج · CNC · التحكم · الروبوتات',
+      },
+      subtext: { en: '', ar: '' },
+    },
+  },
   intro: {
     visible: true,
     eyebrow: { en: '01 // ENGINEERING PROFILE', ar: '01 // التعريف الهندسي' },

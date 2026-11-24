@@ -669,7 +669,18 @@ export function mapSpecializationToRow(data: Specialization): SpecializationRow 
 
 export function mapSiteSettingsFromRow(row: SiteSettingsRow): AdminSiteSettings {
   const rawHome = row.home_sections_config;
+  const defaultHeroCards = DEFAULT_HOME_SECTIONS_CONFIG.heroCards!;
   const homeSections: HomeSectionsConfig = {
+    heroCards: {
+      currentRole: {
+        ...defaultHeroCards.currentRole,
+        ...(rawHome?.heroCards?.currentRole ?? {}),
+      },
+      coreFocus: {
+        ...defaultHeroCards.coreFocus,
+        ...(rawHome?.heroCards?.coreFocus ?? {}),
+      },
+    },
     intro: {
       ...DEFAULT_HOME_SECTIONS_CONFIG.intro,
       ...(rawHome?.intro ?? {}),

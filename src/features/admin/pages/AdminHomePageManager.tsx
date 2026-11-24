@@ -13,6 +13,8 @@ import { SectionMappingBadge } from '@/features/admin/components/SectionMappingB
 import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldGroup';
 import { HomeIntroAcademicTab } from './HomeIntroAcademicTab';
 import { HomeSpecializationsTab } from './HomeSpecializationsTab';
+import { DEFAULT_HOME_SECTIONS_CONFIG } from '@/data/adminMock';
+import type { HomeHeroCardsConfig } from '@/types/admin';
 import type { ProfileData } from '@/types/portfolio';
 import { cn } from '@/utils/cn';
 
@@ -52,9 +54,20 @@ export function AdminHomePageManager() {
     initialTabParam && VALID_TABS.includes(initialTabParam) ? initialTabParam : 'hero'
   );
   const [subTabDirty, setSubTabDirty] = useState(false);
+  const initialHeroCards = useMemo<HomeHeroCardsConfig>(
+    () =>
+      structuredClone(
+        siteSettings.homeSections.heroCards ?? DEFAULT_HOME_SECTIONS_CONFIG.heroCards!
+      ),
+    [siteSettings.homeSections.heroCards]
+  );
+
   const [heroForm, setHeroForm] = useState<ProfileData>(() => structuredClone(profile));
   const [showPortrait, setShowPortrait] = useState<boolean>(
     siteSettings.showGraduationPortrait
+  );
+  const [heroCardsForm, setHeroCardsForm] = useState<HomeHeroCardsConfig>(
+    () => initialHeroCards
   );
   const [error, setError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
@@ -74,26 +87,39 @@ export function AdminHomePageManager() {
     setShowPortrait(siteSettings.showGraduationPortrait);
   }, [siteSettings.showGraduationPortrait]);
 
-    const heroDirty = useMemo(() => {
-      return (
-        JSON.stringify({
-          fullName: heroForm.fullName,
-          headline: heroForm.headline,
-          location: heroForm.location,
-          summary: heroForm.summary,
-          avatarUrl: heroForm.avatarUrl ?? null,
-          showPortrait,
-        }) !==
-        JSON.stringify({
-          fullName: profile.fullName,
-          headline: profile.headline,
-          location: profile.location,
-          summary: profile.summary,
-          avatarUrl: profile.avatarUrl ?? null,
-          showPortrait: siteSettings.showGraduationPortrait,
-        })
-      );
-    }, [heroForm, showPortrait, profile, siteSettings.showGraduationPortrait]);
+  useEffect(() => {
+    setHeroCardsForm(structuredClone(initialHeroCards));
+  }, [initialHeroCards]);
+
+  const heroDirty = useMemo(() => {
+    return (
+      JSON.stringify({
+        fullName: heroForm.fullName,
+        headline: heroForm.headline,
+        location: heroForm.location,
+        summary: heroForm.summary,
+        avatarUrl: heroForm.avatarUrl ?? null,
+        showPortrait,
+        heroCards: heroCardsForm,
+      }) !==
+      JSON.stringify({
+        fullName: profile.fullName,
+        headline: profile.headline,
+        location: profile.location,
+        summary: profile.summary,
+        avatarUrl: profile.avatarUrl ?? null,
+        showPortrait: siteSettings.showGraduationPortrait,
+        heroCards: initialHeroCards,
+      })
+    );
+  }, [
+    heroForm,
+    showPortrait,
+    heroCardsForm,
+    profile,
+    siteSettings.showGraduationPortrait,
+    initialHeroCards,
+  ]);
 
     const isDirty = heroDirty || subTabDirty;
 
@@ -126,10 +152,16 @@ export function AdminHomePageManager() {
     setError(null);
     try {
       await updateProfile({ ...heroForm, dataSource: 'cms' });
-      if (showPortrait !== siteSettings.showGraduationPortrait) {
+      const cardsChanged =
+        JSON.stringify(heroCardsForm) !== JSON.stringify(initialHeroCards);
+      if (showPortrait !== siteSettings.showGraduationPortrait || cardsChanged) {
         await updateSiteSettings({
           ...siteSettings,
           showGraduationPortrait: showPortrait,
+          homeSections: {
+            ...siteSettings.homeSections,
+            heroCards: heroCardsForm,
+          },
         });
       }
       stampSaved();
@@ -277,6 +309,132 @@ export function AdminHomePageManager() {
             </div>
           </Card>
 
+          {/* Hero Bottom Highlight Cards (Current Role & Core Focus) */}
+          <Card className="space-y-5 p-5 sm:p-6">
+            <SectionMappingBadge location={t('homeMgr.mapHeroCards')} />
+            <p className="text-xs text-text-secondary">
+              {t('homeMgr.heroCardsDescription')}
+            </p>
+
+            {/* Card 1: Current Role / Company */}
+            <div className="space-y-4 rounded-xl border border-border-default bg-bg-primary/60 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-accent">
+                  {t('homeMgr.heroCardCurrentRole')}
+                </h3>
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={heroCardsForm.currentRole.visible}
+                    onChange={(e) =>
+                      setHeroCardsForm((prev) => ({
+                        ...prev,
+                        currentRole: { ...prev.currentRole, visible: e.target.checked },
+                      }))
+                    }
+                    className="h-4 w-4 rounded accent-accent"
+                  />
+                  <span>{t('common.visible')}</span>
+                </label>
+              </div>
+
+              <LocalizedFieldGroup
+                idPrefix="hero-card-role-label"
+                label={t('homeMgr.heroCardLabelField')}
+                value={heroCardsForm.currentRole.label}
+                onChange={(label) =>
+                  setHeroCardsForm((prev) => ({
+                    ...prev,
+                    currentRole: { ...prev.currentRole, label },
+                  }))
+                }
+              />
+
+              <LocalizedFieldGroup
+                idPrefix="hero-card-role-value"
+                label={t('homeMgr.heroCardCompanyField')}
+                value={heroCardsForm.currentRole.value}
+                onChange={(value) =>
+                  setHeroCardsForm((prev) => ({
+                    ...prev,
+                    currentRole: { ...prev.currentRole, value },
+                  }))
+                }
+              />
+
+              <LocalizedFieldGroup
+                idPrefix="hero-card-role-subtext"
+                label={t('homeMgr.heroCardPeriodField')}
+                value={heroCardsForm.currentRole.subtext}
+                onChange={(subtext) =>
+                  setHeroCardsForm((prev) => ({
+                    ...prev,
+                    currentRole: { ...prev.currentRole, subtext },
+                  }))
+                }
+              />
+            </div>
+
+            {/* Card 2: Core Focus */}
+            <div className="space-y-4 rounded-xl border border-border-default bg-bg-primary/60 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-accent">
+                  {t('homeMgr.heroCardCoreFocus')}
+                </h3>
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={heroCardsForm.coreFocus.visible}
+                    onChange={(e) =>
+                      setHeroCardsForm((prev) => ({
+                        ...prev,
+                        coreFocus: { ...prev.coreFocus, visible: e.target.checked },
+                      }))
+                    }
+                    className="h-4 w-4 rounded accent-accent"
+                  />
+                  <span>{t('common.visible')}</span>
+                </label>
+              </div>
+
+              <LocalizedFieldGroup
+                idPrefix="hero-card-focus-label"
+                label={t('homeMgr.heroCardLabelField')}
+                value={heroCardsForm.coreFocus.label}
+                onChange={(label) =>
+                  setHeroCardsForm((prev) => ({
+                    ...prev,
+                    coreFocus: { ...prev.coreFocus, label },
+                  }))
+                }
+              />
+
+              <LocalizedFieldGroup
+                idPrefix="hero-card-focus-value"
+                label={t('homeMgr.heroCardFocusField')}
+                value={heroCardsForm.coreFocus.value}
+                onChange={(value) =>
+                  setHeroCardsForm((prev) => ({
+                    ...prev,
+                    coreFocus: { ...prev.coreFocus, value },
+                  }))
+                }
+              />
+
+              <LocalizedFieldGroup
+                idPrefix="hero-card-focus-subtext"
+                label={t('homeMgr.heroCardSubtextOptionalField')}
+                value={heroCardsForm.coreFocus.subtext}
+                onChange={(subtext) =>
+                  setHeroCardsForm((prev) => ({
+                    ...prev,
+                    coreFocus: { ...prev.coreFocus, subtext },
+                  }))
+                }
+              />
+            </div>
+          </Card>
+
           <div className="flex flex-wrap justify-end gap-3">
             <Button
               type="button"
@@ -286,6 +444,7 @@ export function AdminHomePageManager() {
               onClick={() => {
                 setHeroForm(structuredClone(profile));
                 setShowPortrait(siteSettings.showGraduationPortrait);
+                setHeroCardsForm(structuredClone(initialHeroCards));
                 setError(null);
               }}
             >

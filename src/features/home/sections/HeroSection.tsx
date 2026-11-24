@@ -10,11 +10,15 @@ import { usePortfolioData } from '@/hooks/usePortfolioData';
 export function HeroSection() {
   const { t } = useTranslation(['home', 'common']);
   const { pick } = useLanguage();
-  const { profile, education, experience, siteSettings } = usePortfolioData();
+  const { profile, education, siteSettings } = usePortfolioData();
   const prefersReducedMotion = useReducedMotion();
 
   const primaryEducation = education[0];
-  const currentRole = experience[0];
+  const heroCards = siteSettings.homeSections.heroCards;
+  const visibleHeroCards = [
+    heroCards?.currentRole,
+    heroCards?.coreFocus,
+  ].filter((card): card is NonNullable<typeof card> => Boolean(card && card.visible));
   const rawHeadline = pick(profile.headline);
   const headlineParts = rawHeadline
     .split('|')
@@ -238,45 +242,38 @@ export function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Public Engineering Specification Strip (Zero Internal Admin Labels) */}
-        <div className="mt-7 grid gap-2.5 border-t border-border-default pt-5 sm:mt-12 sm:grid-cols-3 sm:gap-4 sm:pt-8">
-          {primaryEducation && (
-            <div className="rounded-xl border border-border-default bg-bg-secondary/80 px-3.5 py-3 sm:px-4 sm:py-3.5">
-              <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary sm:text-[11px]">
-                {t('home:hero.specDegreeLabel')}
-              </p>
-              <p className="mt-0.5 text-xs font-medium text-text-primary sm:mt-1 sm:text-sm">
-                {pick(primaryEducation.degree)} · {primaryEducation.graduationYear}
-              </p>
-              <p className="mt-0.5 text-[11px] text-text-secondary sm:text-xs">
-                {pick(primaryEducation.institution)}
-              </p>
-            </div>
-          )}
-
-          {currentRole && (
-            <div className="rounded-xl border border-border-default bg-bg-secondary/80 px-3.5 py-3 sm:px-4 sm:py-3.5">
-              <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary sm:text-[11px]">
-                {t('home:hero.specCurrentLabel')}
-              </p>
-              <p className="mt-0.5 text-xs font-medium text-text-primary sm:mt-1 sm:text-sm">
-                {pick(currentRole.company)}
-              </p>
-              <p className="mt-0.5 text-[11px] text-text-secondary sm:text-xs">
-                {pick(currentRole.period)}
-              </p>
-            </div>
-          )}
-
-          <div className="hidden rounded-xl border border-border-default bg-bg-secondary/80 px-4 py-3.5 sm:block">
-            <p className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
-              {t('home:hero.specFocusLabel')}
-            </p>
-            <p className="mt-1 text-sm font-medium text-text-primary">
-              {t('home:hero.specFocusValue')}
-            </p>
+        {/* Public Engineering Specification Strip (2 Editable Cards: Current Role & Core Focus) */}
+        {visibleHeroCards.length > 0 && (
+          <div
+            className={
+              visibleHeroCards.length === 1
+                ? 'mt-7 grid gap-2.5 border-t border-border-default pt-5 sm:mt-12 sm:grid-cols-1 sm:gap-4 sm:pt-8'
+                : 'mt-7 grid gap-2.5 border-t border-border-default pt-5 sm:mt-12 sm:grid-cols-2 sm:gap-4 sm:pt-8'
+            }
+          >
+            {visibleHeroCards.map((card, idx) => {
+              const subtextValue = pick(card.subtext).trim();
+              return (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-border-default bg-bg-secondary/80 px-3.5 py-3 sm:px-4 sm:py-3.5"
+                >
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary sm:text-[11px]">
+                    {pick(card.label)}
+                  </p>
+                  <p className="mt-0.5 text-xs font-medium text-text-primary sm:mt-1 sm:text-sm">
+                    {pick(card.value)}
+                  </p>
+                  {subtextValue && (
+                    <p className="mt-0.5 text-[11px] text-text-secondary sm:text-xs">
+                      {subtextValue}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </div>
+        )}
       </Container >
     </section >
   );
