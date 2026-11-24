@@ -257,8 +257,10 @@
       "currentCover": "Current Cover Image",
       "clearCover": "Clear Cover",
       "noCover": "Using schematic fallback",
-      "uploadHint": "Upload multiple JPG, PNG, WebP, or SVG images (max 5 MB each) to Supabase Storage.",
-      "uploadImages": "Upload Images",
+      "uploadCover": "Upload Cover Image",
+      "coverHint": "Shown at the top of the project page & portfolio cards (kept separate from the detail gallery).",
+      "uploadHint": "Optional additional project photos, CAD views, or technical diagrams (JPG, PNG, WebP, SVG — max 5 MB each). Leave empty to hide the gallery section on the public page.",
+      "uploadImages": "Add Gallery Images",
       "coverBadge": "Cover Image",
       "setAsCover": "Set as Cover",
       "replaceImage": "Replace"

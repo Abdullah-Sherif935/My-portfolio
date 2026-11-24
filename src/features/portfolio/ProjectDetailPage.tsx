@@ -169,7 +169,9 @@ export function ProjectDetailPage() {
   })();
 
   const caseStudy = project.caseStudy;
-  const gallery = project.gallery ?? [];
+  const gallery = (project.gallery ?? []).filter(
+    (item) => Boolean(item.url?.trim()) && item.url !== project.coverImageUrl
+  );
   const contributions = project.contributions ?? [];
   const attachments = project.attachments ?? [];
   const hasOverview = Boolean(pick(project.overview).trim());
@@ -183,400 +185,400 @@ export function ProjectDetailPage() {
   const resolvedViewerUrl = resolveProjectViewerUrl(viewer);
   const hasValidViewer = Boolean(resolvedViewerUrl);
 
-  const handleEnterFullscreen = () => {
-    const el = viewerContainerRef.current as
-      | (HTMLDivElement & { webkitRequestFullscreen?: () => Promise<void> | void })
-      | null;
-    setIsViewerFullscreen(true);
-    if (!el) return;
-    if (el.requestFullscreen) {
-      void el.requestFullscreen().catch(() => {
-        // Fallback: CSS full-viewport overlay remains active (e.g. iOS Safari)
-      });
-    } else if (el.webkitRequestFullscreen) {
-      try {
-        void el.webkitRequestFullscreen();
-      } catch {
-        // Fallback: CSS full-viewport overlay remains active
-      }
-    }
-  };
+    const handleEnterFullscreen = () => {
+      const el = viewerContainerRef.current as
+        | (HTMLDivElement & { webkitRequestFullscreen?: () => Promise<void> | void })
+        | null;
+      setIsViewerFullscreen(true);
+      if (!el) return;
+        if (el.requestFullscreen) {
+          void el.requestFullscreen().catch(() => {
+            // Fallback: CSS full-viewport overlay remains active (e.g. iOS Safari)
+          });
+        } else if (el.webkitRequestFullscreen) {
+          try {
+            void el.webkitRequestFullscreen();
+          } catch {
+            // Fallback: CSS full-viewport overlay remains active
+          }
+        }
+      };
 
-  const handleExitFullscreen = () => {
-    nativeFullscreenActiveRef.current = false;
-    setIsViewerFullscreen(false);
-    const doc = document as Document & {
-      webkitFullscreenElement?: Element | null;
-      webkitExitFullscreen?: () => Promise<void> | void;
-    };
-    if (doc.fullscreenElement && doc.exitFullscreen) {
-      void doc.exitFullscreen().catch(() => undefined);
-    } else if (doc.webkitFullscreenElement && doc.webkitExitFullscreen) {
-      try {
-        void doc.webkitExitFullscreen();
-      } catch {
-        // ignore
-      }
-    }
-  };
+      const handleExitFullscreen = () => {
+        nativeFullscreenActiveRef.current = false;
+        setIsViewerFullscreen(false);
+        const doc = document as Document & {
+          webkitFullscreenElement?: Element | null;
+          webkitExitFullscreen?: () => Promise<void> | void;
+        };
+        if (doc.fullscreenElement && doc.exitFullscreen) {
+          void doc.exitFullscreen().catch(() => undefined);
+        } else if (doc.webkitFullscreenElement && doc.webkitExitFullscreen) {
+          try {
+            void doc.webkitExitFullscreen();
+          } catch {
+            // ignore
+          }
+        }
+      };
 
-  const handleToggleFullscreen = () => {
-    if (isViewerFullscreen) {
-      handleExitFullscreen();
-    } else {
-      handleEnterFullscreen();
-    }
-  };
+      const handleToggleFullscreen = () => {
+        if (isViewerFullscreen) {
+          handleExitFullscreen();
+        } else {
+          handleEnterFullscreen();
+        }
+      };
 
-  const dateRange = [project.startDate, project.completionDate]
-    .filter(Boolean)
-    .join(' – ');
+      const dateRange = [project.startDate, project.completionDate]
+        .filter(Boolean)
+        .join(' – ');
 
-  return (
-    <Section>
-      <Container className="space-y-10">
-        <div>
-          <Link
-            to="/portfolio"
-            className="inline-flex items-center gap-2 text-sm font-medium text-text-secondary transition-colors hover:text-accent"
-          >
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-            <span>{t('common:actions.backToPortfolio')}</span>
-          </Link>
-        </div>
-
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {assignedCategories.map((cat) => (
-              <Link key={cat.id} to={`/portfolio?category=${encodeURIComponent(cat.id)}`}>
-                <Badge variant="accent">{cat.label}</Badge>
+      return (
+        <Section>
+          <Container className="space-y-10">
+            <div>
+              <Link
+                to="/portfolio"
+                className="inline-flex items-center gap-2 text-sm font-medium text-text-secondary transition-colors hover:text-accent"
+              >
+                <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                <span>{t('common:actions.backToPortfolio')}</span>
               </Link>
-            ))}
-            <Badge variant="muted" mono>
-              {project.code}
-            </Badge>
-            <Badge variant="outline" mono>
-              {pick(project.kindLabel)}
-            </Badge>
-            {dateRange && (
-              <Badge variant="muted" mono>
-                <Calendar className="me-1 inline h-3 w-3" aria-hidden="true" />
-                {dateRange}
-              </Badge>
-            )}
-          </div>
-          <h1 className="max-w-4xl text-3xl font-bold tracking-tight text-text-primary sm:text-4xl lg:text-[44px] lg:leading-[1.15]">
-            {pick(project.title)}
-          </h1>
-          {pick(project.shortDescription).trim() && (
-            <p className="max-w-3xl text-base leading-relaxed text-text-secondary sm:text-lg">
-              {pick(project.shortDescription)}
-            </p>
-          )}
-        </div>
+            </div>
 
-        {/* Cover Image / Technical Schematic */}
-        <Card className="overflow-hidden">
-          <ProjectThumbnail
-            variant={project.coverVariant}
-            code={project.code}
-            imageUrl={project.coverImageUrl}
-            imageAlt={
-              project.coverImageAlt
-                ? pick(project.coverImageAlt)
-                : pick(project.title)
-            }
-            className="aspect-[16/7] border-b-0"
-          />
-        </Card>
-
-        {/* Main Content + Sidebar (Zero Empty Sections) */}
-        <div className="grid gap-8 lg:grid-cols-12">
-          <div className="space-y-6 lg:col-span-8">
-            {/* 1. Overview */}
-            {hasOverview && (
-              <Card className="space-y-3 p-6 sm:p-8">
-                <h2 className="text-xl font-semibold text-text-primary">
-                  {t('pages:projectDetail.overviewHeading')}
-                </h2>
-                <p className="text-[15px] leading-relaxed text-text-secondary sm:text-base">
-                  {pick(project.overview)}
+            {/* Header */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {assignedCategories.map((cat) => (
+                  <Link key={cat.id} to={`/portfolio?category=${encodeURIComponent(cat.id)}`}>
+                    <Badge variant="accent">{cat.label}</Badge>
+                  </Link>
+                ))}
+                <Badge variant="muted" mono>
+                  {project.code}
+                </Badge>
+                <Badge variant="outline" mono>
+                  {pick(project.kindLabel)}
+                </Badge>
+                {dateRange && (
+                  <Badge variant="muted" mono>
+                    <Calendar className="me-1 inline h-3 w-3" aria-hidden="true" />
+                    {dateRange}
+                  </Badge>
+                )}
+              </div>
+              <h1 className="max-w-4xl text-3xl font-bold tracking-tight text-text-primary sm:text-4xl lg:text-[44px] lg:leading-[1.15]">
+                {pick(project.title)}
+              </h1>
+              {pick(project.shortDescription).trim() && (
+                <p className="max-w-3xl text-base leading-relaxed text-text-secondary sm:text-lg">
+                  {pick(project.shortDescription)}
                 </p>
-              </Card>
-            )}
+              )}
+            </div>
 
-            {/* 4. My Role & Contributions (Structured contributions OR legacy deliverables) */}
-            {(contributions.length > 0 || project.deliverables.length > 0) && (
-              <Card className="space-y-4 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                  <ClipboardList className="h-5 w-5 text-accent" aria-hidden="true" />
-                  <span>{t('pages:projectDetail.deliverablesHeading')}</span>
-                </h2>
+            {/* Cover Image / Technical Schematic */}
+            <Card className="overflow-hidden">
+              <ProjectThumbnail
+                variant={project.coverVariant}
+                code={project.code}
+                imageUrl={project.coverImageUrl}
+                imageAlt={
+                  project.coverImageAlt
+                    ? pick(project.coverImageAlt)
+                    : pick(project.title)
+                }
+                className="aspect-[16/7] border-b-0"
+              />
+            </Card>
 
-                {contributions.length > 0 && (
-                  <div className="space-y-3">
-                    {contributions.map((contrib) => (
-                      <div
-                        key={contrib.id}
-                        className="rounded-xl border border-border-default bg-bg-primary p-4"
-                      >
-                        <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary sm:text-base">
-                          <CheckCircle2
-                            className="h-4 w-4 shrink-0 text-accent"
-                            aria-hidden="true"
-                          />
-                          <span>{pick(contrib.title)}</span>
-                        </h3>
-                        {pick(contrib.description).trim() && (
-                          <p className="mt-1.5 ps-6 text-xs leading-relaxed text-text-secondary sm:text-sm">
-                            {pick(contrib.description)}
-                          </p>
-                        )}
+            {/* Main Content + Sidebar (Zero Empty Sections) */}
+            <div className="grid gap-8 lg:grid-cols-12">
+              <div className="space-y-6 lg:col-span-8">
+                {/* 1. Overview */}
+                {hasOverview && (
+                  <Card className="space-y-3 p-6 sm:p-8">
+                    <h2 className="text-xl font-semibold text-text-primary">
+                      {t('pages:projectDetail.overviewHeading')}
+                    </h2>
+                    <p className="text-[15px] leading-relaxed text-text-secondary sm:text-base">
+                      {pick(project.overview)}
+                    </p>
+                  </Card>
+                )}
+
+                {/* 4. My Role & Contributions (Structured contributions OR legacy deliverables) */}
+                {(contributions.length > 0 || project.deliverables.length > 0) && (
+                  <Card className="space-y-4 p-6 sm:p-8">
+                    <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                      <ClipboardList className="h-5 w-5 text-accent" aria-hidden="true" />
+                      <span>{t('pages:projectDetail.deliverablesHeading')}</span>
+                    </h2>
+
+                    {contributions.length > 0 && (
+                      <div className="space-y-3">
+                        {contributions.map((contrib) => (
+                          <div
+                            key={contrib.id}
+                            className="rounded-xl border border-border-default bg-bg-primary p-4"
+                          >
+                            <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary sm:text-base">
+                              <CheckCircle2
+                                className="h-4 w-4 shrink-0 text-accent"
+                                aria-hidden="true"
+                              />
+                              <span>{pick(contrib.title)}</span>
+                            </h3>
+                            {pick(contrib.description).trim() && (
+                              <p className="mt-1.5 ps-6 text-xs leading-relaxed text-text-secondary sm:text-sm">
+                                {pick(contrib.description)}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                {project.deliverables.length > 0 && (
-                  <ul className="space-y-2.5">
-                    {project.deliverables.map((deliverable, idx) => (
-                      <li
-                        key={idx}
-                        className="flex items-start gap-3 text-sm text-text-secondary sm:text-[15px]"
-                      >
-                        <CheckCircle2
-                          className="mt-0.5 h-4 w-4 shrink-0 text-accent"
-                          aria-hidden="true"
-                        />
-                        <span>{pick(deliverable)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Card>
-            )}
-
-            {/* 5. Engineering Process (ONLY if content exists) */}
-            {hasEngineeringProcess && (
-              <Card className="space-y-5 p-6 sm:p-8">
-                {hasChallenge && caseStudy?.challenge && (
-                  <div className="space-y-2">
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
-                      <Target className="h-5 w-5 text-accent" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.challengeHeading')}</span>
-                    </h2>
-                    <p className="text-[15px] leading-relaxed text-text-secondary">
-                      {pick(caseStudy.challenge)}
-                    </p>
-                  </div>
-                )}
-
-                {hasSolution && caseStudy?.solution && (
-                  <div className="space-y-2">
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
-                      <Compass className="h-5 w-5 text-accent" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.solutionHeading')}</span>
-                    </h2>
-                    <p className="text-[15px] leading-relaxed text-text-secondary">
-                      {pick(caseStudy.solution)}
-                    </p>
-                  </div>
-                )}
-
-                {hasSpecs && caseStudy?.specifications && (
-                  <div className="space-y-3">
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
-                      <Sliders className="h-5 w-5 text-accent" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.specsHeading')}</span>
-                    </h2>
-                    <dl className="grid gap-3 sm:grid-cols-2">
-                      {caseStudy.specifications.map((spec, idx) => (
-                        <div
-                          key={idx}
-                          className="rounded-xl border border-border-default bg-bg-primary p-3.5"
-                        >
-                          <dt className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
-                            {pick(spec.label)}
-                          </dt>
-                          <dd className="mt-1 text-sm font-semibold text-text-primary">
-                            {pick(spec.value)}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </div>
-                )}
-
-                {hasOutcomes && caseStudy?.outcomes && (
-                  <div className="space-y-2.5">
-                    <h2 className="text-lg font-semibold text-text-primary">
-                      {t('pages:projectDetail.outcomesHeading')}
-                    </h2>
-                    <ul className="space-y-2">
-                      {caseStudy.outcomes.map((outcome, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-start gap-2.5 text-sm text-text-secondary"
-                        >
-                          <CheckCircle2
-                            className="mt-0.5 h-4 w-4 shrink-0 text-accent"
-                            aria-hidden="true"
-                          />
-                          <span>{pick(outcome)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </Card>
-            )}
-
-            {/* 7. Image Gallery (ONLY if images exist) */}
-            {gallery.length > 0 && (
-              <Card className="space-y-4 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                  <ImageIcon className="h-5 w-5 text-accent" aria-hidden="true" />
-                  <span>{t('pages:projectDetail.galleryHeading')}</span>
-                </h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {gallery.map((item, idx) => (
-                    <figure
-                      key={`${item.url}-${idx}`}
-                      className="overflow-hidden rounded-xl border border-border-default bg-bg-primary"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setLightboxUrl(item.url)}
-                        className="block w-full cursor-zoom-in overflow-hidden"
-                      >
-                        <img
-                          src={item.url}
-                          alt={pick(item.alt) || pick(project.title)}
-                          loading="lazy"
-                          decoding="async"
-                          className="aspect-[16/10] w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-                        />
-                      </button>
-                      {item.caption && pick(item.caption).trim() && (
-                        <figcaption className="px-3.5 py-2.5 text-xs text-text-secondary">
-                          {pick(item.caption)}
-                        </figcaption>
-                      )}
-                    </figure>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-              {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid isolated/HTTPS URL) */ }
-            {hasValidViewer && viewer && resolvedViewerUrl && (
-              <Card className="space-y-4 p-6 sm:p-8">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                    <Box className="h-5 w-5 text-accent" aria-hidden="true" />
-                    <span>
-                      {viewer.title && pick(viewer.title).trim()
-                        ? pick(viewer.title)
-                        : t('pages:projectDetail.viewerHeading')}
-                    </span>
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleToggleFullscreen}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
-                    >
-                      <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.fullscreenViewer')}</span>
-                    </button>
-                    <a
-                      href={resolvedViewerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent"
-                    >
-                      <span>{t('pages:projectDetail.openViewerExternal')}</span>
-                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    </a>
-                  </div>
-                </div>
-
-                {viewerFailed ? (
-                  <div className="rounded-xl border border-border-default bg-bg-primary p-6 text-center text-sm text-text-secondary">
-                    {viewer.fallbackMessage && pick(viewer.fallbackMessage).trim()
-                      ? pick(viewer.fallbackMessage)
-                      : t('pages:projectDetail.viewerFallback')}
-                  </div>
-                ) : (
-                    <div
-                      ref={viewerContainerRef}
-                      className={
-                        isViewerFullscreen
-                          ? 'fixed inset-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden bg-bg-primary'
-                          : 'overflow-hidden rounded-xl border border-border-default bg-bg-primary'
-                      }
-                    >
-                      {isViewerFullscreen && (
-                        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border-default bg-bg-secondary/95 px-3 py-2.5 backdrop-blur sm:px-5">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <Box
-                              className="h-4 w-4 shrink-0 text-accent"
+                    {project.deliverables.length > 0 && (
+                      <ul className="space-y-2.5">
+                        {project.deliverables.map((deliverable, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-3 text-sm text-text-secondary sm:text-[15px]"
+                          >
+                            <CheckCircle2
+                              className="mt-0.5 h-4 w-4 shrink-0 text-accent"
                               aria-hidden="true"
                             />
-                            <span className="truncate text-xs font-semibold text-text-primary sm:text-sm">
-                              {viewer.title && pick(viewer.title).trim()
-                                ? pick(viewer.title)
-                                : pick(project.title)}
-                            </span>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-2">
-                            <a
-                              href={resolvedViewerUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hidden items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+                            <span>{pick(deliverable)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Card>
+                )}
+
+                {/* 5. Engineering Process (ONLY if content exists) */}
+                {hasEngineeringProcess && (
+                  <Card className="space-y-5 p-6 sm:p-8">
+                    {hasChallenge && caseStudy?.challenge && (
+                      <div className="space-y-2">
+                        <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+                          <Target className="h-5 w-5 text-accent" aria-hidden="true" />
+                          <span>{t('pages:projectDetail.challengeHeading')}</span>
+                        </h2>
+                        <p className="text-[15px] leading-relaxed text-text-secondary">
+                          {pick(caseStudy.challenge)}
+                        </p>
+                      </div>
+                    )}
+
+                    {hasSolution && caseStudy?.solution && (
+                      <div className="space-y-2">
+                        <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+                          <Compass className="h-5 w-5 text-accent" aria-hidden="true" />
+                          <span>{t('pages:projectDetail.solutionHeading')}</span>
+                        </h2>
+                        <p className="text-[15px] leading-relaxed text-text-secondary">
+                          {pick(caseStudy.solution)}
+                        </p>
+                      </div>
+                    )}
+
+                    {hasSpecs && caseStudy?.specifications && (
+                      <div className="space-y-3">
+                        <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+                          <Sliders className="h-5 w-5 text-accent" aria-hidden="true" />
+                          <span>{t('pages:projectDetail.specsHeading')}</span>
+                        </h2>
+                        <dl className="grid gap-3 sm:grid-cols-2">
+                          {caseStudy.specifications.map((spec, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-xl border border-border-default bg-bg-primary p-3.5"
                             >
-                              <span>{t('pages:projectDetail.openViewerExternal')}</span>
-                              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                            </a>
-                            <button
-                              type="button"
-                              onClick={handleExitFullscreen}
-                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground shadow-sm transition-opacity hover:opacity-90"
+                              <dt className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
+                                {pick(spec.label)}
+                              </dt>
+                              <dd className="mt-1 text-sm font-semibold text-text-primary">
+                                {pick(spec.value)}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    )}
+
+                    {hasOutcomes && caseStudy?.outcomes && (
+                      <div className="space-y-2.5">
+                        <h2 className="text-lg font-semibold text-text-primary">
+                          {t('pages:projectDetail.outcomesHeading')}
+                        </h2>
+                        <ul className="space-y-2">
+                          {caseStudy.outcomes.map((outcome, idx) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2.5 text-sm text-text-secondary"
                             >
-                              <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
-                              <span>{t('pages:projectDetail.exitFullscreenViewer')}</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      <iframe
-                        title={
-                          viewer.title && pick(viewer.title).trim()
+                              <CheckCircle2
+                                className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                                aria-hidden="true"
+                              />
+                              <span>{pick(outcome)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </Card>
+                )}
+
+                {/* 7. Image Gallery (ONLY if images exist) */}
+                {gallery.length > 0 && (
+                  <Card className="space-y-4 p-6 sm:p-8">
+                    <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                      <ImageIcon className="h-5 w-5 text-accent" aria-hidden="true" />
+                      <span>{t('pages:projectDetail.galleryHeading')}</span>
+                    </h2>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {gallery.map((item, idx) => (
+                        <figure
+                          key={`${item.url}-${idx}`}
+                          className="overflow-hidden rounded-xl border border-border-default bg-bg-primary"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setLightboxUrl(item.url)}
+                            className="block w-full cursor-zoom-in overflow-hidden"
+                          >
+                            <img
+                              src={item.url}
+                              alt={pick(item.alt) || pick(project.title)}
+                              loading="lazy"
+                              decoding="async"
+                              className="aspect-[16/10] w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+                            />
+                          </button>
+                          {item.caption && pick(item.caption).trim() && (
+                            <figcaption className="px-3.5 py-2.5 text-xs text-text-secondary">
+                              {pick(item.caption)}
+                            </figcaption>
+                          )}
+                        </figure>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+
+                {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid isolated/HTTPS URL) */}
+                {hasValidViewer && viewer && resolvedViewerUrl && (
+                  <Card className="space-y-4 p-6 sm:p-8">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                        <Box className="h-5 w-5 text-accent" aria-hidden="true" />
+                        <span>
+                          {viewer.title && pick(viewer.title).trim()
                             ? pick(viewer.title)
-                            : pick(project.title)
-                        }
-                        src={resolvedViewerUrl}
-                        sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
-                        allow="fullscreen; xr-spatial-tracking"
-                        allowFullScreen
-                        referrerPolicy="no-referrer"
-                        loading="lazy"
-                        onError={() => setViewerFailed(true)}
-                        style={
-                          isViewerFullscreen
-                            ? undefined
-                            : { height: `${viewer.heightPx ?? 540}px` }
-                        }
+                            : t('pages:projectDetail.viewerHeading')}
+                        </span>
+                      </h2>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleToggleFullscreen}
+                          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
+                        >
+                          <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span>{t('pages:projectDetail.fullscreenViewer')}</span>
+                        </button>
+                        <a
+                          href={resolvedViewerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent"
+                        >
+                          <span>{t('pages:projectDetail.openViewerExternal')}</span>
+                          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                        </a>
+                      </div>
+                    </div>
+
+                    {viewerFailed ? (
+                      <div className="rounded-xl border border-border-default bg-bg-primary p-6 text-center text-sm text-text-secondary">
+                        {viewer.fallbackMessage && pick(viewer.fallbackMessage).trim()
+                          ? pick(viewer.fallbackMessage)
+                          : t('pages:projectDetail.viewerFallback')}
+                      </div>
+                    ) : (
+                      <div
+                        ref={viewerContainerRef}
                         className={
                           isViewerFullscreen
-                            ? 'min-h-0 h-full w-full flex-1 border-0'
-                            : 'w-full border-0'
+                            ? 'fixed inset-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden bg-bg-primary'
+                            : 'overflow-hidden rounded-xl border border-border-default bg-bg-primary'
                         }
-                      />
-                    </div>
-                )}
+                      >
+                        {isViewerFullscreen && (
+                          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border-default bg-bg-secondary/95 px-3 py-2.5 backdrop-blur sm:px-5">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <Box
+                                className="h-4 w-4 shrink-0 text-accent"
+                                aria-hidden="true"
+                              />
+                              <span className="truncate text-xs font-semibold text-text-primary sm:text-sm">
+                                {viewer.title && pick(viewer.title).trim()
+                                  ? pick(viewer.title)
+                                  : pick(project.title)}
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <a
+                                href={resolvedViewerUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hidden items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+                              >
+                                <span>{t('pages:projectDetail.openViewerExternal')}</span>
+                                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                              </a>
+                              <button
+                                type="button"
+                                onClick={handleExitFullscreen}
+                                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground shadow-sm transition-opacity hover:opacity-90"
+                              >
+                                <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                                <span>{t('pages:projectDetail.exitFullscreenViewer')}</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        <iframe
+                          title={
+                            viewer.title && pick(viewer.title).trim()
+                              ? pick(viewer.title)
+                              : pick(project.title)
+                          }
+                          src={resolvedViewerUrl}
+                          sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
+                          allow="fullscreen; xr-spatial-tracking"
+                          allowFullScreen
+                          referrerPolicy="no-referrer"
+                          loading="lazy"
+                          onError={() => setViewerFailed(true)}
+                          style={
+                            isViewerFullscreen
+                              ? undefined
+                              : { height: `${viewer.heightPx ?? 540}px` }
+                          }
+                          className={
+                            isViewerFullscreen
+                              ? 'min-h-0 h-full w-full flex-1 border-0'
+                              : 'w-full border-0'
+                          }
+                        />
+                      </div>
+                    )}
                   </Card>
                 )}
 
@@ -627,186 +629,186 @@ export function ProjectDetailPage() {
                 )}
               </div>
 
-          {/* Sidebar */}
-            <aside className="space-y-6 lg:col-span-4">
-              {/* Client Information (when applicable) */}
-              {company && (
-                <Card elevated className="space-y-3 p-6">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                    {t('pages:projectDetail.companyLabel')}
-                  </h2>
-                  <Link
-                    to={`/companies/${company.slug}`}
-                    className="block rounded-xl border border-border-default bg-bg-primary p-4 transition-colors hover:border-accent"
-                  >
-                    <p className="text-base font-semibold text-text-primary">
-                      {pick(company.name)}
-                    </p>
-                    <p className="mt-0.5 text-xs text-text-secondary">
-                      {pick(company.industry)}
-                    </p>
-                  </Link>
-                </Card>
-              )}
+              {/* Sidebar */}
+              <aside className="space-y-6 lg:col-span-4">
+                {/* Client Information (when applicable) */}
+                {company && (
+                  <Card elevated className="space-y-3 p-6">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                      {t('pages:projectDetail.companyLabel')}
+                    </h2>
+                    <Link
+                      to={`/companies/${company.slug}`}
+                      className="block rounded-xl border border-border-default bg-bg-primary p-4 transition-colors hover:border-accent"
+                    >
+                      <p className="text-base font-semibold text-text-primary">
+                        {pick(company.name)}
+                      </p>
+                      <p className="mt-0.5 text-xs text-text-secondary">
+                        {pick(company.industry)}
+                      </p>
+                    </Link>
+                  </Card>
+                )}
 
-              {/* Tools & Technologies */}
-              {project.technologies.length > 0 && (
-                <Card elevated className="space-y-3 p-6">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                    {t('pages:projectDetail.technologiesHeading')}
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech) => (
-                      <span
-                        key={tech}
-                        className="rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* Metadata */}
-              <Card className="space-y-3 p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                  {t('pages:projectDetail.metadataHeading')}
-                </h2>
-                <dl className="space-y-3 text-sm">
-                  <div>
-                    <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('pages:projectDetail.codeLabel')}
-                    </dt>
-                    <dd className="font-mono font-medium text-text-primary">
-                      {project.code}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('pages:projectDetail.categoryLabel')}
-                    </dt>
-                    <dd className="mt-1 flex flex-wrap gap-1.5">
-                      {assignedCategories.map((cat) => (
-                        <Link
-                          key={cat.id}
-                          to={`/portfolio?category=${encodeURIComponent(cat.id)}`}
-                          className="rounded-md border border-border-default bg-bg-primary px-2 py-0.5 text-xs font-medium text-text-primary hover:border-accent hover:text-accent"
+                {/* Tools & Technologies */}
+                {project.technologies.length > 0 && (
+                  <Card elevated className="space-y-3 p-6">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                      {t('pages:projectDetail.technologiesHeading')}
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {project.technologies.map((tech) => (
+                        <span
+                          key={tech}
+                          className="rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary"
                         >
-                          {cat.label}
-                        </Link>
+                          {tech}
+                        </span>
                       ))}
-                    </dd>
-                  </div>
-                  {pick(project.statusLabel).trim() && (
-                    <div>
-                      <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                        {t('pages:projectDetail.statusLabel')}
-                      </dt>
-                      <dd className="font-medium text-text-primary">
-                        {pick(project.statusLabel)}
-                      </dd>
                     </div>
-                  )}
-                  {dateRange && (
-                    <div>
-                      <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                        {t('pages:projectDetail.timelineLabel')}
-                      </dt>
-                      <dd className="font-mono text-xs font-medium text-text-primary">
-                        {dateRange}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </Card>
-            </aside>
-          </div>
+                  </Card>
+                )}
 
-          {/* 10. Related Projects */}
-          {relatedProjects.length > 0 && (
-            <div className="space-y-5 border-t border-border-default pt-10">
-              <h2 className="text-2xl font-semibold text-text-primary">
-                {t('pages:projectDetail.relatedHeading')}
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {relatedProjects.map((rel) => (
-                  <ProjectCard key={rel.id} project={rel} />
-                ))}
+                {/* Metadata */}
+                <Card className="space-y-3 p-6">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                    {t('pages:projectDetail.metadataHeading')}
+                  </h2>
+                  <dl className="space-y-3 text-sm">
+                    <div>
+                      <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('pages:projectDetail.codeLabel')}
+                      </dt>
+                      <dd className="font-mono font-medium text-text-primary">
+                        {project.code}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('pages:projectDetail.categoryLabel')}
+                      </dt>
+                      <dd className="mt-1 flex flex-wrap gap-1.5">
+                        {assignedCategories.map((cat) => (
+                          <Link
+                            key={cat.id}
+                            to={`/portfolio?category=${encodeURIComponent(cat.id)}`}
+                            className="rounded-md border border-border-default bg-bg-primary px-2 py-0.5 text-xs font-medium text-text-primary hover:border-accent hover:text-accent"
+                          >
+                            {cat.label}
+                          </Link>
+                        ))}
+                      </dd>
+                    </div>
+                    {pick(project.statusLabel).trim() && (
+                      <div>
+                        <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                          {t('pages:projectDetail.statusLabel')}
+                        </dt>
+                        <dd className="font-medium text-text-primary">
+                          {pick(project.statusLabel)}
+                        </dd>
+                      </div>
+                    )}
+                    {dateRange && (
+                      <div>
+                        <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                          {t('pages:projectDetail.timelineLabel')}
+                        </dt>
+                        <dd className="font-mono text-xs font-medium text-text-primary">
+                          {dateRange}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </Card>
+              </aside>
+            </div>
+
+            {/* 10. Related Projects */}
+            {relatedProjects.length > 0 && (
+              <div className="space-y-5 border-t border-border-default pt-10">
+                <h2 className="text-2xl font-semibold text-text-primary">
+                  {t('pages:projectDetail.relatedHeading')}
+                </h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {relatedProjects.map((rel) => (
+                    <ProjectCard key={rel.id} project={rel} />
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Previous / Next Navigation */}
+            {(previousProject || nextProject) && (
+              <nav
+                aria-label={t('pages:projectDetail.navigationLabel')}
+                className="grid gap-4 border-t border-border-default pt-8 sm:grid-cols-2"
+              >
+                <div>
+                  {previousProject && (
+                    <Link
+                      to={`/portfolio/${previousProject.slug}`}
+                      className="group flex items-center gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 transition-colors hover:border-accent"
+                    >
+                      <ArrowLeft className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
+                      <div className="min-w-0">
+                        <p className="font-mono text-[11px] uppercase text-text-secondary">
+                          {t('common:actions.previousProject')}
+                        </p>
+                        <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
+                          {pick(previousProject.title)}
+                        </p>
+                      </div>
+                    </Link>
+                  )}
+                </div>
+                <div>
+                  {nextProject && (
+                    <Link
+                      to={`/portfolio/${nextProject.slug}`}
+                      className="group flex items-center justify-end gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 text-end transition-colors hover:border-accent"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-mono text-[11px] uppercase text-text-secondary">
+                          {t('common:actions.nextProject')}
+                        </p>
+                        <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
+                          {pick(nextProject.title)}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
+                    </Link>
+                  )}
+                </div>
+              </nav>
+            )}
+          </Container>
+
+          {/* Lightbox Modal for Gallery Images */}
+          {lightboxUrl && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setLightboxUrl(null)}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+            >
+              <button
+                type="button"
+                onClick={() => setLightboxUrl(null)}
+                aria-label={t('common:actions.close')}
+                className="absolute top-4 end-4 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <img
+                src={lightboxUrl}
+                alt=""
+                onClick={(e) => e.stopPropagation()}
+                className="max-h-[90vh] max-w-[92vw] rounded-xl object-contain"
+              />
             </div>
           )}
-
-          {/* Previous / Next Navigation */}
-          {(previousProject || nextProject) && (
-            <nav
-              aria-label={t('pages:projectDetail.navigationLabel')}
-              className="grid gap-4 border-t border-border-default pt-8 sm:grid-cols-2"
-            >
-              <div>
-                {previousProject && (
-                  <Link
-                    to={`/portfolio/${previousProject.slug}`}
-                    className="group flex items-center gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 transition-colors hover:border-accent"
-                  >
-                    <ArrowLeft className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
-                    <div className="min-w-0">
-                      <p className="font-mono text-[11px] uppercase text-text-secondary">
-                        {t('common:actions.previousProject')}
-                      </p>
-                      <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
-                        {pick(previousProject.title)}
-                      </p>
-                    </div>
-                  </Link>
-                )}
-              </div>
-              <div>
-                {nextProject && (
-                  <Link
-                    to={`/portfolio/${nextProject.slug}`}
-                    className="group flex items-center justify-end gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 text-end transition-colors hover:border-accent"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-mono text-[11px] uppercase text-text-secondary">
-                        {t('common:actions.nextProject')}
-                      </p>
-                      <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
-                        {pick(nextProject.title)}
-                      </p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
-                  </Link>
-                )}
-              </div>
-            </nav>
-          )}
-      </Container>
-
-      {/* Lightbox Modal for Gallery Images */}
-      {lightboxUrl && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setLightboxUrl(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-        >
-          <button
-            type="button"
-            onClick={() => setLightboxUrl(null)}
-            aria-label={t('common:actions.close')}
-            className="absolute top-4 end-4 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-          <img
-            src={lightboxUrl}
-            alt=""
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[90vh] max-w-[92vw] rounded-xl object-contain"
-          />
-        </div>
-      )}
-    </Section>
-  );
-}
+        </Section>
+      );
+    }

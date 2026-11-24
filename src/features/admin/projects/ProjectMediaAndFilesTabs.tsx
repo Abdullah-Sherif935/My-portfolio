@@ -53,12 +53,36 @@ interface ProjectMediaTabProps {
 export function ProjectMediaGalleryTab({ form, setForm }: ProjectMediaTabProps) {
   const { t } = useTranslation('admin');
   const [uploading, setUploading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const multiInputRef = useRef<HTMLInputElement | null>(null);
   const replaceIndexRef = useRef<number | null>(null);
   const replaceInputRef = useRef<HTMLInputElement | null>(null);
 
   const gallery = form.gallery ?? [];
+
+  const handleCoverUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setUploadingCover(true);
+    setUploadError(null);
+    try {
+      const res = await uploadProjectGalleryImage(file, form.id);
+      const baseName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+      setForm((prev) => ({
+        ...prev,
+        coverImageUrl: res.url,
+        coverImageAlt: prev.coverImageAlt ?? { en: baseName, ar: baseName },
+      }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : t('prototype.syncError'));
+    } finally {
+      setUploadingCover(false);
+    }
+  };
 
   const handleMultiUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -79,19 +103,10 @@ export function ProjectMediaGalleryTab({ form, setForm }: ProjectMediaTabProps) 
           caption: { en: '', ar: '' },
         });
       }
-      setForm((prev) => {
-        const nextGallery = [...(prev.gallery ?? []), ...uploaded];
-        const firstUploaded = uploaded[0];
-        const shouldSetCover = !prev.coverImageUrl && Boolean(firstUploaded);
-        return {
-          ...prev,
-          gallery: nextGallery,
-          coverImageUrl:
-            shouldSetCover && firstUploaded ? firstUploaded.url : prev.coverImageUrl,
-          coverImageAlt:
-            shouldSetCover && firstUploaded ? firstUploaded.alt : prev.coverImageAlt,
-        };
-      });
+      setForm((prev) => ({
+        ...prev,
+        gallery: [...(prev.gallery ?? []), ...uploaded],
+      }));
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : t('prototype.syncError'));
     } finally {
@@ -209,6 +224,36 @@ export function ProjectMediaGalleryTab({ form, setForm }: ProjectMediaTabProps) 
         </div>
 
         <div className="space-y-3 sm:col-span-8">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border-default bg-bg-secondary p-3">
+            <p className="text-[11px] text-text-secondary">
+              {t('projects.mediaMgr.coverHint')}
+            </p>
+            <div>
+              <input
+                ref={coverInputRef}
+                id="proj-cover-upload-input"
+                type="file"
+                accept={GALLERY_ACCEPT}
+                onChange={(e) => void handleCoverUpload(e)}
+                className="sr-only"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={uploadingCover || uploading}
+                onClick={() => coverInputRef.current?.click()}
+              >
+                <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>
+                  {uploadingCover
+                    ? t('media.uploading')
+                    : t('projects.mediaMgr.uploadCover')}
+                </span>
+              </Button>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label
               htmlFor="proj-cover-variant"
@@ -747,250 +792,248 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
     <div className="space-y-5">
       <SectionMappingBadge location={t('projects.mapViewer')} />
 
-      {/* Isolated Origin Security Notice */}
-      <div className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent-subtle/40 p-4 text-xs leading-relaxed text-text-secondary">
-        <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-        <div className="space-y-1">
-          <p className="font-semibold text-text-primary">
-            {t('projects.viewerMgr.securityTitle')}
-          </p>
-          <p>{t('projects.viewerMgr.securityBody')}</p>
-        </div>
-      </div>
-
-      <div className="space-y-5 rounded-xl border border-border-default bg-bg-primary p-4">
-        <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm font-medium text-text-primary">
-          <input
-            type="checkbox"
-            checked={viewer.enabled}
-            onChange={(e) => updateViewer({ enabled: e.target.checked })}
-            className="h-4 w-4 rounded accent-accent"
-          />
-          <span>{t('projects.viewerMgr.enableToggle')}</span>
-        </label>
-
-        {/* Source Mode Selector: Native Standalone HTML Upload vs External HTTPS URL */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => updateViewer({ sourceMode: 'upload' })}
-            className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-3.5 py-2 text-xs font-semibold transition-colors ${
-              activeMode === 'upload'
-                ? 'border-accent bg-accent text-accent-foreground'
-                : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{t('projects.viewerMgr.modeUpload')}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => updateViewer({ sourceMode: 'external-url' })}
-            className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-3.5 py-2 text-xs font-semibold transition-colors ${
-              activeMode === 'external-url'
-                ? 'border-accent bg-accent text-accent-foreground'
-                : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{t('projects.viewerMgr.modeExternal')}</span>
-          </button>
+        {/* Isolated Origin Security Notice */}
+        <div className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent-subtle/40 p-4 text-xs leading-relaxed text-text-secondary">
+          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+          <div className="space-y-1">
+            <p className="font-semibold text-text-primary">
+              {t('projects.viewerMgr.securityTitle')}
+            </p>
+            <p>{t('projects.viewerMgr.securityBody')}</p>
+          </div>
         </div>
 
-        {activeMode === 'upload' ? (
-          <div className="space-y-3 rounded-xl border border-border-default bg-bg-secondary p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold text-text-primary">
-                  {t('projects.viewerMgr.uploadTitle')}
-                </p>
-                <p className="text-[11px] text-text-secondary">
-                  {t('projects.viewerMgr.uploadHint')}
-                </p>
-              </div>
+          <div className="space-y-5 rounded-xl border border-border-default bg-bg-primary p-4">
+            <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm font-medium text-text-primary">
+              <input
+                type="checkbox"
+                checked={viewer.enabled}
+                onChange={(e) => updateViewer({ enabled: e.target.checked })}
+                className="h-4 w-4 rounded accent-accent"
+              />
+              <span>{t('projects.viewerMgr.enableToggle')}</span>
+            </label>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  ref={htmlInputRef}
-                  id="proj-viewer-html-upload-input"
-                  type="file"
-                  accept=".html,.htm,text/html"
-                  onChange={(e) => void handleUploadHtml(e)}
-                  className="sr-only"
-                />
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  disabled={uploadingHtml}
-                  onClick={() => htmlInputRef.current?.click()}
-                >
-                  <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>
-                    {uploadingHtml
-                      ? t('media.uploading')
-                      : viewer.storagePath
-                        ? t('projects.viewerMgr.replaceHtml')
-                        : t('projects.viewerMgr.uploadHtml')}
-                  </span>
-                </Button>
-
-                {viewer.storagePath && (
-                  <Button
+                {/* Source Mode Selector: Native Standalone HTML Upload vs External HTTPS URL */}
+                <div className="flex flex-wrap gap-2">
+                  <button
                     type="button"
-                    variant="secondary"
-                    size="sm"
-                    disabled={uploadingHtml}
-                    onClick={() => void handleDeleteHtml()}
-                    className="text-error hover:text-error"
+                    onClick={() => updateViewer({ sourceMode: 'upload' })}
+                    className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-3.5 py-2 text-xs font-semibold transition-colors ${activeMode === 'upload'
+                        ? 'border-accent bg-accent text-accent-foreground'
+                        : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
+                      }`}
                   >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>{t('projects.viewerMgr.deleteHtml')}</span>
-                  </Button>
+                    <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{t('projects.viewerMgr.modeUpload')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateViewer({ sourceMode: 'external-url' })}
+                    className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-3.5 py-2 text-xs font-semibold transition-colors ${activeMode === 'external-url'
+                        ? 'border-accent bg-accent text-accent-foreground'
+                        : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
+                      }`}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{t('projects.viewerMgr.modeExternal')}</span>
+                  </button>
+                </div>
+
+                {activeMode === 'upload' ? (
+                  <div className="space-y-3 rounded-xl border border-border-default bg-bg-secondary p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold text-text-primary">
+                          {t('projects.viewerMgr.uploadTitle')}
+                        </p>
+                        <p className="text-[11px] text-text-secondary">
+                          {t('projects.viewerMgr.uploadHint')}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          ref={htmlInputRef}
+                          id="proj-viewer-html-upload-input"
+                          type="file"
+                          accept=".html,.htm,text/html"
+                          onChange={(e) => void handleUploadHtml(e)}
+                          className="sr-only"
+                        />
+                        <Button
+                          type="button"
+                          variant="primary"
+                          size="sm"
+                          disabled={uploadingHtml}
+                          onClick={() => htmlInputRef.current?.click()}
+                        >
+                          <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span>
+                            {uploadingHtml
+                              ? t('media.uploading')
+                              : viewer.storagePath
+                                ? t('projects.viewerMgr.replaceHtml')
+                                : t('projects.viewerMgr.uploadHtml')}
+                          </span>
+                        </Button>
+
+                        {viewer.storagePath && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={uploadingHtml}
+                            onClick={() => void handleDeleteHtml()}
+                            className="text-error hover:text-error"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            <span>{t('projects.viewerMgr.deleteHtml')}</span>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {uploadError && (
+                      <div
+                        role="alert"
+                        className="rounded-lg border border-error/40 bg-error-subtle px-3 py-2 text-xs text-error"
+                      >
+                        {uploadError}
+                      </div>
+                    )}
+
+                    {viewer.storagePath && (
+                      <div className="space-y-1.5 rounded-lg border border-border-default bg-bg-primary p-3 text-xs">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="accent" mono>
+                            HTML / eDrawings
+                          </Badge>
+                          {viewer.fileSizeLabel && (
+                            <Badge variant="muted" mono>
+                              {viewer.fileSizeLabel}
+                            </Badge>
+                          )}
+                          <span className="font-semibold text-text-primary">
+                            {viewer.fileName || viewer.storagePath}
+                          </span>
+                        </div>
+                        {previewUrl && (
+                          <p
+                            className="truncate font-mono text-[11px] text-text-secondary"
+                            dir="ltr"
+                          >
+                            {previewUrl}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="proj-viewer-url"
+                      className="block text-xs font-medium text-text-primary"
+                    >
+                      {t('projects.viewerMgr.embedUrlLabel')}
+                    </label>
+                    <input
+                      id="proj-viewer-url"
+                      dir="ltr"
+                      value={viewer.embedUrl}
+                      onChange={(e) => updateViewer({ embedUrl: e.target.value })}
+                      placeholder="https://viewer.eng-abdullah.work/projects/model.html"
+                      className="h-10 w-full rounded-[10px] border border-border-default bg-bg-secondary px-3 text-xs text-text-primary focus:border-accent focus:outline-none"
+                    />
+                    {viewer.embedUrl.trim() && !isHttpsUrl && (
+                      <p className="text-[11px] text-error">
+                        {t('projects.viewerMgr.httpsRequired')}
+                      </p>
+                    )}
+                  </div>
                 )}
+
+                <div className="max-w-xs space-y-1.5">
+                  <label
+                    htmlFor="proj-viewer-height"
+                    className="block text-xs font-medium text-text-primary"
+                  >
+                    {t('projects.viewerMgr.heightLabel')}
+                  </label>
+                  <input
+                    id="proj-viewer-height"
+                    type="number"
+                    min={320}
+                    max={900}
+                    value={viewer.heightPx ?? 540}
+                    onChange={(e) =>
+                      updateViewer({
+                        heightPx: Math.min(900, Math.max(320, Number(e.target.value) || 540)),
+                      })
+                    }
+                    className="h-10 w-full rounded-[10px] border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
+                  />
+                </div>
+
+                <LocalizedFieldGroup
+                  idPrefix="proj-viewer-title"
+                  label={t('projects.viewerMgr.titleLabel')}
+                  value={viewer.title ?? { en: '', ar: '' }}
+                  onChange={(title) => updateViewer({ title })}
+                />
+
+                <LocalizedFieldGroup
+                  idPrefix="proj-viewer-fallback"
+                  label={t('projects.viewerMgr.fallbackLabel')}
+                  multiline
+                  rows={2}
+                  value={viewer.fallbackMessage ?? { en: '', ar: '' }}
+                  onChange={(fallbackMessage) => updateViewer({ fallbackMessage })}
+                />
+
+                  { previewUrl && (
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setShowPreview((p) => !p)}
+                      >
+                        <Box className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>
+                          {showPreview
+                            ? t('pageShell.hidePreview')
+                            : t('projects.viewerMgr.previewIframe')}
+                        </span>
+                      </Button>
+                      <a
+                        href={previewUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                      >
+                        <span>{t('projects.viewerMgr.openExternal')}</span>
+                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                      </a>
+                    </div>
+                  )}
+
+                  { showPreview && previewUrl && (
+                    <div className="overflow-hidden rounded-xl border border-border-default bg-bg-secondary">
+                      <iframe
+                        title="3D Viewer Preview"
+                        src={previewUrl}
+                        sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
+                        allow="fullscreen; xr-spatial-tracking"
+                        allowFullScreen
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                        style={{ height: `${viewer.heightPx ?? 540}px` }}
+                        className="w-full border-0"
+                      />
+                    </div>
+                  )}
               </div>
             </div>
-
-            {uploadError && (
-              <div
-                role="alert"
-                className="rounded-lg border border-error/40 bg-error-subtle px-3 py-2 text-xs text-error"
-              >
-                {uploadError}
-              </div>
-            )}
-
-            {viewer.storagePath && (
-              <div className="space-y-1.5 rounded-lg border border-border-default bg-bg-primary p-3 text-xs">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="accent" mono>
-                    HTML / eDrawings
-                  </Badge>
-                  {viewer.fileSizeLabel && (
-                    <Badge variant="muted" mono>
-                      {viewer.fileSizeLabel}
-                    </Badge>
-                  )}
-                  <span className="font-semibold text-text-primary">
-                    {viewer.fileName || viewer.storagePath}
-                  </span>
-                </div>
-                {previewUrl && (
-                  <p
-                    className="truncate font-mono text-[11px] text-text-secondary"
-                    dir="ltr"
-                  >
-                    {previewUrl}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-1.5">
-            <label
-              htmlFor="proj-viewer-url"
-              className="block text-xs font-medium text-text-primary"
-            >
-              {t('projects.viewerMgr.embedUrlLabel')}
-            </label>
-            <input
-              id="proj-viewer-url"
-              dir="ltr"
-              value={viewer.embedUrl}
-              onChange={(e) => updateViewer({ embedUrl: e.target.value })}
-              placeholder="https://viewer.eng-abdullah.work/projects/model.html"
-              className="h-10 w-full rounded-[10px] border border-border-default bg-bg-secondary px-3 text-xs text-text-primary focus:border-accent focus:outline-none"
-            />
-            {viewer.embedUrl.trim() && !isHttpsUrl && (
-              <p className="text-[11px] text-error">
-                {t('projects.viewerMgr.httpsRequired')}
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="max-w-xs space-y-1.5">
-          <label
-            htmlFor="proj-viewer-height"
-            className="block text-xs font-medium text-text-primary"
-          >
-            {t('projects.viewerMgr.heightLabel')}
-          </label>
-          <input
-            id="proj-viewer-height"
-            type="number"
-            min={320}
-            max={900}
-            value={viewer.heightPx ?? 540}
-            onChange={(e) =>
-              updateViewer({
-                heightPx: Math.min(900, Math.max(320, Number(e.target.value) || 540)),
-              })
-            }
-            className="h-10 w-full rounded-[10px] border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
-          />
-        </div>
-
-        <LocalizedFieldGroup
-          idPrefix="proj-viewer-title"
-          label={t('projects.viewerMgr.titleLabel')}
-          value={viewer.title ?? { en: '', ar: '' }}
-          onChange={(title) => updateViewer({ title })}
-        />
-
-        <LocalizedFieldGroup
-          idPrefix="proj-viewer-fallback"
-          label={t('projects.viewerMgr.fallbackLabel')}
-          multiline
-          rows={2}
-          value={viewer.fallbackMessage ?? { en: '', ar: '' }}
-          onChange={(fallbackMessage) => updateViewer({ fallbackMessage })}
-        />
-
-        {previewUrl && (
-          <div className="flex flex-wrap items-center gap-3 pt-1">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowPreview((p) => !p)}
-            >
-              <Box className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>
-                {showPreview
-                  ? t('pageShell.hidePreview')
-                  : t('projects.viewerMgr.previewIframe')}
-              </span>
-            </Button>
-            <a
-              href={previewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
-            >
-              <span>{t('projects.viewerMgr.openExternal')}</span>
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
-          </div>
-        )}
-
-        {showPreview && previewUrl && (
-          <div className="overflow-hidden rounded-xl border border-border-default bg-bg-secondary">
-            <iframe
-              title="3D Viewer Preview"
-              src={previewUrl}
-              sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
-              allow="fullscreen; xr-spatial-tracking"
-              allowFullScreen
-              referrerPolicy="no-referrer"
-              loading="lazy"
-              style={{ height: `${viewer.heightPx ?? 540}px` }}
-              className="w-full border-0"
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  );
+            );
 }
