@@ -60,6 +60,8 @@
     "edit": "Edit",
     "delete": "Delete",
     "save": "Save Changes",
+    "saving": "Saving...",
+    "deletedFeedback": "Record permanently deleted from Supabase.",
     "create": "Create Record",
     "cancel": "Cancel",
     "close": "Close",

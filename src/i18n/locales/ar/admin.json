@@ -60,6 +60,8 @@
     "edit": "تعديل",
     "delete": "حذف",
     "save": "حفظ التغييرات",
+    "saving": "جاري الحفظ...",
+    "deletedFeedback": "تم حذف السجل نهائياً من Supabase.",
     "create": "إنشاء السجل",
     "cancel": "إلغاء",
     "close": "إغلاق",
