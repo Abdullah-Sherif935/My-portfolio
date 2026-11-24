@@ -10,13 +10,13 @@ export const SPECIALIZATIONS: Specialization[] = [
       ar: 'التكييف والتبريد',
     },
     description: {
-      en: 'Thermal load evaluation, chilled water and DX systems, refrigeration circuits, airflow distribution, and equipment commissioning.',
-      ar: 'تقييم الأحمال الحرارية، أنظمة المياه المثلجة و DX، دوائر التبريد، توزيع الهواء، وتشغيل واختبار المعدات.',
+      en: 'Mechanical design of industrial HVAC and refrigeration equipment, specializing in sheet metal enclosures, structural assemblies, electrical control panel design, and manufacturing preparation. Experienced in SolidWorks, DXF generation, CNC fiber laser cutting, bending, and production follow-up.',
+      ar: 'التصميم الميكانيكي لمعدات التبريد والتكييف الصناعية، مع التركيز على تصميم الهياكل الخارجية وأغلفة الصاج والتجميعات الميكانيكية، وتصميم لوحات التحكم الكهربائية وتجهيز ملفات التصنيع. خبرة في استخدام SolidWorks وإعداد ملفات DXF وتجهيز أعمال القطع بالليزر CNC ومتابعة عمليات الثني والتصنيع والتجميع.',
     },
     highlights: [
-      { en: 'Chillers & Air Handling Units', ar: 'التشيلرات ووحدات مناولة الهواء' },
-      { en: 'Refrigeration Diagnostics', ar: 'تشخيص دوائر التبريد' },
-      { en: 'Ducting & Hydronic Piping', ar: 'مجاري الهواء وشبكات المواسير' },
+      { en: 'Chiller, Cold Room & AC Enclosures', ar: 'هياكل التشيلرات وغرف التبريد والتكييف' },
+      { en: 'Structural Assemblies & Control Panels', ar: 'التجميعات الميكانيكية ولوحات التحكم' },
+      { en: 'DXF, CNC Laser & Bending Preparation', ar: 'ملفات DXF والقطع بالليزر CNC والثني' },
     ],
     filterCategory: 'hvac-refrigeration',
   },

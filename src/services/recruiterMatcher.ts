@@ -21,18 +21,18 @@ export const RECRUITER_POSITIONS: RecruiterPositionOption[] = [
   {
     id: 'hvac-design',
     label: {
-      en: 'HVAC Design Engineer',
-      ar: 'مهندس تصميم التكييف والتبريد (HVAC)',
+      en: 'HVAC Equipment & Sheet Metal Design Engineer',
+      ar: 'مهندس تصميم معدات التبريد والتكييف وتصميم الصاج',
     },
     shortLabel: {
-      en: 'HVAC Design',
-      ar: 'تصميم التكييف والتبريد',
+      en: 'HVAC Equipment Design',
+      ar: 'تصميم معدات التبريد والتكييف',
     },
     description: {
-      en: 'Highlights industrial chillers (60–240 TR), cold rooms, central AC design, SolidWorks sheet metal, and refrigeration troubleshooting.',
-      ar: 'يُبرز تصميم التشيلرات الصناعية (60–240 طن تبريد)، غرف التبريد، وحدات التكييف المركزي، تصميم الصاج بـ SolidWorks، وتشخيص دوائر التبريد.',
+      en: 'Highlights mechanical structural design of industrial HVAC & refrigeration equipment, sheet metal enclosures, SolidWorks DXF & CNC fiber laser production, and electrical control panels.',
+      ar: 'يُبرز التصميم الميكانيكي الهيكلي لمعدات التبريد والتكييف الصناعية، وأغلفة الصاج، وإعداد ملفات DXF والقطع بالليزر CNC بـ SolidWorks، ولوحات التحكم الكهربائية.',
     },
-    filenameSlug: 'HVAC_Design_Engineer',
+    filenameSlug: 'HVAC_Equipment_and_Sheet_Metal_Design_Engineer',
     primaryTags: [
       'hvac',
       'refrigeration',

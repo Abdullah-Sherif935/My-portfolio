@@ -16,12 +16,12 @@ export const PROFILE: ProfileData = {
     ar: 'عبدالله شريف',
   },
   headline: {
-    en: 'Mechatronics Engineer | HVAC & Refrigeration Design',
-    ar: 'مهندس ميكاترونكس | تصميم التكييف والتبريد',
+    en: 'Mechatronics Engineer | HVAC Equipment & Sheet Metal Design Engineer',
+    ar: 'مهندس ميكاترونكس | مهندس تصميم معدات التبريد والتكييف وتصميم الصاج',
   },
   summary: {
-    en: 'Mechatronics Engineering graduate (2026) from Ain Shams University with hands-on experience in HVAC & refrigeration design and manufacturing — including industrial chillers, cold rooms, and central air-conditioning units — combined with a foundation in mechanical design, sheet metal production, classic/PLC control systems, and robotics.',
-    ar: 'خريج هندسة الميكاترونكس (2026) من جامعة عين شمس، بخبرة عملية في تصميم وتصنيع أنظمة التكييف والتبريد — بما في ذلك التشيلرات الصناعية وغرف التبريد ووحدات التكييف المركزي — إلى جانب أساس قوي في التصميم الميكانيكي وإنتاج الصاج وأنظمة التحكم الكلاسيكي و PLC والروبوتات.',
+    en: 'Mechatronics Engineering graduate (2026) from Ain Shams University. Mechanical design of industrial HVAC and refrigeration equipment, specializing in sheet metal enclosures, structural assemblies, electrical control panel design, and manufacturing preparation. Experienced in SolidWorks, DXF generation, CNC fiber laser cutting, bending, and production follow-up, alongside a strong foundation in automation, control systems, and robotics.',
+    ar: 'خريج هندسة الميكاترونكس (2026) من جامعة عين شمس. التصميم الميكانيكي لمعدات التبريد والتكييف الصناعية، مع التركيز على تصميم الهياكل الخارجية وأغلفة الصاج والتجميعات الميكانيكية، وتصميم لوحات التحكم الكهربائية وتجهيز ملفات التصنيع. خبرة في استخدام SolidWorks وإعداد ملفات DXF وتجهيز أعمال القطع بالليزر CNC ومتابعة عمليات الثني والتصنيع والتجميع، إلى جانب أساس قوي في الأتمتة وأنظمة التحكم والروبوتات.',
   },
   location: {
     en: '10th of Ramadan City, Sharqia, Egypt',

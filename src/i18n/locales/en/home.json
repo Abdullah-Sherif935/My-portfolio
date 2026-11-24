@@ -1,7 +1,7 @@
 {
   "hero": {
-    "eyebrow": "MECHATRONICS · HVAC & REFRIGERATION · INDUSTRIAL AUTOMATION",
-    "mobileSummary": "Ain Shams Mechatronics graduate (2026) designing industrial HVAC chillers, cold rooms, sheet metal assemblies, and control & robotics systems.",
+    "eyebrow": "MECHATRONICS · HVAC EQUIPMENT & SHEET METAL · AUTOMATION",
+    "mobileSummary": "Ain Shams Mechatronics Engineer (2026) specializing in mechanical & sheet metal design of industrial HVAC equipment, CNC laser production, electrical control panels, and robotics.",
     "profileFrameLabel": "FIG-01 // PROFILE",
     "degreeTag": "B.ENG {{year}}",
     "profilePlaceholderTitle": "Engineer Profile Portrait",
@@ -55,7 +55,7 @@
   "specializations": {
     "eyebrow": "02 // CORE SPECIALIZATIONS",
     "title": "Core Engineering Expertise",
-    "subtitle": "Six integrated disciplines across thermal systems, industrial automation, maintenance, mechanical CAD, sheet metal, and mechatronics."
+    "subtitle": "Six integrated disciplines across HVAC equipment structural design, industrial automation, maintenance, mechanical CAD, sheet metal, and robotics & mechatronics."
   },
   "projects": {
     "eyebrow": "03 // FEATURED PROJECTS",
@@ -83,7 +83,7 @@
   "contact": {
     "eyebrow": "08 // CONTACT",
     "title": "Start an Engineering Conversation",
-    "subtitle": "For HVAC & refrigeration design, industrial projects, control panels, mechanical CAD, or engineering roles.",
+    "subtitle": "For HVAC equipment & sheet metal design, industrial manufacturing, electrical control panels, mechanical CAD, robotics, or engineering roles.",
     "emailTitle": "Email Address",
     "emailNote": "Direct email for engineering inquiries",
     "linkedinTitle": "LinkedIn Profile",

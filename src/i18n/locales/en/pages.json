@@ -3,7 +3,7 @@
     "pageTitle": "About",
     "eyebrow": "ABOUT // PROFILE",
     "title": "About Abdullah Sherif Abdulraouf",
-    "subtitle": "Mechatronics Engineering graduate (2026, Ain Shams University) working in HVAC & refrigeration design and manufacturing alongside mechanical CAD, sheet metal, CNC, control systems, and robotics.",
+    "subtitle": "Mechatronics Engineer (2026, Ain Shams University) currently specializing as an HVAC Equipment & Sheet Metal Design Engineer alongside mechanical CAD, CNC laser manufacturing, electrical control panels, and robotics.",
     "bioHeading": "Professional Overview",
     "educationHeading": "Education",
     "courseworkLabel": "Relevant Coursework",
@@ -82,13 +82,13 @@
     "pageTitle": "Experience",
     "eyebrow": "EXPERIENCE // CAREER TIMELINE",
     "title": "Professional Experience & Training",
-    "subtitle": "Engineering roles and industrial plant training across HVAC & refrigeration design, manufacturing, and electro-mechanical systems."
+    "subtitle": "Engineering roles and industrial plant training across HVAC equipment & sheet metal design, CNC manufacturing preparation, and electro-mechanical systems."
   },
   "skills": {
     "pageTitle": "Technical Skills",
     "eyebrow": "SKILLS // TECHNICAL MATRIX",
     "title": "Technical Skills & Capabilities",
-    "subtitle": "Categorized engineering disciplines, HVAC & refrigeration design, CAD/Simulation, CNC & control panels, and robotics technologies."
+    "subtitle": "Categorized engineering disciplines across HVAC equipment & sheet metal design, CAD/Simulation, CNC & electrical control panels, and robotics & mechatronics."
   },
   "certifications": {
     "pageTitle": "Courses & Certifications",
@@ -100,7 +100,7 @@
     "pageTitle": "Contact",
     "eyebrow": "CONTACT // INQUIRIES",
     "title": "Contact & Technical Inquiries",
-    "subtitle": "Reach out regarding HVAC & refrigeration design, industrial automation, mechanical & sheet metal CAD, or engineering opportunities.",
+    "subtitle": "Reach out regarding HVAC equipment & sheet metal design, industrial automation, mechanical CAD, robotics & mechatronics, or engineering opportunities.",
     "formHeading": "Send a Message",
     "formNotice": "Client-side validation is active. Direct email submission via backend will be enabled in an upcoming update; for immediate contact, please use the email or LinkedIn channel.",
     "nameLabel": "Full Name",

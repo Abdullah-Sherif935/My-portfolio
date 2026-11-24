@@ -15,8 +15,8 @@ export const EXPERIENCE_ITEMS: ExperienceItem[] = [
       ar: 'خبرة مهنية',
     },
     role: {
-      en: 'HVAC & Refrigeration Design Engineer (Sheet Metal Design, CNC Operation & Classic Control)',
-      ar: 'مهندس تصميم التكييف والتبريد (تصميم الصاج، تشغيل CNC، والتحكم الكلاسيكي)',
+      en: 'HVAC Equipment & Sheet Metal Design Engineer',
+      ar: 'مهندس تصميم معدات التبريد والتكييف وتصميم الصاج',
     },
     company: {
       en: 'Sccoder — HVAC & Refrigeration',
@@ -26,26 +26,30 @@ export const EXPERIENCE_ITEMS: ExperienceItem[] = [
       en: 'April 2026 – Present',
       ar: 'أبريل 2026 – حتى الآن',
     },
+    summary: {
+      en: 'Mechanical design of industrial HVAC and refrigeration equipment, specializing in sheet metal enclosures, structural assemblies, electrical control panel design, and manufacturing preparation. Experienced in SolidWorks, DXF generation, CNC fiber laser cutting, bending, and production follow-up.',
+      ar: 'التصميم الميكانيكي لمعدات التبريد والتكييف الصناعية، مع التركيز على تصميم الهياكل الخارجية وأغلفة الصاج والتجميعات الميكانيكية، وتصميم لوحات التحكم الكهربائية وتجهيز ملفات التصنيع. خبرة في استخدام SolidWorks وإعداد ملفات DXF وتجهيز أعمال القطع بالليزر CNC ومتابعة عمليات الثني والتصنيع والتجميع.',
+    },
     responsibilities: [
       {
-        en: 'Design industrial chiller units ranging from 60 to 240 tons of refrigeration, along with cold rooms and central air-conditioning units, with designs carried through to actual industrial manufacturing.',
-        ar: 'تصميم وحدات التشيلرات الصناعية بقدرات من 60 إلى 240 طن تبريد، إلى جانب غرف التبريد ووحدات التكييف المركزي، ومتابعة تنفيذ التصميمات حتى التصنيع الصناعي الفعلي.',
+        en: 'Mechanical structural and enclosure design for industrial HVAC and refrigeration equipment—including chillers (60–240 TR), cold rooms, and central air-conditioning units—carried through manufacturing preparation.',
+        ar: 'التصميم الميكانيكي الهيكلي وتصميم الأغلفة لمعدات التبريد والتكييف الصناعية — بما في ذلك التشيلرات (60–240 طن تبريد) وغرف التبريد ووحدات التكييف المركزي — حتى مرحلة تجهيز التصنيع.',
       },
       {
-        en: 'Design sheet metal parts and assemblies for HVAC and refrigeration equipment using SolidWorks, ensuring manufacturability and dimensional accuracy.',
-        ar: 'تصميم أجزاء وتجميعات الصاج لمعدات التكييف والتبريد باستخدام SolidWorks مع ضمان قابلية التصنيع ودقة الأبعاد.',
+        en: 'Design sheet metal enclosures, chassis, and mechanical structural assemblies in SolidWorks, generating production-ready DXF flat patterns with accurate dimensional tolerances.',
+        ar: 'تصميم أغلفة وهياكل الصاج والتجميعات الميكانيكية باستخدام SolidWorks وإعداد ملفات DXF الجاهزة للتصنيع بدقة أبعاد عالية.',
       },
       {
-        en: 'Work across the production line, from CNC fiber laser cutting (part nesting to final cutting) through to sheet metal bending/forming.',
-        ar: 'العمل عبر خط الإنتاج بدءاً من القطع بليزر الفايبر CNC (من تفريد وتوزيع الأجزاء Nesting حتى القطع النهائي) وصولاً إلى ثني وتشكيل الصاج.',
+        en: 'Prepare CNC fiber laser cutting workflows (part nesting to cutting) and follow up across bending, painting, and mechanical assembly on the production line.',
+        ar: 'تجهيز أعمال القطع بليزر الفايبر CNC (من توزيع وتفريد الأجزاء Nesting حتى القطع) ومتابعة عمليات الثني والدهان والتجميع الميكانيكي على خط الإنتاج.',
       },
       {
-        en: 'Apply practical knowledge of refrigeration circuits and common HVAC/refrigeration faults to support troubleshooting during production and testing.',
-        ar: 'تطبيق المعرفة العملية بدوائر التبريد والأعطال الشائعة لأنظمة التكييف والتبريد لدعم تشخيص الأعطال أثناء الإنتاج والاختبار.',
+        en: 'Support electrical control panel design, electrical wiring, sensor integration, classic (relay-based) control panels, and PLC-related tasks for production lines.',
+        ar: 'دعم تصميم لوحات التحكم الكهربائية والتمديدات ودمج الحساسات، بالإضافة إلى أعمال لوحات التحكم الكلاسيكي (الريليهات) والمهام المرتبطة بـ PLC لخطوط الإنتاج.',
       },
       {
-        en: 'Perform routine equipment maintenance and support classic (relay-based) control panel work and PLC-related tasks for production lines.',
-        ar: 'تنفيذ الصيانة الدورية للمعدات ودعم أعمال لوحات التحكم الكلاسيكي (القائمة على الريليهات) والمهام المرتبطة بـ PLC لخطوط الإنتاج.',
+        en: 'Perform routine equipment maintenance and electro-mechanical production support.',
+        ar: 'تنفيذ الصيانة الدورية للمعدات وتقديم الدعم الكهروميكانيكي لخطوط الإنتاج.',
       },
     ],
     relatedProjectSlugs: [],

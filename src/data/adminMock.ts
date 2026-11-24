@@ -104,8 +104,8 @@ export const INITIAL_SAMPLE_ACTIVITIES: AdminActivityItem[] = [
 
 export const INITIAL_CV_CONFIG: CvWorkspaceConfig = {
   targetRole: {
-    en: 'Mechatronics Engineer | HVAC & Refrigeration Design',
-    ar: 'مهندس ميكاترونكس | تصميم التكييف والتبريد',
+    en: 'Mechatronics Engineer | HVAC Equipment & Sheet Metal Design Engineer',
+    ar: 'مهندس ميكاترونكس | مهندس تصميم معدات التبريد والتكييف وتصميم الصاج',
   },
   customSummary: { ...PROFILE.summary },
   useProfileSummary: true,
@@ -133,8 +133,8 @@ export const DEFAULT_HOME_SECTIONS_CONFIG: HomeSectionsConfig = {
       ar: 'الملف الهندسي والأساس الأكاديمي',
     },
     description: {
-      en: 'Bridging Mechatronics Engineering fundamentals with hands-on industrial design-to-manufacturing across HVAC systems, SolidWorks sheet metal, CNC fiber laser production, and classic/PLC control.',
-      ar: 'الربط بين أسس هندسة الميكاترونكس والخبرة الصناعية من التصميم إلى التصنيع في أنظمة التكييف والصاج بـ SolidWorks والقطع بالليزر CNC والتحكم الكلاسيكي و PLC.',
+      en: 'Bridging Mechatronics Engineering fundamentals with hands-on mechanical design of industrial HVAC and refrigeration equipment, sheet metal enclosures, structural assemblies, electrical control panels, SolidWorks DXF & CNC fiber laser manufacturing, and robotics.',
+      ar: 'الربط بين أسس هندسة الميكاترونكس والتصميم الميكانيكي العملي لمعدات التبريد والتكييف الصناعية، وأغلفة الصاج والتجميعات الميكانيكية، ولوحات التحكم الكهربائية، وتجهيز ملفات DXF والقطع بالليزر CNC بـ SolidWorks، والروبوتات.',
     },
     educationLabel: { en: 'Academic Education', ar: 'التعليم الأكاديمي' },
     graduationProjectLabel: { en: 'Graduation Project', ar: 'مشروع التخرج' },
@@ -185,8 +185,8 @@ export const DEFAULT_HOME_SECTIONS_CONFIG: HomeSectionsConfig = {
     eyebrow: { en: '02 // CORE SPECIALIZATIONS', ar: '02 // التخصصات الأساسية' },
     title: { en: 'Core Engineering Expertise', ar: 'مجالات الخبرة الهندسية' },
     subtitle: {
-      en: 'Six integrated disciplines across thermal systems, industrial automation, maintenance, mechanical CAD, sheet metal, and mechatronics.',
-      ar: 'ستة مجالات مترابطة تغطي الأنظمة الحرارية، الأتمتة الصناعية، الصيانة، التصميم الميكانيكي، الصاج، والميكاترونكس.',
+      en: 'Six integrated disciplines across HVAC equipment structural design, industrial automation, maintenance, mechanical CAD, sheet metal, and robotics & mechatronics.',
+      ar: 'ستة مجالات مترابطة تغطي تصميم معدات التبريد والتكييف، الأتمتة الصناعية، الصيانة، التصميم الميكانيكي، تصميم الصاج، والروبوتات والميكاترونكس.',
     },
   },
 };
@@ -197,12 +197,12 @@ export const INITIAL_SITE_SETTINGS: AdminSiteSettings = {
     ar: 'عبدالله شريف عبدالرؤوف — الملف الهندسي',
   },
   seoTitle: {
-    en: 'Abdullah Sherif Abdulraouf — Mechatronics & HVAC Design Engineer',
-    ar: 'عبدالله شريف عبدالرؤوف — مهندس ميكاترونكس وتصميم التكييف والتبريد',
+    en: 'Abdullah Sherif Abdulraouf — Mechatronics Engineer | HVAC Equipment & Sheet Metal Design',
+    ar: 'عبدالله شريف عبدالرؤوف — مهندس ميكاترونكس | تصميم معدات التبريد والتكييف والصاج',
   },
   seoDescription: {
-    en: 'Engineering portfolio covering HVAC & refrigeration design, sheet metal & CNC production, classic/PLC control panels, industrial maintenance, and robotics.',
-    ar: 'ملف هندسي يشمل تصميم التكييف والتبريد، الصاج و CNC، لوحات التحكم الكلاسيكي و PLC، الصيانة الصناعية، والروبوتات.',
+    en: 'Mechatronics Engineer specializing in mechanical design of industrial HVAC & refrigeration equipment, sheet metal enclosures, SolidWorks CAD, DXF & CNC laser production, electrical control panels, and robotics.',
+    ar: 'مهندس ميكاترونكس متخصص في التصميم الميكانيكي لمعدات التبريد والتكييف الصناعية، وأغلفة الصاج، و SolidWorks، وتجهيز ملفات DXF والقطع بالليزر CNC، ولوحات التحكم الكهربائية، والروبوتات.',
   },
   showGraduationPortrait: true,
   showContactEmail: true,

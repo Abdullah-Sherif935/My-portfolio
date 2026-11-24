@@ -405,7 +405,7 @@ export function buildTailoredCvSummary(
       case 'mechanical-design':
         return `${eduSnippet} مع خبرة عملية في التصميم الميكانيكي وتصميم تجميعات الصاج القابلة للتصنيع${employerName ? ` لدى ${employerName}` : ''}. تشمل الكفاءات الموثّقة ${skillsStr}، مع تطبيق عملي من التصميم الهندسي حتى القطع بليزر CNC والثني${projectsStr ? `، إضافة إلى مشاريع هندسية مثل ${projectsStr}` : ''}.`;
       case 'hvac-design':
-        return `${eduSnippet} مع خبرة عملية في تصميم وتصنيع أنظمة التكييف والتبريد${employerName ? ` لدى ${employerName}` : ''}، تشمل وحدات التشيلرات الصناعية (60–240 طن تبريد)، غرف التبريد، ووحدات التكييف المركزي. يجمع بين ${skillsStr} مع دعم تشخيص أعطال دوائر التبريد ومتابعة خطوط الإنتاج.`;
+        return `${eduSnippet} يعمل حالياً كمهندس تصميم معدات التبريد والتكييف وتصميم الصاج${employerName ? ` لدى ${employerName}` : ''}، مع تركيز على التصميم الميكانيكي الهيكلي وأغلفة الصاج والتجميعات الميكانيكية ولوحات التحكم الكهربائية وتجهيز ملفات DXF والقطع بالليزر CNC. تشمل الكفاءات الموثّقة ${skillsStr}.`;
       case 'automation-control':
         return `${eduSnippet} بخبرة عملية في التحكم الصناعي والأتمتة، تشمل ${skillsStr}${employerName ? ` ودعم أعمال لوحات التحكم الكلاسيكي والمهام المرتبطة بـ PLC لخطوط الإنتاج لدى ${employerName}` : ''}${projectsStr ? `، إلى جانب مشاريع تقنية في النمذجة والتحكم مثل ${projectsStr}` : ''}.`;
       case 'robotics-mechatronics':
@@ -421,7 +421,7 @@ export function buildTailoredCvSummary(
     case 'mechanical-design':
       return `${eduSnippet} with hands-on mechanical and sheet metal CAD design experience${employerName ? ` at ${employerName}` : ''}, taking industrial equipment designs through manufacturability, CNC fiber laser cutting, and forming. Core verified capabilities span ${skillsStr}${projectsStr ? `, supported by engineering design work including ${projectsStr}` : ''}.`;
     case 'hvac-design':
-      return `${eduSnippet} with direct HVAC and refrigeration design-to-manufacturing experience${employerName ? ` at ${employerName}` : ''} across 60–240 TR industrial chillers, cold rooms, and central air-conditioning units. Combines ${skillsStr} with practical refrigeration circuit troubleshooting and sheet metal production execution.`;
+      return `${eduSnippet} currently specializing as an HVAC Equipment & Sheet Metal Design Engineer${employerName ? ` at ${employerName}` : ''}, focused on mechanical structural design of industrial HVAC and refrigeration equipment, sheet metal enclosures, structural assemblies, electrical control panels, DXF generation, CNC fiber laser cutting, and bending follow-up. Verified capabilities include ${skillsStr}.`;
     case 'automation-control':
       return `${eduSnippet} with practical experience in industrial control and automation spanning ${skillsStr}${employerName ? `, including classic relay-based control panel work and PLC-related production-line support at ${employerName}` : ''}${projectsStr ? `, complemented by control modeling and embedded engineering projects such as ${projectsStr}` : ''}.`;
     case 'robotics-mechatronics':
