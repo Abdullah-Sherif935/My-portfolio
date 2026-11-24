@@ -63,6 +63,7 @@
     "navigationLabel": "التنقل بين المشاريع",
     "viewerHeading": "عارض النموذج ثلاثي الأبعاد التفاعلي",
     "fullscreenViewer": "ملء الشاشة",
+    "exitFullscreenViewer": "الرجوع للوضع السابق",
     "openViewerExternal": "فتح في تبويب جديد",
     "viewerFallback": "تعذر تحميل العارض ثلاثي الأبعاد التفاعلي حالياً.",
     "attachmentsHeading": "الوثائق والمرفقات الهندسية",

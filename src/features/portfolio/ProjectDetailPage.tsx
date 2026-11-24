@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -13,6 +13,7 @@ import {
   FileText,
   Image as ImageIcon,
   Maximize2,
+  Minimize2,
   Sliders,
   Target,
   X,
@@ -38,7 +39,52 @@ export function ProjectDetailPage() {
   const { projects, companies, specializations } = usePortfolioData();
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewerFailed, setViewerFailed] = useState(false);
+  const [isViewerFullscreen, setIsViewerFullscreen] = useState(false);
   const viewerContainerRef = useRef<HTMLDivElement | null>(null);
+  const nativeFullscreenActiveRef = useRef(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const fsEl =
+        document.fullscreenElement ||
+        (document as Document & { webkitFullscreenElement?: Element | null })
+          .webkitFullscreenElement;
+      if (fsEl && fsEl === viewerContainerRef.current) {
+        nativeFullscreenActiveRef.current = true;
+        setIsViewerFullscreen(true);
+      } else if (nativeFullscreenActiveRef.current) {
+        nativeFullscreenActiveRef.current = false;
+        setIsViewerFullscreen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isViewerFullscreen) {
+        setIsViewerFullscreen(false);
+        if (document.fullscreenElement) {
+          void document.exitFullscreen().catch(() => undefined);
+        }
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isViewerFullscreen]);
+
+  useEffect(() => {
+    if (!isViewerFullscreen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isViewerFullscreen]);
 
   const orderedProjects = projects
     .filter((p) => p.isPublished !== false)
@@ -137,13 +183,48 @@ export function ProjectDetailPage() {
   const resolvedViewerUrl = resolveProjectViewerUrl(viewer);
   const hasValidViewer = Boolean(resolvedViewerUrl);
 
-  const handleToggleFullscreen = () => {
-    const el = viewerContainerRef.current;
+  const handleEnterFullscreen = () => {
+    const el = viewerContainerRef.current as
+      | (HTMLDivElement & { webkitRequestFullscreen?: () => Promise<void> | void })
+      | null;
+    setIsViewerFullscreen(true);
     if (!el) return;
-    if (document.fullscreenElement) {
-      void document.exitFullscreen().catch(() => undefined);
-    } else if (el.requestFullscreen) {
-      void el.requestFullscreen().catch(() => undefined);
+    if (el.requestFullscreen) {
+      void el.requestFullscreen().catch(() => {
+        // Fallback: CSS full-viewport overlay remains active (e.g. iOS Safari)
+      });
+    } else if (el.webkitRequestFullscreen) {
+      try {
+        void el.webkitRequestFullscreen();
+      } catch {
+        // Fallback: CSS full-viewport overlay remains active
+      }
+    }
+  };
+
+  const handleExitFullscreen = () => {
+    nativeFullscreenActiveRef.current = false;
+    setIsViewerFullscreen(false);
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element | null;
+      webkitExitFullscreen?: () => Promise<void> | void;
+    };
+    if (doc.fullscreenElement && doc.exitFullscreen) {
+      void doc.exitFullscreen().catch(() => undefined);
+    } else if (doc.webkitFullscreenElement && doc.webkitExitFullscreen) {
+      try {
+        void doc.webkitExitFullscreen();
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const handleToggleFullscreen = () => {
+    if (isViewerFullscreen) {
+      handleExitFullscreen();
+    } else {
+      handleEnterFullscreen();
     }
   };
 
@@ -388,7 +469,7 @@ export function ProjectDetailPage() {
               </Card>
             )}
 
-            {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid isolated/HTTPS URL) */}
+              {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid isolated/HTTPS URL) */ }
             {hasValidViewer && viewer && resolvedViewerUrl && (
               <Card className="space-y-4 p-6 sm:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -428,232 +509,278 @@ export function ProjectDetailPage() {
                       : t('pages:projectDetail.viewerFallback')}
                   </div>
                 ) : (
-                  <div
-                    ref={viewerContainerRef}
-                    className="overflow-hidden rounded-xl border border-border-default bg-bg-primary"
-                  >
-                    <iframe
-                      title={
-                        viewer.title && pick(viewer.title).trim()
-                          ? pick(viewer.title)
-                          : pick(project.title)
-                      }
-                      src={resolvedViewerUrl}
-                      sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
-                      allow="fullscreen; xr-spatial-tracking"
-                      allowFullScreen
-                      referrerPolicy="no-referrer"
-                      loading="lazy"
-                      onError={() => setViewerFailed(true)}
-                      style={{ height: `${viewer.heightPx ?? 540}px` }}
-                      className="w-full border-0"
-                    />
-                  </div>
-                )}
-              </Card>
-            )}
-
-            {/* 9. Project Attachments (ONLY if available) */}
-            {attachments.length > 0 && (
-              <Card className="space-y-4 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                  <FileText className="h-5 w-5 text-accent" aria-hidden="true" />
-                  <span>{t('pages:projectDetail.attachmentsHeading')}</span>
-                </h2>
-                <div className="divide-y divide-border-default">
-                  {attachments.map((att) => (
                     <div
-                      key={att.id}
-                      className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                      ref={viewerContainerRef}
+                      className={
+                        isViewerFullscreen
+                          ? 'fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col overflow-hidden bg-bg-primary'
+                          : 'overflow-hidden rounded-xl border border-border-default bg-bg-primary'
+                      }
                     >
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-semibold text-text-primary">
-                          {pick(att.title)}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge variant="accent" mono>
-                            {att.fileType}
-                          </Badge>
-                          {att.fileSizeLabel && (
-                            <Badge variant="muted" mono>
-                              {att.fileSizeLabel}
-                            </Badge>
+                      {isViewerFullscreen && (
+                        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border-default bg-bg-secondary/95 px-3 py-2.5 backdrop-blur sm:px-5">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <Box
+                              className="h-4 w-4 shrink-0 text-accent"
+                              aria-hidden="true"
+                            />
+                            <span className="truncate text-xs font-semibold text-text-primary sm:text-sm">
+                              {viewer.title && pick(viewer.title).trim()
+                                ? pick(viewer.title)
+                                : pick(project.title)}
+                            </span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <a
+                              href={resolvedViewerUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hidden items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+                            >
+                              <span>{t('pages:projectDetail.openViewerExternal')}</span>
+                              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={handleExitFullscreen}
+                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground shadow-sm transition-opacity hover:opacity-90"
+                            >
+                              <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                              <span>{t('pages:projectDetail.exitFullscreenViewer')}</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <iframe
+                        title={
+                          viewer.title && pick(viewer.title).trim()
+                            ? pick(viewer.title)
+                            : pick(project.title)
+                        }
+                        src={resolvedViewerUrl}
+                        sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
+                        allow="fullscreen; xr-spatial-tracking"
+                        allowFullScreen
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                        onError={() => setViewerFailed(true)}
+                        style={
+                          isViewerFullscreen
+                            ? undefined
+                            : { height: `${viewer.heightPx ?? 540}px` }
+                        }
+                        className={
+                          isViewerFullscreen
+                            ? 'min-h-0 h-full w-full flex-1 border-0'
+                            : 'w-full border-0'
+                        }
+                      />
+                    </div>
+                )}
+                  </Card>
+                )}
+
+                {/* 9. Project Attachments (ONLY if available) */}
+                {attachments.length > 0 && (
+                  <Card className="space-y-4 p-6 sm:p-8">
+                    <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                      <FileText className="h-5 w-5 text-accent" aria-hidden="true" />
+                      <span>{t('pages:projectDetail.attachmentsHeading')}</span>
+                    </h2>
+                    <div className="divide-y divide-border-default">
+                      {attachments.map((att) => (
+                        <div
+                          key={att.id}
+                          className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                        >
+                          <div className="min-w-0 space-y-1">
+                            <p className="text-sm font-semibold text-text-primary">
+                              {pick(att.title)}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <Badge variant="accent" mono>
+                                {att.fileType}
+                              </Badge>
+                              {att.fileSizeLabel && (
+                                <Badge variant="muted" mono>
+                                  {att.fileSizeLabel}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          {att.downloadable !== false && (
+                            <a
+                              href={att.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download
+                              className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-accent/40 bg-accent-subtle px-3.5 text-xs font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+                            >
+                              <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                              <span>{t('pages:projectDetail.downloadAttachment')}</span>
+                            </a>
                           )}
                         </div>
-                      </div>
-                      {att.downloadable !== false && (
-                        <a
-                          href={att.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download
-                          className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-accent/40 bg-accent-subtle px-3.5 text-xs font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
-                        >
-                          <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                          <span>{t('pages:projectDetail.downloadAttachment')}</span>
-                        </a>
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </div>
+                  </Card>
+                )}
+              </div>
 
           {/* Sidebar */}
-          <aside className="space-y-6 lg:col-span-4">
-            {/* Client Information (when applicable) */}
-            {company && (
-              <Card elevated className="space-y-3 p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                  {t('pages:projectDetail.companyLabel')}
-                </h2>
-                <Link
-                  to={`/companies/${company.slug}`}
-                  className="block rounded-xl border border-border-default bg-bg-primary p-4 transition-colors hover:border-accent"
-                >
-                  <p className="text-base font-semibold text-text-primary">
-                    {pick(company.name)}
-                  </p>
-                  <p className="mt-0.5 text-xs text-text-secondary">
-                    {pick(company.industry)}
-                  </p>
-                </Link>
-              </Card>
-            )}
+            <aside className="space-y-6 lg:col-span-4">
+              {/* Client Information (when applicable) */}
+              {company && (
+                <Card elevated className="space-y-3 p-6">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                    {t('pages:projectDetail.companyLabel')}
+                  </h2>
+                  <Link
+                    to={`/companies/${company.slug}`}
+                    className="block rounded-xl border border-border-default bg-bg-primary p-4 transition-colors hover:border-accent"
+                  >
+                    <p className="text-base font-semibold text-text-primary">
+                      {pick(company.name)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-text-secondary">
+                      {pick(company.industry)}
+                    </p>
+                  </Link>
+                </Card>
+              )}
 
-            {/* Tools & Technologies */}
-            {project.technologies.length > 0 && (
-              <Card elevated className="space-y-3 p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                  {t('pages:projectDetail.technologiesHeading')}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech) => (
-                    <span
-                      key={tech}
-                      className="rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            {/* Metadata */}
-            <Card className="space-y-3 p-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                {t('pages:projectDetail.metadataHeading')}
-              </h2>
-              <dl className="space-y-3 text-sm">
-                <div>
-                  <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                    {t('pages:projectDetail.codeLabel')}
-                  </dt>
-                  <dd className="font-mono font-medium text-text-primary">
-                    {project.code}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                    {t('pages:projectDetail.categoryLabel')}
-                  </dt>
-                  <dd className="mt-1 flex flex-wrap gap-1.5">
-                    {assignedCategories.map((cat) => (
-                      <Link
-                        key={cat.id}
-                        to={`/portfolio?category=${encodeURIComponent(cat.id)}`}
-                        className="rounded-md border border-border-default bg-bg-primary px-2 py-0.5 text-xs font-medium text-text-primary hover:border-accent hover:text-accent"
+              {/* Tools & Technologies */}
+              {project.technologies.length > 0 && (
+                <Card elevated className="space-y-3 p-6">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                    {t('pages:projectDetail.technologiesHeading')}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {project.technologies.map((tech) => (
+                      <span
+                        key={tech}
+                        className="rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary"
                       >
-                        {cat.label}
-                      </Link>
+                        {tech}
+                      </span>
                     ))}
-                  </dd>
-                </div>
-                {pick(project.statusLabel).trim() && (
-                  <div>
-                    <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('pages:projectDetail.statusLabel')}
-                    </dt>
-                    <dd className="font-medium text-text-primary">
-                      {pick(project.statusLabel)}
-                    </dd>
                   </div>
-                )}
-                {dateRange && (
-                  <div>
-                    <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('pages:projectDetail.timelineLabel')}
-                    </dt>
-                    <dd className="font-mono text-xs font-medium text-text-primary">
-                      {dateRange}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </Card>
-          </aside>
-        </div>
+                </Card>
+              )}
 
-        {/* 10. Related Projects */}
-        {relatedProjects.length > 0 && (
-          <div className="space-y-5 border-t border-border-default pt-10">
-            <h2 className="text-2xl font-semibold text-text-primary">
-              {t('pages:projectDetail.relatedHeading')}
-            </h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {relatedProjects.map((rel) => (
-                <ProjectCard key={rel.id} project={rel} />
-              ))}
-            </div>
+              {/* Metadata */}
+              <Card className="space-y-3 p-6">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                  {t('pages:projectDetail.metadataHeading')}
+                </h2>
+                <dl className="space-y-3 text-sm">
+                  <div>
+                    <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                      {t('pages:projectDetail.codeLabel')}
+                    </dt>
+                    <dd className="font-mono font-medium text-text-primary">
+                      {project.code}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                      {t('pages:projectDetail.categoryLabel')}
+                    </dt>
+                    <dd className="mt-1 flex flex-wrap gap-1.5">
+                      {assignedCategories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          to={`/portfolio?category=${encodeURIComponent(cat.id)}`}
+                          className="rounded-md border border-border-default bg-bg-primary px-2 py-0.5 text-xs font-medium text-text-primary hover:border-accent hover:text-accent"
+                        >
+                          {cat.label}
+                        </Link>
+                      ))}
+                    </dd>
+                  </div>
+                  {pick(project.statusLabel).trim() && (
+                    <div>
+                      <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('pages:projectDetail.statusLabel')}
+                      </dt>
+                      <dd className="font-medium text-text-primary">
+                        {pick(project.statusLabel)}
+                      </dd>
+                    </div>
+                  )}
+                  {dateRange && (
+                    <div>
+                      <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('pages:projectDetail.timelineLabel')}
+                      </dt>
+                      <dd className="font-mono text-xs font-medium text-text-primary">
+                        {dateRange}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </Card>
+            </aside>
           </div>
-        )}
 
-        {/* Previous / Next Navigation */}
-        {(previousProject || nextProject) && (
-          <nav
-            aria-label={t('pages:projectDetail.navigationLabel')}
-            className="grid gap-4 border-t border-border-default pt-8 sm:grid-cols-2"
-          >
-            <div>
-              {previousProject && (
-                <Link
-                  to={`/portfolio/${previousProject.slug}`}
-                  className="group flex items-center gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 transition-colors hover:border-accent"
-                >
-                  <ArrowLeft className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
-                  <div className="min-w-0">
-                    <p className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('common:actions.previousProject')}
-                    </p>
-                    <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
-                      {pick(previousProject.title)}
-                    </p>
-                  </div>
-                </Link>
-              )}
+          {/* 10. Related Projects */}
+          {relatedProjects.length > 0 && (
+            <div className="space-y-5 border-t border-border-default pt-10">
+              <h2 className="text-2xl font-semibold text-text-primary">
+                {t('pages:projectDetail.relatedHeading')}
+              </h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {relatedProjects.map((rel) => (
+                  <ProjectCard key={rel.id} project={rel} />
+                ))}
+              </div>
             </div>
-            <div>
-              {nextProject && (
-                <Link
-                  to={`/portfolio/${nextProject.slug}`}
-                  className="group flex items-center justify-end gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 text-end transition-colors hover:border-accent"
-                >
-                  <div className="min-w-0">
-                    <p className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('common:actions.nextProject')}
-                    </p>
-                    <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
-                      {pick(nextProject.title)}
-                    </p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
-                </Link>
-              )}
-            </div>
-          </nav>
-        )}
+          )}
+
+          {/* Previous / Next Navigation */}
+          {(previousProject || nextProject) && (
+            <nav
+              aria-label={t('pages:projectDetail.navigationLabel')}
+              className="grid gap-4 border-t border-border-default pt-8 sm:grid-cols-2"
+            >
+              <div>
+                {previousProject && (
+                  <Link
+                    to={`/portfolio/${previousProject.slug}`}
+                    className="group flex items-center gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 transition-colors hover:border-accent"
+                  >
+                    <ArrowLeft className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
+                    <div className="min-w-0">
+                      <p className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('common:actions.previousProject')}
+                      </p>
+                      <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
+                        {pick(previousProject.title)}
+                      </p>
+                    </div>
+                  </Link>
+                )}
+              </div>
+              <div>
+                {nextProject && (
+                  <Link
+                    to={`/portfolio/${nextProject.slug}`}
+                    className="group flex items-center justify-end gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 text-end transition-colors hover:border-accent"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('common:actions.nextProject')}
+                      </p>
+                      <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
+                        {pick(nextProject.title)}
+                      </p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
+                  </Link>
+                )}
+              </div>
+            </nav>
+          )}
       </Container>
 
       {/* Lightbox Modal for Gallery Images */}

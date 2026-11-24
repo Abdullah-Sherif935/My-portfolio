@@ -63,6 +63,7 @@
     "navigationLabel": "Project navigation",
     "viewerHeading": "Interactive 3D CAD Viewer",
     "fullscreenViewer": "Fullscreen",
+    "exitFullscreenViewer": "Exit Fullscreen",
     "openViewerExternal": "Open in New Tab",
     "viewerFallback": "The interactive 3D viewer could not be loaded right now.",
     "attachmentsHeading": "Engineering Documents & Attachments",
