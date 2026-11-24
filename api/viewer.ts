@@ -1,5 +1,3 @@
-import type { IncomingMessage, ServerResponse } from 'node:http';
-
 const BLOCKED_MAIN_HOSTS = new Set([
   'portfolio.eng-abdullah.work',
   'www.portfolio.eng-abdullah.work',
@@ -8,59 +6,54 @@ const BLOCKED_MAIN_HOSTS = new Set([
 const VALID_STORAGE_PATH = /^projects\/[a-z0-9_-]+\/[a-z0-9_-]+\.html$/i;
 
 const VIEWER_CSP = [
-  "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:",
+  "default-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' data: blob:",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' data: blob:",
   "style-src 'self' 'unsafe-inline' data: blob:",
   "img-src 'self' data: blob:",
   "font-src 'self' data: blob:",
   "connect-src 'self' data: blob:",
   "worker-src 'self' blob:",
+  "child-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'none'",
   "form-action 'none'",
   'frame-ancestors https://portfolio.eng-abdullah.work https://abdullah-sherif-portfolio.vercel.app https://*.vercel.app https://viewer.eng-abdullah.work http://localhost:5173 http://127.0.0.1:5173',
 ].join('; ');
 
-export default async function handler(
-  req: IncomingMessage,
-  res: ServerResponse
-) {
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.statusCode = 405;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end('Method Not Allowed');
-    return;
-  }
-
+export async function GET(request: Request): Promise<Response> {
   // 1. Strict Host Isolation: NEVER execute uploaded HTML on the main portfolio origin
-  const rawHost = String(
-    req.headers['x-forwarded-host'] || req.headers.host || ''
+  const rawHost = (
+    request.headers.get('x-forwarded-host') ||
+    request.headers.get('host') ||
+    new URL(request.url).host ||
+    ''
   )
     .toLowerCase()
     .split(':')[0]
     ?.trim();
 
   if (!rawHost || BLOCKED_MAIN_HOSTS.has(rawHost)) {
-    res.statusCode = 403;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end(
-      'Forbidden: Standalone 3D viewer HTML cannot be served on the main portfolio origin. Use the isolated viewer origin.'
+    return new Response(
+      'Forbidden: Standalone 3D viewer HTML cannot be served on the main portfolio origin. Use the isolated viewer origin.',
+      {
+        status: 403,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      }
     );
-    return;
   }
 
   // 2. Strict Storage Path Validation (prevents SSRF & path traversal)
-  const reqUrl = new URL(req.url || '/', `https://${rawHost}`);
+  const reqUrl = new URL(request.url);
   const storagePath = (reqUrl.searchParams.get('path') || '').trim();
 
   if (!VALID_STORAGE_PATH.test(storagePath)) {
-    res.statusCode = 400;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end('Invalid viewer path.');
-    return;
+    return new Response('Invalid viewer path.', {
+      status: 400,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
   }
 
-  // 3. Fetch uploaded standalone HTML strictly from our Supabase Storage bucket
+  // 3. Stream uploaded standalone HTML directly from Supabase Storage (supports 15-50 MB eDrawings exports without 4.5 MB buffer limit)
   const supabaseUrl = (
     process.env.VITE_SUPABASE_URL ||
     process.env.SUPABASE_URL ||
@@ -71,37 +64,45 @@ export default async function handler(
 
   try {
     const upstream = await fetch(upstreamUrl, {
-      method: req.method,
+      method: 'GET',
       redirect: 'follow',
     });
 
-    if (!upstream.ok) {
-      res.statusCode = upstream.status === 404 ? 404 : 502;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end(
-        upstream.status === 404
+    if (!upstream.ok || !upstream.body) {
+      return new Response(
+        upstream.status === 404 || upstream.status === 400
           ? '3D viewer file not found.'
-          : 'Failed to load 3D viewer file.'
+          : 'Failed to load 3D viewer file.',
+        {
+          status: upstream.status === 404 || upstream.status === 400 ? 404 : 502,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        }
       );
-      return;
     }
 
-    const buffer = Buffer.from(await upstream.arrayBuffer());
+    const headers = new Headers({
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Security-Policy': VIEWER_CSP,
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'no-referrer',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      'Cache-Control':
+        'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+    });
 
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Content-Security-Policy', VIEWER_CSP);
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    res.setHeader(
-      'Cache-Control',
-      'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800'
-    );
-    res.end(req.method === 'HEAD' ? undefined : buffer);
+    const contentLength = upstream.headers.get('content-length');
+    if (contentLength) {
+      headers.set('Content-Length', contentLength);
+    }
+
+    return new Response(upstream.body, {
+      status: 200,
+      headers,
+    });
   } catch {
-    res.statusCode = 502;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end('Error fetching 3D viewer file.');
+    return new Response('Error fetching 3D viewer file.', {
+      status: 502,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
   }
 }
