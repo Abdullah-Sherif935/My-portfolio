@@ -239,8 +239,12 @@ export function ProjectEditorForm({
       setActiveTab('basic');
       return;
     }
+    const viewerMode =
+      form.viewerConfig?.sourceMode ??
+      (form.viewerConfig?.storagePath ? 'upload' : 'external-url');
     if (
       form.viewerConfig?.enabled &&
+      viewerMode === 'external-url' &&
       form.viewerConfig.embedUrl.trim() &&
       !/^https:\/\/[^\s]+$/i.test(form.viewerConfig.embedUrl.trim())
     ) {

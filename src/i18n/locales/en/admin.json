@@ -273,9 +273,16 @@
       "fileTitle": "Attachment Display Title"
     },
     "viewerMgr": {
-      "securityTitle": "Isolated 3D / eDrawings Hosting Security",
-      "securityBody": "Arbitrary same-origin HTML execution is blocked for security. Host self-contained SolidWorks eDrawings HTML exports on an isolated HTTPS origin (e.g., viewer.eng-abdullah.work or GitHub Pages) and link the HTTPS URL below. The iframe is sandboxed automatically.",
+      "securityTitle": "Isolated Origin 3D / eDrawings Hosting",
+      "securityBody": "Uploaded standalone .html eDrawings exports are stored in Supabase Storage (portfolio-3d-viewers) and served strictly through an isolated origin (/api/viewer on abdullah-sherif-portfolio.vercel.app) with WebGL-compatible CSP and iframe sandboxing—never executed on portfolio.eng-abdullah.work.",
       "enableToggle": "Enable Interactive 3D Viewer on this project's public page",
+      "modeUpload": "Upload Standalone .html File",
+      "modeExternal": "External HTTPS Viewer URL",
+      "uploadTitle": "Upload Standalone SolidWorks eDrawings HTML File",
+      "uploadHint": "Upload one self-contained .html export (max 50 MB). No ZIP or accompanying folders required.",
+      "uploadHtml": "Upload .html File",
+      "replaceHtml": "Replace .html File",
+      "deleteHtml": "Delete File",
       "embedUrlLabel": "Isolated HTTPS Viewer URL",
       "httpsRequired": "Viewer URL must start with https://",
       "heightLabel": "Viewer Height (px)",

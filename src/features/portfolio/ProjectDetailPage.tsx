@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -12,6 +12,7 @@ import {
   ExternalLink,
   FileText,
   Image as ImageIcon,
+  Maximize2,
   Sliders,
   Target,
   X,
@@ -26,6 +27,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { resolvePortfolioCategories } from '@/utils/specializationHelpers';
+import { resolveProjectViewerUrl } from '@/services/portfolioService';
 import { ProjectThumbnail } from './components/ProjectThumbnail';
 import { ProjectCard } from './components/ProjectCard';
 
@@ -36,6 +38,7 @@ export function ProjectDetailPage() {
   const { projects, companies, specializations } = usePortfolioData();
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewerFailed, setViewerFailed] = useState(false);
+  const viewerContainerRef = useRef<HTMLDivElement | null>(null);
 
   const orderedProjects = projects
     .filter((p) => p.isPublished !== false)
@@ -131,11 +134,18 @@ export function ProjectDetailPage() {
   const hasEngineeringProcess = hasChallenge || hasSolution || hasSpecs || hasOutcomes;
 
   const viewer = project.viewerConfig;
-  const hasValidViewer = Boolean(
-    viewer?.enabled &&
-      viewer.embedUrl &&
-      /^https:\/\/[^\s]+$/i.test(viewer.embedUrl.trim())
-  );
+  const resolvedViewerUrl = resolveProjectViewerUrl(viewer);
+  const hasValidViewer = Boolean(resolvedViewerUrl);
+
+  const handleToggleFullscreen = () => {
+    const el = viewerContainerRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined);
+    } else if (el.requestFullscreen) {
+      void el.requestFullscreen().catch(() => undefined);
+    }
+  };
 
   const dateRange = [project.startDate, project.completionDate]
     .filter(Boolean)
@@ -378,8 +388,8 @@ export function ProjectDetailPage() {
               </Card>
             )}
 
-            {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid HTTPS URL) */}
-            {hasValidViewer && viewer && (
+            {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid isolated/HTTPS URL) */}
+            {hasValidViewer && viewer && resolvedViewerUrl && (
               <Card className="space-y-4 p-6 sm:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
@@ -390,15 +400,25 @@ export function ProjectDetailPage() {
                         : t('pages:projectDetail.viewerHeading')}
                     </span>
                   </h2>
-                  <a
-                    href={viewer.embedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
-                  >
-                    <span>{t('pages:projectDetail.openViewerExternal')}</span>
-                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                  </a>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleToggleFullscreen}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>{t('pages:projectDetail.fullscreenViewer')}</span>
+                    </button>
+                    <a
+                      href={resolvedViewerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent"
+                    >
+                      <span>{t('pages:projectDetail.openViewerExternal')}</span>
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                    </a>
+                  </div>
                 </div>
 
                 {viewerFailed ? (
@@ -408,19 +428,24 @@ export function ProjectDetailPage() {
                       : t('pages:projectDetail.viewerFallback')}
                   </div>
                 ) : (
-                  <div className="overflow-hidden rounded-xl border border-border-default bg-bg-primary">
+                  <div
+                    ref={viewerContainerRef}
+                    className="overflow-hidden rounded-xl border border-border-default bg-bg-primary"
+                  >
                     <iframe
                       title={
                         viewer.title && pick(viewer.title).trim()
                           ? pick(viewer.title)
                           : pick(project.title)
                       }
-                      src={viewer.embedUrl}
-                      sandbox="allow-scripts allow-same-origin"
+                      src={resolvedViewerUrl}
+                      sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
+                      allow="fullscreen; xr-spatial-tracking"
+                      allowFullScreen
                       referrerPolicy="no-referrer"
                       loading="lazy"
                       onError={() => setViewerFailed(true)}
-                      style={{ height: `${viewer.heightPx ?? 520}px` }}
+                      style={{ height: `${viewer.heightPx ?? 540}px` }}
                       className="w-full border-0"
                     />
                   </div>

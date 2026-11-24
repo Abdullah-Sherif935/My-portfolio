@@ -273,9 +273,16 @@
       "fileTitle": "عنوان عرض المرفق"
     },
     "viewerMgr": {
-      "securityTitle": "أمان استضافة العارض ثلاثي الأبعاد / eDrawings",
-      "securityBody": "يُمنع تشغيل ملفات HTML عشوائية على نفس نطاق الموقع لأسباب أمنية. استضف ملفات SolidWorks eDrawings على نطاق ثابت معزول عبر HTTPS (مثل viewer.eng-abdullah.work أو GitHub Pages) وأدرج الرابط أدناه مع تفعيل عزل iframe تلقائياً.",
+      "securityTitle": "استضافة معزولة للعارض ثلاثي الأبعاد / eDrawings",
+      "securityBody": "تُحفظ ملفات eDrawings المستقلة (.html) في Supabase Storage (portfolio-3d-viewers) وتُعرض حصرياً عبر نطاق معزول (/api/viewer على abdullah-sherif-portfolio.vercel.app) مع سياسة CSP داعمة لـ WebGL وعزل iframe — دون أي تنفيذ على النطاق الرئيسي portfolio.eng-abdullah.work.",
       "enableToggle": "تفعيل العارض ثلاثي الأبعاد التفاعلي في صفحة هذا المشروع العامة",
+      "modeUpload": "رفع ملف .html مستقل",
+      "modeExternal": "رابط عارض خارجي (HTTPS)",
+      "uploadTitle": "رفع ملف SolidWorks eDrawings HTML مستقل",
+      "uploadHint": "ارفع ملف .html واحد مستقل (بحد أقصى 50 ميجابايت). لا حاجة لملفات ZIP أو مجلدات مرافقة.",
+      "uploadHtml": "رفع ملف .html",
+      "replaceHtml": "استبدال ملف .html",
+      "deleteHtml": "حذف الملف",
       "embedUrlLabel": "رابط العارض المعزول (HTTPS)",
       "httpsRequired": "يجب أن يبدأ رابط العارض بـ https://",
       "heightLabel": "ارتفاع العارض (px)",

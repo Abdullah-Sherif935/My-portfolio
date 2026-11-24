@@ -159,6 +159,10 @@ export interface ProjectAttachment {
 
 export interface ProjectViewerConfig {
   enabled: boolean;
+  sourceMode?: 'upload' | 'external-url';
+  storagePath?: string | null;
+  fileName?: string | null;
+  fileSizeLabel?: string | null;
   embedUrl: string;
   title?: LocalizedText;
   fallbackMessage?: LocalizedText;

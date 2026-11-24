@@ -20,8 +20,11 @@ import { SectionMappingBadge } from '@/features/admin/components/SectionMappingB
 import {
   deleteProjectAttachmentAsset,
   deleteProjectGalleryAsset,
+  deleteProjectViewerHtml,
+  resolveProjectViewerUrl,
   uploadProjectAttachment,
   uploadProjectGalleryImage,
+  uploadProjectViewerHtml,
 } from '@/services/portfolioService';
 import type {
   Project,
@@ -663,17 +666,27 @@ export function ProjectAttachmentsTab({ form, setForm }: ProjectMediaTabProps) {
 export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps) {
   const { t } = useTranslation('admin');
   const [showPreview, setShowPreview] = useState(false);
+  const [uploadingHtml, setUploadingHtml] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const htmlInputRef = useRef<HTMLInputElement | null>(null);
 
   const viewer: ProjectViewerConfig = form.viewerConfig ?? {
     enabled: false,
+    sourceMode: 'upload',
+    storagePath: null,
+    fileName: null,
+    fileSizeLabel: null,
     embedUrl: '',
     title: { en: 'Interactive 3D CAD Viewer', ar: 'عارض النموذج ثلاثي الأبعاد التفاعلي' },
     fallbackMessage: {
       en: 'The interactive 3D viewer could not be loaded. Please open it directly or download the attached drawings.',
       ar: 'تعذر تحميل العارض ثلاثي الأبعاد التفاعلي. يرجى فتحه مباشرة أو تحميل الرسومات المرفقة.',
     },
-    heightPx: 520,
+    heightPx: 540,
   };
+
+  const activeMode: 'upload' | 'external-url' =
+    viewer.sourceMode ?? (viewer.storagePath ? 'upload' : 'external-url');
 
   const updateViewer = (patch: Partial<ProjectViewerConfig>) => {
     setForm((prev) => ({
@@ -682,15 +695,61 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
     }));
   };
 
+  const handleUploadHtml = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setUploadingHtml(true);
+    setUploadError(null);
+    try {
+      const previousPath = viewer.storagePath;
+      const res = await uploadProjectViewerHtml(file, form.id);
+      if (previousPath && previousPath !== res.storagePath) {
+        void deleteProjectViewerHtml(previousPath).catch(() => undefined);
+      }
+      updateViewer({
+        enabled: true,
+        sourceMode: 'upload',
+        storagePath: res.storagePath,
+        fileName: res.fileName,
+        fileSizeLabel: res.fileSizeLabel,
+      });
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : t('prototype.syncError'));
+    } finally {
+      setUploadingHtml(false);
+    }
+  };
+
+  const handleDeleteHtml = async () => {
+    const oldPath = viewer.storagePath;
+    setUploadError(null);
+    setShowPreview(false);
+    updateViewer({
+      storagePath: null,
+      fileName: null,
+      fileSizeLabel: null,
+    });
+    if (oldPath) {
+      void deleteProjectViewerHtml(oldPath).catch(() => undefined);
+    }
+  };
+
   const isHttpsUrl = /^https:\/\/[^\s]+$/i.test(viewer.embedUrl.trim());
+  const previewUrl = resolveProjectViewerUrl({
+    ...viewer,
+    enabled: true,
+    sourceMode: activeMode,
+  });
 
   return (
     <div className="space-y-5">
       <SectionMappingBadge location={t('projects.mapViewer')} />
 
-      {/* Security Architecture Notice */}
-      <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning-subtle/40 p-4 text-xs leading-relaxed text-text-secondary">
-        <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+      {/* Isolated Origin Security Notice */}
+      <div className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent-subtle/40 p-4 text-xs leading-relaxed text-text-secondary">
+        <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
         <div className="space-y-1">
           <p className="font-semibold text-text-primary">
             {t('projects.viewerMgr.securityTitle')}
@@ -699,7 +758,7 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
         </div>
       </div>
 
-      <div className="space-y-4 rounded-xl border border-border-default bg-bg-primary p-4">
+      <div className="space-y-5 rounded-xl border border-border-default bg-bg-primary p-4">
         <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm font-medium text-text-primary">
           <input
             type="checkbox"
@@ -710,8 +769,125 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
           <span>{t('projects.viewerMgr.enableToggle')}</span>
         </label>
 
-        <div className="grid gap-4 sm:grid-cols-12">
-          <div className="space-y-1.5 sm:col-span-9">
+        {/* Source Mode Selector: Native Standalone HTML Upload vs External HTTPS URL */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => updateViewer({ sourceMode: 'upload' })}
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-3.5 py-2 text-xs font-semibold transition-colors ${
+              activeMode === 'upload'
+                ? 'border-accent bg-accent text-accent-foreground'
+                : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{t('projects.viewerMgr.modeUpload')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => updateViewer({ sourceMode: 'external-url' })}
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-3.5 py-2 text-xs font-semibold transition-colors ${
+              activeMode === 'external-url'
+                ? 'border-accent bg-accent text-accent-foreground'
+                : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{t('projects.viewerMgr.modeExternal')}</span>
+          </button>
+        </div>
+
+        {activeMode === 'upload' ? (
+          <div className="space-y-3 rounded-xl border border-border-default bg-bg-secondary p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-text-primary">
+                  {t('projects.viewerMgr.uploadTitle')}
+                </p>
+                <p className="text-[11px] text-text-secondary">
+                  {t('projects.viewerMgr.uploadHint')}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  ref={htmlInputRef}
+                  id="proj-viewer-html-upload-input"
+                  type="file"
+                  accept=".html,.htm,text/html"
+                  onChange={(e) => void handleUploadHtml(e)}
+                  className="sr-only"
+                />
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  disabled={uploadingHtml}
+                  onClick={() => htmlInputRef.current?.click()}
+                >
+                  <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>
+                    {uploadingHtml
+                      ? t('media.uploading')
+                      : viewer.storagePath
+                        ? t('projects.viewerMgr.replaceHtml')
+                        : t('projects.viewerMgr.uploadHtml')}
+                  </span>
+                </Button>
+
+                {viewer.storagePath && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={uploadingHtml}
+                    onClick={() => void handleDeleteHtml()}
+                    className="text-error hover:text-error"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{t('projects.viewerMgr.deleteHtml')}</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {uploadError && (
+              <div
+                role="alert"
+                className="rounded-lg border border-error/40 bg-error-subtle px-3 py-2 text-xs text-error"
+              >
+                {uploadError}
+              </div>
+            )}
+
+            {viewer.storagePath && (
+              <div className="space-y-1.5 rounded-lg border border-border-default bg-bg-primary p-3 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="accent" mono>
+                    HTML / eDrawings
+                  </Badge>
+                  {viewer.fileSizeLabel && (
+                    <Badge variant="muted" mono>
+                      {viewer.fileSizeLabel}
+                    </Badge>
+                  )}
+                  <span className="font-semibold text-text-primary">
+                    {viewer.fileName || viewer.storagePath}
+                  </span>
+                </div>
+                {previewUrl && (
+                  <p
+                    className="truncate font-mono text-[11px] text-text-secondary"
+                    dir="ltr"
+                  >
+                    {previewUrl}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-1.5">
             <label
               htmlFor="proj-viewer-url"
               className="block text-xs font-medium text-text-primary"
@@ -732,28 +908,28 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
               </p>
             )}
           </div>
+        )}
 
-          <div className="space-y-1.5 sm:col-span-3">
-            <label
-              htmlFor="proj-viewer-height"
-              className="block text-xs font-medium text-text-primary"
-            >
-              {t('projects.viewerMgr.heightLabel')}
-            </label>
-            <input
-              id="proj-viewer-height"
-              type="number"
-              min={320}
-              max={900}
-              value={viewer.heightPx ?? 520}
-              onChange={(e) =>
-                updateViewer({
-                  heightPx: Math.min(900, Math.max(320, Number(e.target.value) || 520)),
-                })
-              }
-              className="h-10 w-full rounded-[10px] border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
-            />
-          </div>
+        <div className="max-w-xs space-y-1.5">
+          <label
+            htmlFor="proj-viewer-height"
+            className="block text-xs font-medium text-text-primary"
+          >
+            {t('projects.viewerMgr.heightLabel')}
+          </label>
+          <input
+            id="proj-viewer-height"
+            type="number"
+            min={320}
+            max={900}
+            value={viewer.heightPx ?? 540}
+            onChange={(e) =>
+              updateViewer({
+                heightPx: Math.min(900, Math.max(320, Number(e.target.value) || 540)),
+              })
+            }
+            className="h-10 w-full rounded-[10px] border border-border-default bg-bg-secondary px-3 text-xs text-text-primary"
+          />
         </div>
 
         <LocalizedFieldGroup
@@ -772,7 +948,7 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
           onChange={(fallbackMessage) => updateViewer({ fallbackMessage })}
         />
 
-        {isHttpsUrl && (
+        {previewUrl && (
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Button
               type="button"
@@ -788,7 +964,7 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
               </span>
             </Button>
             <a
-              href={viewer.embedUrl}
+              href={previewUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
@@ -799,15 +975,17 @@ export function ProjectViewerSettingsTab({ form, setForm }: ProjectMediaTabProps
           </div>
         )}
 
-        {showPreview && isHttpsUrl && (
+        {showPreview && previewUrl && (
           <div className="overflow-hidden rounded-xl border border-border-default bg-bg-secondary">
             <iframe
               title="3D Viewer Preview"
-              src={viewer.embedUrl}
-              sandbox="allow-scripts allow-same-origin"
+              src={previewUrl}
+              sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
+              allow="fullscreen; xr-spatial-tracking"
+              allowFullScreen
               referrerPolicy="no-referrer"
               loading="lazy"
-              style={{ height: `${viewer.heightPx ?? 520}px` }}
+              style={{ height: `${viewer.heightPx ?? 540}px` }}
               className="w-full border-0"
             />
           </div>

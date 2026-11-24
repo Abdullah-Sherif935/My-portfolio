@@ -9,6 +9,7 @@ import type {
   Project,
   ProjectAttachment,
   ProjectContribution,
+  ProjectViewerConfig,
   SkillGroup,
   Specialization,
 } from '@/types/portfolio';
@@ -619,6 +620,93 @@ export async function deleteProjectAttachmentAsset(
   const client = requireSupabase();
   const { error } = await client.storage
     .from('portfolio-attachments')
+    .remove([storagePath]);
+  if (error) throw new Error(error.message);
+}
+
+const DEFAULT_ISOLATED_VIEWER_ORIGIN =
+  'https://abdullah-sherif-portfolio.vercel.app';
+const MAX_VIEWER_HTML_BYTES = 50 * 1024 * 1024; // 50 MB
+
+export function getIsolatedViewerBaseOrigin(): string {
+  const configured = (import.meta.env.VITE_VIEWER_ORIGIN as string | undefined)?.trim();
+  if (
+    configured &&
+    /^https:\/\/[^\s/]+$/i.test(configured) &&
+    !configured.toLowerCase().includes('portfolio.eng-abdullah.work')
+  ) {
+    return configured.replace(/\/$/, '');
+  }
+  return DEFAULT_ISOLATED_VIEWER_ORIGIN;
+}
+
+export function buildIsolatedViewerUrl(storagePath: string): string {
+  return `${getIsolatedViewerBaseOrigin()}/api/viewer?path=${encodeURIComponent(
+    storagePath.trim()
+  )}`;
+}
+
+export function resolveProjectViewerUrl(
+  viewer?: ProjectViewerConfig | null
+): string | null {
+  if (!viewer || !viewer.enabled) return null;
+  const mode =
+    viewer.sourceMode ?? (viewer.storagePath ? 'upload' : 'external-url');
+  if (mode === 'upload') {
+    if (!viewer.storagePath?.trim()) return null;
+    return buildIsolatedViewerUrl(viewer.storagePath);
+  }
+  const url = viewer.embedUrl?.trim() || '';
+  return /^https:\/\/[^\s]+$/i.test(url) ? url : null;
+}
+
+export async function uploadProjectViewerHtml(
+  file: File,
+  projectId: string
+): Promise<{
+  storagePath: string;
+  hostedUrl: string;
+  fileName: string;
+  fileSizeLabel: string;
+}> {
+  const lowerName = file.name.toLowerCase();
+  if (!lowerName.endsWith('.html') && !lowerName.endsWith('.htm')) {
+    throw new Error('Please upload a standalone .html eDrawings export file.');
+  }
+  if (file.size > MAX_VIEWER_HTML_BYTES) {
+    throw new Error('Standalone HTML viewer file must be 50 MB or smaller.');
+  }
+
+  const client = requireSupabase();
+  const safeId = projectId.replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+  const storagePath = `projects/${safeId}/${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 6)}.html`;
+
+  const { error } = await client.storage
+    .from('portfolio-3d-viewers')
+    .upload(storagePath, file, {
+      contentType: 'text/html',
+      cacheControl: '3600',
+      upsert: false,
+    });
+  if (error) throw new Error(error.message);
+
+  return {
+    storagePath,
+    hostedUrl: buildIsolatedViewerUrl(storagePath),
+    fileName: file.name,
+    fileSizeLabel: formatBytesLabel(file.size),
+  };
+}
+
+export async function deleteProjectViewerHtml(
+  storagePath: string
+): Promise<void> {
+  if (!storagePath.trim()) return;
+  const client = requireSupabase();
+  const { error } = await client.storage
+    .from('portfolio-3d-viewers')
     .remove([storagePath]);
   if (error) throw new Error(error.message);
 }
