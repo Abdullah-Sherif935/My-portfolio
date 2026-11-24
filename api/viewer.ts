@@ -20,6 +20,49 @@ const VIEWER_CSP = [
   'frame-ancestors https://portfolio.eng-abdullah.work https://abdullah-sherif-portfolio.vercel.app https://*.vercel.app https://viewer.eng-abdullah.work http://localhost:5173 http://127.0.0.1:5173',
 ].join('; ');
 
+const EDRAWINGS_PDM_CROSS_ORIGIN_RE =
+  /(?<!try\{)while\s*\(\s*parent\.parent\s*!=\s*parent\s*\)\s*\{\s*parent\s*=\s*parent\.parent;\s*if\s*\(\s*parent\.solidworks\s*&&\s*parent\.solidworks\.pdm\s*\)\s*\{\s*pdm\s*=\s*parent\.solidworks\.pdm;\s*break;?\s*\}\s*\}/g;
+
+/**
+ * Streams standalone eDrawings HTML while wrapping SolidWorks' unguarded
+ * cross-origin `parent.solidworks` PDM lookup in a try/catch block so it
+ * renders cleanly inside a cross-origin iframe on the main portfolio site.
+ */
+function createEdrawingsCrossOriginPatchStream(): TransformStream<Uint8Array, Uint8Array> {
+  const decoder = new TextDecoder('utf-8');
+  const encoder = new TextEncoder();
+  const TAIL_KEEP = 256;
+  let pending = '';
+
+  const patchChunk = (text: string): string => {
+    if (!text.includes('parent.solidworks')) return text;
+    return text.replace(EDRAWINGS_PDM_CROSS_ORIGIN_RE, (match) => `try{${match}}catch(_e){}`);
+  };
+
+  return new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      pending += decoder.decode(chunk, { stream: true });
+      if (pending.length <= TAIL_KEEP) return;
+
+      const patched = patchChunk(pending);
+      const emitEnd = patched.length - TAIL_KEEP;
+      if (emitEnd > 0) {
+        controller.enqueue(encoder.encode(patched.slice(0, emitEnd)));
+        pending = patched.slice(emitEnd);
+      } else {
+        pending = patched;
+      }
+    },
+    flush(controller) {
+      pending += decoder.decode();
+      if (pending.length > 0) {
+        controller.enqueue(encoder.encode(patchChunk(pending)));
+        pending = '';
+      }
+    },
+  });
+}
+
 export async function GET(request: Request): Promise<Response> {
   // 1. Strict Host Isolation: NEVER execute uploaded HTML on the main portfolio origin
   const rawHost = (
@@ -90,12 +133,11 @@ export async function GET(request: Request): Promise<Response> {
         'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
     });
 
-    const contentLength = upstream.headers.get('content-length');
-    if (contentLength) {
-      headers.set('Content-Length', contentLength);
-    }
+    const patchedStream = upstream.body.pipeThrough(
+      createEdrawingsCrossOriginPatchStream()
+    );
 
-    return new Response(upstream.body, {
+    return new Response(patchedStream, {
       status: 200,
       headers,
     });
