@@ -235,8 +235,8 @@ export function ProjectDetailPage() {
     .join(' – ');
 
   return (
-    <Section>
-      <Container className="space-y-10">
+    <Section className="py-8 sm:py-10 lg:py-12">
+      <Container className="space-y-8">
         <div>
           <Link
             to="/portfolio"
@@ -247,48 +247,73 @@ export function ProjectDetailPage() {
           </Link>
         </div>
 
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {assignedCategories.map((cat) => (
-              <Link key={cat.id} to={`/portfolio?category=${encodeURIComponent(cat.id)}`}>
-                <Badge variant="accent">{cat.label}</Badge>
-              </Link>
-            ))}
-            <Badge variant="outline" mono>
-              {pick(project.kindLabel)}
-            </Badge>
-            {dateRange && (
-              <Badge variant="muted" mono>
-                <Calendar className="me-1 inline h-3 w-3" aria-hidden="true" />
-                {dateRange}
+        {/* Split Hero: Title & Summary alongside compact clickable Cover Card */}
+        <div className="grid items-center gap-6 lg:grid-cols-12 lg:gap-8">
+          <div className="space-y-4 lg:col-span-7">
+            <div className="flex flex-wrap items-center gap-2">
+              {assignedCategories.map((cat) => (
+                <Link key={cat.id} to={`/portfolio?category=${encodeURIComponent(cat.id)}`}>
+                  <Badge variant="accent">{cat.label}</Badge>
+                </Link>
+              ))}
+              <Badge variant="outline" mono>
+                {pick(project.kindLabel)}
               </Badge>
+              {dateRange && (
+                <Badge variant="muted" mono>
+                  <Calendar className="me-1 inline h-3 w-3" aria-hidden="true" />
+                  {dateRange}
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl lg:text-[38px] lg:leading-[1.15]">
+              {pick(project.title)}
+            </h1>
+            {pick(project.shortDescription).trim() && (
+              <p className="max-w-2xl text-sm leading-relaxed text-text-secondary sm:text-base">
+                {pick(project.shortDescription)}
+              </p>
             )}
           </div>
-          <h1 className="max-w-4xl text-3xl font-bold tracking-tight text-text-primary sm:text-4xl lg:text-[44px] lg:leading-[1.15]">
-            {pick(project.title)}
-          </h1>
-          {pick(project.shortDescription).trim() && (
-            <p className="max-w-3xl text-base leading-relaxed text-text-secondary sm:text-lg">
-              {pick(project.shortDescription)}
-            </p>
-          )}
-        </div>
 
-        {/* Cover Image / Technical Schematic */}
-        <Card className="overflow-hidden">
-          <ProjectThumbnail
-            variant={project.coverVariant}
-            code={project.code}
-            imageUrl={project.coverImageUrl}
-            imageAlt={
-              project.coverImageAlt
-                ? pick(project.coverImageAlt)
-                : pick(project.title)
-            }
-            className="aspect-[16/7] border-b-0"
-          />
-        </Card>
+          <div className="lg:col-span-5">
+            <Card className="overflow-hidden">
+              {project.coverImageUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setLightboxUrl(project.coverImageUrl ?? null)}
+                  aria-label={
+                    project.coverImageAlt
+                      ? pick(project.coverImageAlt)
+                      : pick(project.title)
+                  }
+                  className="group relative block w-full cursor-zoom-in bg-bg-primary"
+                >
+                  <img
+                    src={project.coverImageUrl}
+                    alt={
+                      project.coverImageAlt
+                        ? pick(project.coverImageAlt)
+                        : pick(project.title)
+                    }
+                    className="aspect-[16/10] max-h-[290px] w-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                  <span className="pointer-events-none absolute end-3 bottom-3 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border-default bg-bg-secondary/90 text-text-secondary opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+                    <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                </button>
+              ) : (
+                <ProjectThumbnail
+                  variant={project.coverVariant}
+                  code={project.code}
+                  imageUrl={null}
+                  imageAlt={pick(project.title)}
+                  className="aspect-[16/10] max-h-[290px] border-b-0"
+                />
+              )}
+            </Card>
+          </div>
+        </div>
 
         {/* Main Content + Sidebar (Zero Empty Sections) */}
         <div className="grid gap-8 lg:grid-cols-12">
