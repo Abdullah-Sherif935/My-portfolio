@@ -21,6 +21,7 @@ import {
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import {
   deleteCertificationRecord,
+  deleteCertificateFileAsset,
   deleteCompanyRecord,
   deleteEducationRecord,
   deleteExperienceRecord,
@@ -28,6 +29,8 @@ import {
   deleteSkillGroupRecord,
   deleteSpecializationRecord,
   fetchAdminWorkspaceBundle,
+  persistCertificationOrder,
+  persistEducationOrder,
   persistExperienceOrder,
   persistProjectOrder,
   persistSkillGroupOrder,
@@ -449,6 +452,59 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     [experience, runMutation]
   );
 
+  const toggleExperiencePublished = useCallback(
+    async (id: string) => {
+      const target = experience.find((item) => item.id === id);
+      if (!target) return;
+      const next: ExperienceItem = {
+        ...target,
+        isPublished: target.isPublished === false,
+      };
+      await runMutation(async () => {
+        const saved = await saveExperienceRecord(next);
+        setExperience((prev) => prev.map((e) => (e.id === saved.id ? saved : e)));
+        await appendActivity(
+          'experience',
+          saved.isPublished !== false
+            ? { en: 'Published experience entry', ar: 'تم نشر سجل الخبرة' }
+            : { en: 'Unpublished experience entry (draft)', ar: 'تم تحويل سجل الخبرة لمسودة' },
+          saved.role
+        );
+      });
+    },
+    [experience, runMutation, appendActivity]
+  );
+
+  const duplicateExperience = useCallback(
+    async (id: string) => {
+      const target = experience.find((item) => item.id === id);
+      if (!target) return;
+      const copy: ExperienceItem = {
+        ...structuredClone(target),
+        id: `exp-${Date.now()}`,
+        role: {
+          en: `${target.role.en} (Copy)`,
+          ar: `${target.role.ar} (نسخة)`,
+        },
+        isPublished: false,
+        dataSource: 'cms',
+        displayOrder: experience.length + 1,
+      };
+      await runMutation(async () => {
+        const saved = await saveExperienceRecord(copy);
+        setExperience((prev) =>
+          [...prev, saved].sort((a, b) => a.displayOrder - b.displayOrder)
+        );
+        await appendActivity(
+          'experience',
+          { en: 'Duplicated experience as draft', ar: 'تم نسخ سجل الخبرة كمسودة' },
+          saved.role
+        );
+      });
+    },
+    [experience, runMutation, appendActivity]
+  );
+
   const saveEducation = useCallback(
     async (item: EducationItem) => {
       await runMutation(async () => {
@@ -499,6 +555,51 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       });
     },
     [runMutation, appendActivity, education, cvConfig]
+  );
+
+  const reorderEducation = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      const sorted = [...education].sort((a, b) => a.displayOrder - b.displayOrder);
+      const index = sorted.findIndex((item) => item.id === id);
+      const swapIndex = direction === 'up' ? index - 1 : index + 1;
+      if (index < 0 || swapIndex < 0 || swapIndex >= sorted.length) return;
+      const a = sorted[index]!;
+      const b = sorted[swapIndex]!;
+      sorted[index] = b;
+      sorted[swapIndex] = a;
+      const reindexed = sorted.map((item, idx) => ({
+        ...item,
+        displayOrder: idx + 1,
+      }));
+      setEducation(reindexed);
+      await runMutation(async () => {
+        await persistEducationOrder(reindexed);
+      });
+    },
+    [education, runMutation]
+  );
+
+  const toggleEducationPublished = useCallback(
+    async (id: string) => {
+      const target = education.find((item) => item.id === id);
+      if (!target) return;
+      const next: EducationItem = {
+        ...target,
+        isPublished: target.isPublished === false,
+      };
+      await runMutation(async () => {
+        const saved = await saveEducationRecord(next);
+        setEducation((prev) => prev.map((e) => (e.id === saved.id ? saved : e)));
+        await appendActivity(
+          'education',
+          saved.isPublished !== false
+            ? { en: 'Published academic record', ar: 'تم نشر السجل الأكاديمي' }
+            : { en: 'Unpublished academic record (draft)', ar: 'تم تحويل السجل الأكاديمي لمسودة' },
+          saved.degree
+        );
+      });
+    },
+    [education, runMutation, appendActivity]
   );
 
   const saveSkillGroup = useCallback(
@@ -616,6 +717,11 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     async (id: string) => {
       await runMutation(async () => {
         const target = certifications.find((c) => c.id === id);
+        if (target?.certificateStoragePath) {
+          await deleteCertificateFileAsset(target.certificateStoragePath).catch(
+            () => undefined
+          );
+        }
         await deleteCertificationRecord(id);
         setCertifications((prev) => prev.filter((c) => c.id !== id));
         const nextCv: CvWorkspaceConfig = {
@@ -641,6 +747,86 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       });
     },
     [runMutation, appendActivity, certifications, cvConfig]
+  );
+
+  const reorderCertification = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      const sorted = [...certifications].sort(
+        (a, b) => a.displayOrder - b.displayOrder
+      );
+      const index = sorted.findIndex((item) => item.id === id);
+      const swapIndex = direction === 'up' ? index - 1 : index + 1;
+      if (index < 0 || swapIndex < 0 || swapIndex >= sorted.length) return;
+      const a = sorted[index]!;
+      const b = sorted[swapIndex]!;
+      sorted[index] = b;
+      sorted[swapIndex] = a;
+      const reindexed = sorted.map((item, idx) => ({
+        ...item,
+        displayOrder: idx + 1,
+      }));
+      setCertifications(reindexed);
+      await runMutation(async () => {
+        await persistCertificationOrder(reindexed);
+      });
+    },
+    [certifications, runMutation]
+  );
+
+  const toggleCertificationPublished = useCallback(
+    async (id: string) => {
+      const target = certifications.find((item) => item.id === id);
+      if (!target) return;
+      const next: Certification = {
+        ...target,
+        isPublished: target.isPublished === false,
+      };
+      await runMutation(async () => {
+        const saved = await saveCertificationRecord(next);
+        setCertifications((prev) =>
+          prev.map((c) => (c.id === saved.id ? saved : c))
+        );
+        await appendActivity(
+          'certifications',
+          saved.isPublished !== false
+            ? { en: 'Published course / certificate', ar: 'تم نشر الدورة / الشهادة' }
+            : { en: 'Unpublished course / certificate', ar: 'تم تحويل الدورة / الشهادة لمسودة' },
+          saved.title
+        );
+      });
+    },
+    [certifications, runMutation, appendActivity]
+  );
+
+  const duplicateCertification = useCallback(
+    async (id: string) => {
+      const target = certifications.find((item) => item.id === id);
+      if (!target) return;
+      const copy: Certification = {
+        ...structuredClone(target),
+        id: `course-${Date.now()}`,
+        title: {
+          en: `${target.title.en} (Copy)`,
+          ar: `${target.title.ar} (نسخة)`,
+        },
+        certificateStoragePath: null,
+        isPublished: false,
+        dataSource: 'cms',
+        displayOrder: certifications.length + 1,
+      };
+      await runMutation(async () => {
+        const saved = await saveCertificationRecord(copy);
+        setCertifications((prev) =>
+          [...prev, saved].sort((a, b) => a.displayOrder - b.displayOrder)
+        );
+        await appendActivity(
+          'certifications',
+          { en: 'Duplicated course as draft', ar: 'تم نسخ الدورة كمسودة' },
+          saved.title
+        );
+      });
+    },
+    [certifications, runMutation, appendActivity]
   );
 
   const uploadMedia = useCallback(
@@ -816,14 +1002,21 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       saveExperience,
       deleteExperience,
       reorderExperience,
+      toggleExperiencePublished,
+      duplicateExperience,
       saveEducation,
       deleteEducation,
+      reorderEducation,
+      toggleEducationPublished,
       saveSkillGroup,
       deleteSkillGroup,
       reorderSkillGroup,
       toggleSkillGroupVisibility,
       saveCertification,
       deleteCertification,
+      reorderCertification,
+      toggleCertificationPublished,
+      duplicateCertification,
       saveSpecialization,
       deleteSpecialization,
       reorderSpecialization,
@@ -862,14 +1055,21 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       saveExperience,
       deleteExperience,
       reorderExperience,
+      toggleExperiencePublished,
+      duplicateExperience,
       saveEducation,
       deleteEducation,
+      reorderEducation,
+      toggleEducationPublished,
       saveSkillGroup,
       deleteSkillGroup,
       reorderSkillGroup,
       toggleSkillGroupVisibility,
       saveCertification,
       deleteCertification,
+      reorderCertification,
+      toggleCertificationPublished,
+      duplicateCertification,
       saveSpecialization,
       deleteSpecialization,
       reorderSpecialization,

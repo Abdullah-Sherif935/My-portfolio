@@ -405,6 +405,130 @@
       "displayOrder": "Display Order"
     }
   },
+  "experienceCms": {
+    "tabs": {
+      "professional": "Professional Experience",
+      "academic": "Academic Experience",
+      "courses": "Courses & Development"
+    },
+    "filters": {
+      "all": "All",
+      "published": "Published",
+      "draft": "Drafts"
+    },
+    "subTabs": {
+      "basicSummary": "Basic & Summary",
+      "highlights": "Responsibilities & Achievements",
+      "skillsProjects": "Skills & Projects",
+      "matching": "Recruiter & CV"
+    },
+    "mapProfessional": "Public Experience (/experience) → Professional Timeline Card",
+    "mapHighlights": "Public Experience (/experience) → Responsibilities & Achievements",
+    "mapSkillsProjects": "Public Experience (/experience) → Skill Tags & Linked Portfolio Projects",
+    "mapAcademic": "Public Experience (/experience) → Academic Section (Shared across Home, About & CV)",
+    "mapAcademicActivities": "Public Experience (/experience) → Academic Activities, Achievements & Coursework",
+    "mapAcademicProjects": "Public Experience (/experience) → Linked Academic Portfolio Projects",
+    "mapCourses": "Public Experience (/experience) → Courses & Professional Development Section",
+    "mapCoursesSkills": "Public Experience (/experience) → Course Skills & Learning Outcomes",
+    "mapCoursesCert": "Public Experience (/experience) → Certificate Preview & Credential Links",
+    "livePreviewHeading": "LIVE UNSAVED PREVIEW (/experience)",
+    "searchProjectsPlaceholder": "Search existing Portfolio projects...",
+    "emptyProfessional": "No professional experience records match your filter.",
+    "emptyAcademic": "No academic records match your filter.",
+    "emptyCourses": "No courses or training records match your filter.",
+    "fields": {
+      "employmentType": "Employment Type",
+      "workMode": "Work Mode",
+      "detailedDescription": "Detailed Description (Optional)",
+      "published": "Published (visible on public /experience page)",
+      "skills": "Skills & Technologies"
+    },
+    "employmentTypes": {
+      "full-time": "Full-time",
+      "part-time": "Part-time",
+      "internship": "Internship / Training",
+      "contract": "Contract",
+      "freelance": "Freelance",
+      "other": "Other"
+    },
+    "workModes": {
+      "none": "Not specified",
+      "on-site": "On-site",
+      "hybrid": "Hybrid",
+      "remote": "Remote"
+    },
+    "highlights": {
+      "structuredHeading": "Structured Responsibilities & Achievements",
+      "structuredHint": "Add unlimited titled responsibilities or achievements with bilingual descriptions.",
+      "addResponsibility": "Add Responsibility",
+      "addAchievement": "Add Achievement",
+      "typeResponsibility": "Responsibility",
+      "typeAchievement": "Achievement",
+      "titleLabel": "Title",
+      "descLabel": "Description",
+      "bulletsHint": "Quick bullet-point responsibilities (preserves existing CV-seeded bullets).",
+      "bulletLabel": "Responsibility Bullet"
+    },
+    "academic": {
+      "addButton": "Add Academic Record",
+      "createHeading": "Create Academic Experience",
+      "editHeading": "Edit Academic Experience",
+      "subTabBasic": "Education & Summary",
+      "subTabActivities": "Activities & Coursework",
+      "subTabProjects": "Related Projects",
+      "institution": "University / Institution",
+      "degree": "Degree",
+      "major": "Major / Department",
+      "startYear": "Start Year",
+      "graduationYear": "Graduation Year",
+      "currentlyStudying": "Currently studying",
+      "gpa": "GPA / Grade (Optional)",
+      "academicStatus": "Academic Status / Classification",
+      "activitiesHeading": "Academic Activities & Achievements",
+      "activitiesHint": "Add academic projects, competitions, research, or achievements.",
+      "addActivity": "Add Activity / Achievement",
+      "courseworkHeading": "Key Coursework",
+      "addCoursework": "Add Course",
+      "categories": {
+        "project": "Academic Project",
+        "activity": "Activity",
+        "achievement": "Achievement",
+        "research": "Research"
+      }
+    },
+    "courses": {
+      "addButton": "Add Course / Training",
+      "createHeading": "Create Course / Training",
+      "editHeading": "Edit Course / Training",
+      "subTabBasic": "Basic & Description",
+      "subTabSkills": "Skills & Outcomes",
+      "subTabCertificate": "Certificate & Credentials",
+      "title": "Course / Training Title",
+      "provider": "Provider / Training Organization",
+      "courseType": "Course Type",
+      "duration": "Duration (Optional)",
+      "skillsCovered": "Skills & Technologies Covered",
+      "outcomesHeading": "Learning Outcomes (Optional)",
+      "addOutcome": "Add Outcome",
+      "certificateUploadHeading": "Certificate Image or PDF",
+      "certificateUploadHint": "Upload JPG, PNG, WebP, or PDF (max 10 MB) to Supabase Storage.",
+      "uploadCertificate": "Upload Certificate",
+      "replaceCertificate": "Replace File",
+      "previewPdf": "Open PDF",
+      "hasCertificate": "Certificate",
+      "issueDate": "Issue Date",
+      "credentialId": "Credential ID (Optional)",
+      "credentialUrl": "Credential URL (Optional)"
+    },
+    "courseTypes": {
+      "course": "Professional Course",
+      "technical-training": "Technical Training",
+      "workshop": "Workshop",
+      "certification": "Certification",
+      "internship": "Internship / Training Program",
+      "other": "Other"
+    }
+  },
   "education": {
     "pageTitle": "Education Management",
     "title": "Education Management",

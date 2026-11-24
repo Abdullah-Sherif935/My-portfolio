@@ -1,5 +1,12 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Briefcase, Calendar, MapPin } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Award,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  MapPin,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -12,16 +19,29 @@ interface ExperienceTimelineProps {
 }
 
 export function ExperienceTimeline({ items }: ExperienceTimelineProps) {
-  const { t } = useTranslation(['home', 'common']);
+  const { t } = useTranslation(['home', 'pages', 'common']);
   const { pick } = useLanguage();
-  const { projects } = usePortfolioData();
+  const { projects, companies } = usePortfolioData();
+
+  const publishedItems = items
+    .filter((item) => item.isPublished !== false)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
     <ol className="relative space-y-4 border-s-2 border-border-default ps-5 sm:space-y-6 sm:ps-8">
-      {items.map((item) => {
-        const linkedProjects = projects.filter((project) =>
-          item.relatedProjectSlugs.includes(project.slug)
-        );
+      {publishedItems.map((item) => {
+        const linkedProjects = item.relatedProjectSlugs
+          .map((slug) =>
+            projects.find((p) => p.slug === slug && p.isPublished !== false)
+          )
+          .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+        const companyObj = item.companyId
+          ? companies.find((c) => c.id === item.companyId)
+          : undefined;
+
+        const highlights = item.highlights ?? [];
+        const skills = item.skills ?? [];
 
         return (
           <li key={item.id} className="relative">
@@ -35,26 +55,50 @@ export function ExperienceTimeline({ items }: ExperienceTimelineProps) {
 
             <Card className="p-4 sm:p-6">
               <div className="mb-3 flex flex-col gap-2.5 sm:mb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={item.kind === 'employment' ? 'accent' : 'default'}>
-                      {pick(item.kindLabel)}
-                    </Badge>
-                  </div>
-                  <h3 className="text-base font-semibold text-text-primary sm:text-xl">
-                    {pick(item.role)}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary sm:text-sm">
-                    <span className="inline-flex items-center gap-1.5 font-medium text-text-primary">
-                      <Briefcase className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
-                      {pick(item.company)}
-                    </span>
-                    {item.location && (
-                      <span className="inline-flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-text-secondary" aria-hidden="true" />
-                        {pick(item.location)}
+                <div className="flex items-start gap-3">
+                  {companyObj?.logoUrl && (
+                    <img
+                      src={companyObj.logoUrl}
+                      alt={pick(item.company)}
+                      className="mt-1 h-11 w-11 shrink-0 rounded-xl border border-border-default bg-bg-primary object-contain p-1"
+                    />
+                  )}
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant={item.kind === 'employment' ? 'accent' : 'default'}>
+                        {item.employmentType
+                          ? t(`pages:experience.employmentTypes.${item.employmentType}`)
+                          : pick(item.kindLabel)}
+                      </Badge>
+                      {item.workMode && (
+                        <Badge variant="outline">
+                          {t(`pages:experience.workModes.${item.workMode}`)}
+                        </Badge>
+                      )}
+                      {item.isCurrent && (
+                        <Badge variant="accent">
+                          {t('pages:experience.currentBadge')}
+                        </Badge>
+                      )}
+                    </div>
+                    <h3 className="text-base font-semibold text-text-primary sm:text-xl">
+                      {pick(item.role)}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary sm:text-sm">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-text-primary">
+                        <Briefcase className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                        {pick(item.company)}
                       </span>
-                    )}
+                      {item.location && pick(item.location).trim() && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <MapPin
+                            className="h-3.5 w-3.5 text-text-secondary"
+                            aria-hidden="true"
+                          />
+                          {pick(item.location)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -64,14 +108,60 @@ export function ExperienceTimeline({ items }: ExperienceTimelineProps) {
                 </span>
               </div>
 
-              {item.summary && (
+              {item.summary && pick(item.summary).trim() && (
                 <p className="mb-3 text-xs leading-relaxed text-text-secondary sm:mb-4 sm:text-[15px]">
                   {pick(item.summary)}
                 </p>
               )}
 
+              {item.detailedDescription && pick(item.detailedDescription).trim() && (
+                <p className="mb-3 text-xs leading-relaxed text-text-secondary sm:mb-4 sm:text-sm">
+                  {pick(item.detailedDescription)}
+                </p>
+              )}
+
+              {/* Structured Responsibilities & Achievements */}
+              {highlights.length > 0 && (
+                <div className="mb-4 space-y-2.5">
+                  <p className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
+                    {t('pages:experience.highlightsHeading')}
+                  </p>
+                  <div className="grid gap-2.5 sm:grid-cols-2">
+                    {highlights.map((hl) => (
+                      <div
+                        key={hl.id}
+                        className="rounded-xl border border-border-default bg-bg-primary p-3"
+                      >
+                        <div className="mb-1 flex items-center gap-1.5">
+                          {hl.type === 'achievement' ? (
+                            <Award className="h-3.5 w-3.5 shrink-0 text-accent" />
+                          ) : (
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-accent" />
+                          )}
+                          <span className="text-xs font-semibold text-text-primary">
+                            {pick(hl.title)}
+                          </span>
+                        </div>
+                        {pick(hl.description).trim() && (
+                          <p className="text-xs leading-relaxed text-text-secondary">
+                            {pick(hl.description)}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Bullet Responsibilities */}
               {item.responsibilities.length > 0 && (
-                <div className={linkedProjects.length > 0 ? 'mb-4 sm:mb-5' : ''}>
+                <div
+                  className={
+                    skills.length > 0 || linkedProjects.length > 0
+                      ? 'mb-4 sm:mb-5'
+                      : ''
+                  }
+                >
                   <p className="mb-2 font-mono text-[11px] uppercase tracking-wider text-text-secondary sm:mb-2.5">
                     {t('home:experience.responsibilitiesLabel')}
                   </p>
@@ -89,6 +179,18 @@ export function ExperienceTimeline({ items }: ExperienceTimelineProps) {
                 </div>
               )}
 
+              {/* Relevant Skills */}
+              {skills.length > 0 && (
+                <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                  {skills.map((skill) => (
+                    <Badge key={skill} variant="muted" mono>
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Related Portfolio Projects */}
               {linkedProjects.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 border-t border-border-default pt-3 sm:pt-4">
                   <span className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
@@ -98,10 +200,20 @@ export function ExperienceTimeline({ items }: ExperienceTimelineProps) {
                     <Link
                       key={project.id}
                       to={`/portfolio/${project.slug}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1 text-xs font-medium text-text-primary transition-colors hover:border-accent-border hover:text-accent"
+                      className="inline-flex items-center gap-2 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1 text-xs font-medium text-text-primary transition-colors hover:border-accent-border hover:text-accent"
                     >
+                      {project.coverImageUrl && (
+                        <img
+                          src={project.coverImageUrl}
+                          alt=""
+                          className="h-5 w-7 rounded object-cover"
+                        />
+                      )}
                       <span>{pick(project.title)}</span>
-                      <ArrowUpRight className="h-3 w-3 rtl:-scale-x-100" aria-hidden="true" />
+                      <ArrowUpRight
+                        className="h-3 w-3 rtl:-scale-x-100"
+                        aria-hidden="true"
+                      />
                     </Link>
                   ))}
                 </div>

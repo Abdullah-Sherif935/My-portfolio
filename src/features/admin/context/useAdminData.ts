@@ -50,9 +50,13 @@ export interface AdminDataContextValue {
   saveExperience: (item: ExperienceItem) => Promise<void>;
   deleteExperience: (id: string) => Promise<void>;
   reorderExperience: (id: string, direction: 'up' | 'down') => Promise<void>;
+  toggleExperiencePublished: (id: string) => Promise<void>;
+  duplicateExperience: (id: string) => Promise<void>;
 
   saveEducation: (item: EducationItem) => Promise<void>;
   deleteEducation: (id: string) => Promise<void>;
+  reorderEducation: (id: string, direction: 'up' | 'down') => Promise<void>;
+  toggleEducationPublished: (id: string) => Promise<void>;
 
   saveSkillGroup: (group: SkillGroup) => Promise<void>;
   deleteSkillGroup: (id: string) => Promise<void>;
@@ -61,6 +65,9 @@ export interface AdminDataContextValue {
 
   saveCertification: (cert: Certification) => Promise<void>;
   deleteCertification: (id: string) => Promise<void>;
+  reorderCertification: (id: string, direction: 'up' | 'down') => Promise<void>;
+  toggleCertificationPublished: (id: string) => Promise<void>;
+  duplicateCertification: (id: string) => Promise<void>;
 
   saveSpecialization: (spec: Specialization) => Promise<void>;
   deleteSpecialization: (id: string) => Promise<void>;

@@ -405,6 +405,130 @@
       "displayOrder": "ترتيب العرض"
     }
   },
+  "experienceCms": {
+    "tabs": {
+      "professional": "الخبرة المهنية",
+      "academic": "الخبرة الأكاديمية",
+      "courses": "الدورات والتطوير المهني"
+    },
+    "filters": {
+      "all": "الكل",
+      "published": "منشور",
+      "draft": "مسودات"
+    },
+    "subTabs": {
+      "basicSummary": "البيانات والملخص",
+      "highlights": "المسؤوليات والإنجازات",
+      "skillsProjects": "المهارات والمشاريع",
+      "matching": "التوظيف والـ CV"
+    },
+    "mapProfessional": "صفحة الخبرات (/experience) ← بطاقة الخط الزمني المهني",
+    "mapHighlights": "صفحة الخبرات (/experience) ← المسؤوليات والإنجازات",
+    "mapSkillsProjects": "صفحة الخبرات (/experience) ← وسوم المهارات والمشاريع المرتبطة",
+    "mapAcademic": "صفحة الخبرات (/experience) ← قسم التعليم (مشترك مع الرئيسية ونبذة والـ CV)",
+    "mapAcademicActivities": "صفحة الخبرات (/experience) ← الأنشطة والإنجازات والمقررات الأكاديمية",
+    "mapAcademicProjects": "صفحة الخبرات (/experience) ← المشاريع الأكاديمية المرتبطة",
+    "mapCourses": "صفحة الخبرات (/experience) ← قسم الدورات والتطوير المهني",
+    "mapCoursesSkills": "صفحة الخبرات (/experience) ← المهارات ومخرجات التعلم",
+    "mapCoursesCert": "صفحة الخبرات (/experience) ← معاينة الشهادة وروابط التحقق",
+    "livePreviewHeading": "معاينة حية قبل الحفظ (/experience)",
+    "searchProjectsPlaceholder": "ابحث في مشاريع المعرض الحالية...",
+    "emptyProfessional": "لا توجد سجلات خبرة مهنية مطابقة للتصفية.",
+    "emptyAcademic": "لا توجد سجلات أكاديمية مطابقة للتصفية.",
+    "emptyCourses": "لا توجد دورات أو برامج تدريبية مطابقة للتصفية.",
+    "fields": {
+      "employmentType": "نوع التوظيف",
+      "workMode": "نظام العمل",
+      "detailedDescription": "وصف تفصيلي (اختياري)",
+      "published": "منشور (ظاهر في صفحة /experience العامة)",
+      "skills": "المهارات والتقنيات"
+    },
+    "employmentTypes": {
+      "full-time": "دوام كامل",
+      "part-time": "دوام جزئي",
+      "internship": "تدريب صناعي / عملي",
+      "contract": "عقد عمل",
+      "freelance": "عمل حر",
+      "other": "أخرى"
+    },
+    "workModes": {
+      "none": "غير محدد",
+      "on-site": "حضوري",
+      "hybrid": "هجين",
+      "remote": "عن بُعد"
+    },
+    "highlights": {
+      "structuredHeading": "المسؤوليات والإنجازات المنظّمة",
+      "structuredHint": "أضف عدداً غير محدود من المسؤوليات أو الإنجازات بعناوين وأوصاف ثنائية اللغة.",
+      "addResponsibility": "إضافة مسؤولية",
+      "addAchievement": "إضافة إنجاز",
+      "typeResponsibility": "مسؤولية",
+      "typeAchievement": "إنجاز",
+      "titleLabel": "العنوان",
+      "descLabel": "الوصف",
+      "bulletsHint": "قائمة النقاط السريعة للمسؤوليات (تحافظ على النقاط الموثّقة الحالية).",
+      "bulletLabel": "نص المسؤولية"
+    },
+    "academic": {
+      "addButton": "إضافة سجل أكاديمي",
+      "createHeading": "إضافة خبرة أكاديمية",
+      "editHeading": "تعديل الخبرة الأكاديمية",
+      "subTabBasic": "التعليم والملخص",
+      "subTabActivities": "الأنشطة والمقررات",
+      "subTabProjects": "المشاريع المرتبطة",
+      "institution": "الجامعة / المؤسسة التعليمية",
+      "degree": "الدرجة العلمية",
+      "major": "التخصص / القسم",
+      "startYear": "سنة البداية",
+      "graduationYear": "سنة التخرج",
+      "currentlyStudying": "قيد الدراسة حالياً",
+      "gpa": "المعدل التراكمي / التقدير (اختياري)",
+      "academicStatus": "الحالة الأكاديمية / التقدير العام",
+      "activitiesHeading": "الأنشطة والإنجازات الأكاديمية",
+      "activitiesHint": "أضف المشاريع الأكاديمية أو الأنشطة أو الإنجازات أو الأبحاث.",
+      "addActivity": "إضافة نشاط / إنجاز",
+      "courseworkHeading": "المقررات الرئيسية",
+      "addCoursework": "إضافة مقرر",
+      "categories": {
+        "project": "مشروع أكاديمي",
+        "activity": "نشاط",
+        "achievement": "إنجاز",
+        "research": "بحث علمي"
+      }
+    },
+    "courses": {
+      "addButton": "إضافة دورة / تدريب",
+      "createHeading": "إضافة دورة أو برنامج تدريبي",
+      "editHeading": "تعديل الدورة أو التدريب",
+      "subTabBasic": "البيانات والوصف",
+      "subTabSkills": "المهارات والمخرجات",
+      "subTabCertificate": "الشهادة والاعتماد",
+      "title": "عنوان الدورة / التدريب",
+      "provider": "الجهة المقدّمة / المنظمة",
+      "courseType": "نوع الدورة",
+      "duration": "المدة الزمنية (اختياري)",
+      "skillsCovered": "المهارات والتقنيات المغطاة",
+      "outcomesHeading": "مخرجات التعلم (اختياري)",
+      "addOutcome": "إضافة مخرج تعلم",
+      "certificateUploadHeading": "ملف الشهادة (صورة أو PDF)",
+      "certificateUploadHint": "ارفع صورة JPG / PNG / WebP أو ملف PDF (بحد أقصى 10 ميجابايت) إلى Supabase Storage.",
+      "uploadCertificate": "رفع الشهادة",
+      "replaceCertificate": "استبدال الملف",
+      "previewPdf": "فتح ملف PDF",
+      "hasCertificate": "شهادة مرفقة",
+      "issueDate": "تاريخ الإصدار",
+      "credentialId": "رقم الشهادة (اختياري)",
+      "credentialUrl": "رابط التحقق من الشهادة (اختياري)"
+    },
+    "courseTypes": {
+      "course": "دورة مهنية",
+      "technical-training": "تدريب تقني",
+      "workshop": "ورشة عمل",
+      "certification": "شهادة معتمدة",
+      "internship": "برنامج تدريبي / تدريب عملي",
+      "other": "أخرى"
+    }
+  },
   "education": {
     "pageTitle": "إدارة التعليم",
     "title": "إدارة التعليم الأكاديمي",

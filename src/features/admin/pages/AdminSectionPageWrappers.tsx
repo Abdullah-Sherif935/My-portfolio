@@ -12,15 +12,35 @@ import { AdminCertificationsPage } from '@/features/admin/certifications/AdminCe
 
 export function AdminExperiencePageManager() {
   const { t } = useTranslation('admin');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+
   return (
     <PageEditorShell
       title={t('nav.pageExperience')}
       subtitle={t('experience.subtitle')}
       publicRoute="/experience"
       mappingPath={t('pageWrappers.experienceMap')}
-      sharedPages={[t('nav.pageHome'), t('nav.featureRecruiter'), t('nav.featureCvBuilder')]}
+      sharedPages={[
+        t('nav.pageHome'),
+        t('nav.pageAbout'),
+        t('nav.featureRecruiter'),
+        t('nav.featureCvBuilder'),
+      ]}
+      hasUnsavedChanges={hasUnsavedChanges}
+      lastSavedLabel={lastSaved}
+      previewRefreshKey={previewRefreshKey}
     >
-      <AdminExperiencePage />
+      <AdminExperiencePage
+        onDirtyChange={setHasUnsavedChanges}
+        onSaved={() => {
+          setLastSaved(
+            new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          );
+          setPreviewRefreshKey((k) => k + 1);
+        }}
+      />
     </PageEditorShell>
   );
 }

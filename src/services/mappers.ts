@@ -125,6 +125,8 @@ export interface ExperienceRow {
   id: string;
   kind: ExperienceKind;
   kind_label: LocalizedText;
+  employment_type?: ExperienceItem['employmentType'] | null;
+  work_mode?: ExperienceItem['workMode'] | null;
   role: LocalizedText;
   company: LocalizedText;
   company_id: string | null;
@@ -134,7 +136,10 @@ export interface ExperienceRow {
   is_current: boolean;
   location: LocalizedText | null;
   summary: LocalizedText | null;
+  detailed_description?: LocalizedText | null;
+  highlights?: ExperienceItem['highlights'] | null;
   responsibilities: LocalizedText[];
+  skills?: string[] | null;
   related_project_slugs: string[];
   data_source: DataSource;
   is_editable: boolean;
@@ -151,12 +156,19 @@ export interface EducationRow {
   degree: LocalizedText;
   field_of_study: LocalizedText | null;
   institution: LocalizedText;
+  location?: LocalizedText | null;
   period: LocalizedText;
   start_year: string | null;
   graduation_year: string;
+  is_current?: boolean | null;
   grade: LocalizedText;
   classification: LocalizedText | null;
+  academic_status?: LocalizedText | null;
+  summary?: LocalizedText | null;
+  detailed_description?: LocalizedText | null;
+  activities?: EducationItem['activities'] | null;
   graduation_project_slug: string | null;
+  related_project_slugs?: string[] | null;
   coursework: LocalizedText[];
   data_source: DataSource;
   is_editable: boolean;
@@ -186,12 +198,23 @@ export interface CertificationRow {
   id: string;
   title: LocalizedText;
   issuer: LocalizedText;
+  course_type?: Certification['courseType'] | null;
+  start_date?: string | null;
+  completion_date?: string | null;
+  duration?: LocalizedText | null;
+  location?: LocalizedText | null;
   issue_date: LocalizedText;
   credential_id: string;
   credential_url: string | null;
   category: LocalizedText;
   description: LocalizedText | null;
+  detailed_description?: LocalizedText | null;
+  skills?: string[] | null;
+  learning_outcomes?: LocalizedText[] | null;
   media_url: string | null;
+  certificate_storage_path?: string | null;
+  certificate_mime_type?: string | null;
+  certificate_file_name?: string | null;
   data_source: DataSource;
   is_editable: boolean;
   display_order: number;
@@ -490,6 +513,9 @@ export function mapExperienceFromRow(row: ExperienceRow): ExperienceItem {
     id: row.id,
     kind: row.kind,
     kindLabel: row.kind_label,
+    employmentType:
+      row.employment_type ?? (row.kind === 'training' ? 'internship' : 'full-time'),
+    workMode: row.work_mode ?? null,
     role: row.role,
     company: row.company,
     companyId: row.company_id ?? undefined,
@@ -499,8 +525,12 @@ export function mapExperienceFromRow(row: ExperienceRow): ExperienceItem {
     isCurrent: row.is_current,
     location: row.location ?? undefined,
     summary: row.summary ?? undefined,
+    detailedDescription: row.detailed_description ?? undefined,
+    highlights: Array.isArray(row.highlights) ? row.highlights : [],
     responsibilities: row.responsibilities ?? [],
+    skills: Array.isArray(row.skills) ? row.skills : [],
     relatedProjectSlugs: row.related_project_slugs ?? [],
+    isPublished: row.is_published !== false,
     dataSource: row.data_source,
     isEditable: row.is_editable,
     displayOrder: row.display_order,
@@ -515,6 +545,9 @@ export function mapExperienceToRow(data: ExperienceItem): ExperienceRow {
     id: data.id,
     kind: data.kind,
     kind_label: data.kindLabel,
+    employment_type:
+      data.employmentType ?? (data.kind === 'training' ? 'internship' : 'full-time'),
+    work_mode: data.workMode ?? null,
     role: data.role,
     company: data.company,
     company_id: data.companyId ?? null,
@@ -524,12 +557,15 @@ export function mapExperienceToRow(data: ExperienceItem): ExperienceRow {
     is_current: Boolean(data.isCurrent),
     location: data.location ?? null,
     summary: data.summary ?? null,
+    detailed_description: data.detailedDescription ?? null,
+    highlights: data.highlights ?? [],
     responsibilities: data.responsibilities,
+    skills: data.skills ?? [],
     related_project_slugs: data.relatedProjectSlugs,
     data_source: data.dataSource,
     is_editable: data.isEditable,
     display_order: data.displayOrder,
-    is_published: true,
+    is_published: data.isPublished !== false,
     matching_tags: data.matchingTags ?? [],
     cv_priority: Math.min(100, Math.max(1, data.cvPriority ?? 50)),
     show_in_cv: data.showInCv !== false,
@@ -537,18 +573,32 @@ export function mapExperienceToRow(data: ExperienceItem): ExperienceRow {
 }
 
 export function mapEducationFromRow(row: EducationRow): EducationItem {
+  const relatedSlugs =
+    Array.isArray(row.related_project_slugs) && row.related_project_slugs.length > 0
+      ? row.related_project_slugs
+      : row.graduation_project_slug
+        ? [row.graduation_project_slug]
+        : [];
   return {
     id: row.id,
     degree: row.degree,
     fieldOfStudy: row.field_of_study ?? undefined,
     institution: row.institution,
+    location: row.location ?? undefined,
     period: row.period,
     startYear: row.start_year ?? undefined,
     graduationYear: row.graduation_year,
+    isCurrent: Boolean(row.is_current),
     grade: row.grade,
     classification: row.classification ?? undefined,
-    graduationProjectSlug: row.graduation_project_slug ?? undefined,
+    academicStatus: row.academic_status ?? undefined,
+    summary: row.summary ?? undefined,
+    detailedDescription: row.detailed_description ?? undefined,
+    activities: Array.isArray(row.activities) ? row.activities : [],
+    graduationProjectSlug: row.graduation_project_slug ?? relatedSlugs[0] ?? undefined,
+    relatedProjectSlugs: relatedSlugs,
     coursework: row.coursework ?? [],
+    isPublished: row.is_published !== false,
     dataSource: row.data_source,
     isEditable: row.is_editable,
     displayOrder: row.display_order,
@@ -556,22 +606,38 @@ export function mapEducationFromRow(row: EducationRow): EducationItem {
 }
 
 export function mapEducationToRow(data: EducationItem): EducationRow {
+  const relatedSlugs = Array.from(
+    new Set(
+      (data.relatedProjectSlugs ?? []).filter(Boolean).length > 0
+        ? (data.relatedProjectSlugs ?? []).filter(Boolean)
+        : data.graduationProjectSlug
+          ? [data.graduationProjectSlug]
+          : []
+    )
+  );
   return {
     id: data.id,
     degree: data.degree,
     field_of_study: data.fieldOfStudy ?? null,
     institution: data.institution,
+    location: data.location ?? null,
     period: data.period,
     start_year: data.startYear ?? null,
     graduation_year: data.graduationYear,
+    is_current: Boolean(data.isCurrent),
     grade: data.grade,
     classification: data.classification ?? null,
-    graduation_project_slug: data.graduationProjectSlug ?? null,
+    academic_status: data.academicStatus ?? null,
+    summary: data.summary ?? null,
+    detailed_description: data.detailedDescription ?? null,
+    activities: data.activities ?? [],
+    graduation_project_slug: relatedSlugs[0] ?? data.graduationProjectSlug ?? null,
+    related_project_slugs: relatedSlugs,
     coursework: data.coursework,
     data_source: data.dataSource,
     is_editable: data.isEditable,
     display_order: data.displayOrder,
-    is_published: true,
+    is_published: data.isPublished !== false,
   };
 }
 
@@ -615,12 +681,26 @@ export function mapCertificationFromRow(row: CertificationRow): Certification {
     id: row.id,
     title: row.title,
     issuer: row.issuer,
+    courseType: row.course_type ?? 'course',
+    startDate: row.start_date ?? null,
+    completionDate: row.completion_date ?? null,
+    duration: row.duration ?? undefined,
+    location: row.location ?? undefined,
     issueDate: row.issue_date,
     credentialId: row.credential_id,
     credentialUrl: row.credential_url,
     category: row.category,
     description: row.description ?? undefined,
+    detailedDescription: row.detailed_description ?? undefined,
+    skills: Array.isArray(row.skills) ? row.skills : [],
+    learningOutcomes: Array.isArray(row.learning_outcomes)
+      ? row.learning_outcomes
+      : [],
     mediaUrl: row.media_url,
+    certificateStoragePath: row.certificate_storage_path ?? null,
+    certificateMimeType: row.certificate_mime_type ?? null,
+    certificateFileName: row.certificate_file_name ?? null,
+    isPublished: row.is_published !== false,
     dataSource: row.data_source,
     isEditable: row.is_editable,
     displayOrder: row.display_order,
@@ -634,16 +714,27 @@ export function mapCertificationToRow(data: Certification): CertificationRow {
     id: data.id,
     title: data.title,
     issuer: data.issuer,
+    course_type: data.courseType ?? 'course',
+    start_date: data.startDate ?? null,
+    completion_date: data.completionDate ?? null,
+    duration: data.duration ?? null,
+    location: data.location ?? null,
     issue_date: data.issueDate,
     credential_id: data.credentialId,
     credential_url: data.credentialUrl ?? null,
     category: data.category,
     description: data.description ?? null,
+    detailed_description: data.detailedDescription ?? null,
+    skills: data.skills ?? [],
+    learning_outcomes: data.learningOutcomes ?? [],
     media_url: data.mediaUrl ?? null,
+    certificate_storage_path: data.certificateStoragePath ?? null,
+    certificate_mime_type: data.certificateMimeType ?? null,
+    certificate_file_name: data.certificateFileName ?? null,
     data_source: data.dataSource,
     is_editable: data.isEditable,
     display_order: data.displayOrder,
-    is_published: true,
+    is_published: data.isPublished !== false,
     matching_tags: data.matchingTags ?? [],
     show_in_cv: data.showInCv !== false,
   };

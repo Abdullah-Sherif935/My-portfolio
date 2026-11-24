@@ -97,8 +97,48 @@
   "experience": {
     "pageTitle": "Experience",
     "eyebrow": "EXPERIENCE // CAREER TIMELINE",
-    "title": "Professional Experience & Training",
-    "subtitle": "Engineering roles and industrial plant training across HVAC equipment & sheet metal design, CNC manufacturing preparation, and electro-mechanical systems."
+    "title": "Professional Experience, Education & Training",
+    "subtitle": "Engineering roles, academic foundation in Mechatronics Engineering, and professional development across HVAC equipment & sheet metal design, CNC manufacturing, and control systems.",
+    "professionalHeading": "Professional Experience",
+    "professionalSubtitle": "Industrial engineering employment and manufacturing plant training.",
+    "academicHeading": "Academic Experience",
+    "academicSubtitle": "University education, academic achievements, and graduation engineering projects.",
+    "coursesHeading": "Courses & Professional Development",
+    "coursesSubtitle": "Technical training programs, specialized engineering courses, and verified credentials.",
+    "currentBadge": "Current Role",
+    "currentlyStudyingBadge": "Currently Studying",
+    "highlightsHeading": "Key Responsibilities & Achievements",
+    "academicActivitiesHeading": "Academic Activities & Achievements",
+    "courseworkHeading": "Key Technical Coursework",
+    "viewCertificatePdf": "View Certificate (PDF)",
+    "verifyCredential": "Verify Credential",
+    "employmentTypes": {
+      "full-time": "Full-time",
+      "part-time": "Part-time",
+      "internship": "Internship / Training",
+      "contract": "Contract",
+      "freelance": "Freelance",
+      "other": "Other"
+    },
+    "workModes": {
+      "on-site": "On-site",
+      "hybrid": "Hybrid",
+      "remote": "Remote"
+    },
+    "academicCategories": {
+      "project": "Academic Project",
+      "activity": "Activity",
+      "achievement": "Achievement",
+      "research": "Research"
+    },
+    "courseTypes": {
+      "course": "Professional Course",
+      "technical-training": "Technical Training",
+      "workshop": "Workshop",
+      "certification": "Certification",
+      "internship": "Training Program",
+      "other": "Other"
+    }
   },
   "skills": {
     "pageTitle": "Technical Skills",

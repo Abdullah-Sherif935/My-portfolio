@@ -45,17 +45,39 @@ export interface ProfileData {
   isEditable: boolean;
 }
 
+export type AcademicActivityCategory =
+  | 'project'
+  | 'activity'
+  | 'achievement'
+  | 'research';
+
+export interface AcademicActivity {
+  id: string;
+  category: AcademicActivityCategory;
+  title: LocalizedText;
+  description: LocalizedText;
+  displayOrder: number;
+}
+
 export interface EducationItem extends EditableRecord {
   degree: LocalizedText;
   fieldOfStudy?: LocalizedText;
   institution: LocalizedText;
+  location?: LocalizedText;
   period: LocalizedText;
   startYear?: string;
   graduationYear: string;
+  isCurrent?: boolean;
   grade: LocalizedText;
   classification?: LocalizedText;
+  academicStatus?: LocalizedText;
+  summary?: LocalizedText;
+  detailedDescription?: LocalizedText;
+  activities?: AcademicActivity[];
   graduationProjectSlug?: string;
+  relatedProjectSlugs?: string[];
   coursework: LocalizedText[];
+  isPublished?: boolean;
 }
 
 export type SpecializationId =
@@ -224,9 +246,31 @@ export interface Project extends EditableRecord {
 
 export type ExperienceKind = 'employment' | 'training';
 
+export type EmploymentType =
+  | 'full-time'
+  | 'part-time'
+  | 'internship'
+  | 'contract'
+  | 'freelance'
+  | 'other';
+
+export type WorkMode = 'on-site' | 'hybrid' | 'remote';
+
+export type ExperienceHighlightType = 'responsibility' | 'achievement';
+
+export interface ExperienceHighlight {
+  id: string;
+  type: ExperienceHighlightType;
+  title: LocalizedText;
+  description: LocalizedText;
+  displayOrder: number;
+}
+
 export interface ExperienceItem extends EditableRecord {
   kind: ExperienceKind;
   kindLabel: LocalizedText;
+  employmentType?: EmploymentType;
+  workMode?: WorkMode | null;
   role: LocalizedText;
   company: LocalizedText;
   companyId?: string;
@@ -236,8 +280,12 @@ export interface ExperienceItem extends EditableRecord {
   isCurrent?: boolean;
   location?: LocalizedText;
   summary?: LocalizedText;
+  detailedDescription?: LocalizedText;
+  highlights?: ExperienceHighlight[];
   responsibilities: LocalizedText[];
+  skills?: string[];
   relatedProjectSlugs: string[];
+  isPublished?: boolean;
   matchingTags?: string[];
   cvPriority?: number;
   showInCv?: boolean;
@@ -254,15 +302,35 @@ export interface SkillGroup extends EditableRecord {
   showInCv?: boolean;
 }
 
+export type CourseType =
+  | 'course'
+  | 'technical-training'
+  | 'workshop'
+  | 'certification'
+  | 'internship'
+  | 'other';
+
 export interface Certification extends EditableRecord {
   title: LocalizedText;
   issuer: LocalizedText;
+  courseType?: CourseType;
+  startDate?: string | null;
+  completionDate?: string | null;
+  duration?: LocalizedText;
+  location?: LocalizedText;
   issueDate: LocalizedText;
   credentialId: string;
   credentialUrl: string | null;
   category: LocalizedText;
   description?: LocalizedText;
+  detailedDescription?: LocalizedText;
+  skills?: string[];
+  learningOutcomes?: LocalizedText[];
   mediaUrl?: string | null;
+  certificateStoragePath?: string | null;
+  certificateMimeType?: string | null;
+  certificateFileName?: string | null;
+  isPublished?: boolean;
   matchingTags?: string[];
   showInCv?: boolean;
 }

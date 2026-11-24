@@ -979,6 +979,109 @@ export async function deleteSpecializationIconAsset(
   }
 }
 
+export async function persistEducationOrder(
+  items: EducationItem[]
+): Promise<void> {
+  const client = requireSupabase();
+  await Promise.all(
+    items.map(async (item, index) => {
+      const { error } = await client
+        .from('education')
+        .update({ display_order: index + 1 })
+        .eq('id', item.id);
+      if (error) throw new Error(error.message);
+    })
+  );
+}
+
+export async function persistCertificationOrder(
+  items: Certification[]
+): Promise<void> {
+  const client = requireSupabase();
+  await Promise.all(
+    items.map(async (item, index) => {
+      const { error } = await client
+        .from('certifications')
+        .update({ display_order: index + 1 })
+        .eq('id', item.id);
+      if (error) throw new Error(error.message);
+    })
+  );
+}
+
+const ALLOWED_CERTIFICATE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+]);
+const MAX_CERTIFICATE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+export async function uploadCertificateFile(
+  file: File,
+  certificationId: string
+): Promise<{
+  url: string;
+  storagePath: string;
+  mimeType: string;
+  fileName: string;
+}> {
+  if (!ALLOWED_CERTIFICATE_MIME_TYPES.has(file.type)) {
+    throw new Error('Only JPG, PNG, WebP images and PDF files are supported.');
+  }
+  if (file.size > MAX_CERTIFICATE_SIZE_BYTES) {
+    throw new Error('Certificate file size must be 10 MB or smaller.');
+  }
+
+  const client = requireSupabase();
+  const ext =
+    file.type === 'application/pdf'
+      ? 'pdf'
+      : file.type === 'image/png'
+        ? 'png'
+        : file.type === 'image/webp'
+          ? 'webp'
+          : 'jpg';
+  const safeId = certificationId.replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
+  const storagePath = `certificates/${safeId}-${Date.now()}.${ext}`;
+
+  const { error: uploadError } = await client.storage
+    .from('portfolio-media')
+    .upload(storagePath, file, {
+      contentType: file.type,
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    throw new Error(uploadError.message);
+  }
+
+  const { data: publicUrlData } = client.storage
+    .from('portfolio-media')
+    .getPublicUrl(storagePath);
+
+  return {
+    url: publicUrlData.publicUrl,
+    storagePath,
+    mimeType: file.type,
+    fileName: file.name,
+  };
+}
+
+export async function deleteCertificateFileAsset(
+  storagePath: string
+): Promise<void> {
+  if (!storagePath.trim()) return;
+  const client = requireSupabase();
+  const { error } = await client.storage
+    .from('portfolio-media')
+    .remove([storagePath]);
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function deleteSpecializationRecord(id: string): Promise<void> {
   const client = requireSupabase();
   const { error } = await client.from('specializations').delete().eq('id', id);
