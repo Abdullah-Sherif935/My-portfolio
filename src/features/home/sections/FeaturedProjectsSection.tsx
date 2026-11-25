@@ -11,7 +11,9 @@ import { usePortfolioData } from '@/hooks/usePortfolioData';
 export function FeaturedProjectsSection() {
   const { t } = useTranslation(['home', 'common']);
   const { projects } = usePortfolioData();
-  const featuredProjects = projects.filter((project) => project.featured);
+  const featuredProjects = projects
+    .filter((project) => project.featured && project.isPublished !== false)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
     <Section id="featured-projects" surface="secondary">
@@ -29,7 +31,7 @@ export function FeaturedProjectsSection() {
             }
           />
 
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+          <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featuredProjects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
