@@ -28,6 +28,17 @@ import type { Language } from '@/types/portfolio';
 import type { RecruiterPositionId } from '@/types/recruiter';
 import { cn } from '@/utils/cn';
 
+export const CUSTOM_JD_STORAGE_KEY = 'recruiter_custom_jd_v1';
+
+function readStoredCustomJd(urlJd: string | null): string {
+  if (urlJd) return urlJd;
+  try {
+    return window.sessionStorage.getItem(CUSTOM_JD_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
 export function RecruiterEntryPage() {
   const { t } = useTranslation(['recruiter', 'common']);
   const { pick, language } = useLanguage();
@@ -43,6 +54,9 @@ export function RecruiterEntryPage() {
   );
   const [customTitle, setCustomTitle] = useState<string>(
     searchParams.get('custom') ?? ''
+  );
+  const [customDescription, setCustomDescription] = useState<string>(() =>
+    readStoredCustomJd(searchParams.get('jd'))
   );
   const [selectedSkills, setSelectedSkills] = useState<string[]>(() => {
     const raw = searchParams.get('skills');
@@ -66,11 +80,29 @@ export function RecruiterEntryPage() {
     );
   };
 
+  const persistCustomJd = (jd: string) => {
+    try {
+      if (jd.trim()) {
+        window.sessionStorage.setItem(CUSTOM_JD_STORAGE_KEY, jd.trim());
+      } else {
+        window.sessionStorage.removeItem(CUSTOM_JD_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore storage quota errors
+    }
+  };
+
   const buildQueryString = () => {
     const params = new URLSearchParams();
     params.set('role', selectedRole);
     if (selectedRole === 'custom' && customTitle.trim()) {
       params.set('custom', customTitle.trim());
+    }
+    if (selectedRole === 'custom' && customDescription.trim()) {
+      persistCustomJd(customDescription);
+      if (customDescription.trim().length <= 400) {
+        params.set('jd', customDescription.trim());
+      }
     }
     if (selectedSkills.length > 0) {
       params.set('skills', selectedSkills.join(','));
@@ -81,6 +113,9 @@ export function RecruiterEntryPage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (selectedRole === 'custom') {
+      persistCustomJd(customDescription);
+    }
     navigate(`/recruiter/results?${buildQueryString()}`);
   };
 
@@ -192,24 +227,48 @@ export function RecruiterEntryPage() {
                 })}
               </div>
 
-              {/* Custom Role Input */}
+              {/* Custom Role & Job Description Input */}
               {selectedRole === 'custom' && (
-                <Card className="space-y-3 border-accent-border bg-bg-secondary p-5">
-                  <label
-                    htmlFor="recruiter-custom-title"
-                    className="block text-sm font-semibold text-text-primary"
-                  >
-                    {t('recruiter:entry.stepCustomLabel')}
-                  </label>
-                  <input
-                    id="recruiter-custom-title"
-                    type="text"
-                    value={customTitle}
-                    onChange={(e) => setCustomTitle(e.target.value)}
-                    placeholder={t('recruiter:entry.stepCustomPlaceholder')}
-                    maxLength={90}
-                    className="w-full rounded-[10px] border border-border-default bg-bg-primary px-4 py-2.5 text-sm text-text-primary placeholder:text-text-secondary/60 focus:border-accent focus:outline-none"
-                  />
+                <Card className="space-y-4 border-accent-border bg-bg-secondary p-5">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="recruiter-custom-title"
+                      className="block text-sm font-semibold text-text-primary"
+                    >
+                      {t('recruiter:entry.stepCustomLabel')}
+                    </label>
+                    <input
+                      id="recruiter-custom-title"
+                      type="text"
+                      value={customTitle}
+                      onChange={(e) => setCustomTitle(e.target.value)}
+                      placeholder={t('recruiter:entry.stepCustomPlaceholder')}
+                      maxLength={90}
+                      className="w-full rounded-[10px] border border-border-default bg-bg-primary px-4 py-2.5 text-sm text-text-primary placeholder:text-text-secondary/60 focus:border-accent focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="recruiter-custom-jd"
+                      className="block text-sm font-semibold text-text-primary"
+                    >
+                      {t('recruiter:entry.stepCustomJdLabel')}
+                    </label>
+                    <textarea
+                      id="recruiter-custom-jd"
+                      rows={5}
+                      value={customDescription}
+                      onChange={(e) => {
+                        setCustomDescription(e.target.value);
+                        persistCustomJd(e.target.value);
+                      }}
+                      placeholder={t('recruiter:entry.stepCustomJdPlaceholder')}
+                      maxLength={4000}
+                      className="w-full rounded-[10px] border border-border-default bg-bg-primary px-4 py-2.5 text-sm leading-relaxed text-text-primary placeholder:text-text-secondary/60 focus:border-accent focus:outline-none"
+                    />
+                  </div>
+
                   <p className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
                     <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
                     <span>{t('recruiter:entry.stepCustomHint')}</span>

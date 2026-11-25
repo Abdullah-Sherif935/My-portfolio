@@ -1,4 +1,5 @@
 import type { LocalizedText } from './portfolio';
+import type { RecruiterProfileOverrides } from './recruiter';
 
 export type MediaCategory = 'portrait' | 'branding' | 'project' | 'certificate' | 'document';
 
@@ -123,4 +124,5 @@ export interface AdminSiteSettings {
   defaultCvTemplate: CvTemplateId;
   cvSectionOrder: CvSectionConfig[];
   homeSections: HomeSectionsConfig;
+  recruiterProfiles?: RecruiterProfileOverrides;
 }

@@ -14,82 +14,13 @@ import type {
 import { RECRUITER_SKILL_FILTERS } from './recruiterMatcher';
 
 const DEDUP_STOP_WORDS = new Set([
-  // English common & action filler words
-  'a',
-  'an',
-  'the',
-  'and',
-  'or',
-  'of',
-  'for',
-  'to',
-  'in',
-  'on',
-  'at',
-  'by',
-  'with',
-  'from',
-  'as',
-  'is',
-  'are',
-  'was',
-  'were',
-  'be',
-  'that',
-  'this',
-  'its',
-  'such',
-  'eg',
-  'e',
-  'g',
-  'use',
-  'used',
-  'using',
-  'aimed',
-  'capable',
-  'tailored',
-  'designed',
-  'design',
-  'built',
-  'build',
-  'estimated',
-  'estimation',
-  'system',
-  'systems',
-  'key',
-  'project',
-  // Arabic common filler words
-  'في',
-  'من',
-  'على',
-  'إلى',
-  'الى',
-  'عن',
-  'مع',
-  'أو',
-  'او',
-  'و',
-  'التي',
-  'الذي',
-  'هذا',
-  'هذه',
-  'ذلك',
-  'مثل',
-  'بهدف',
-  'تهدف',
-  'يهدف',
-  'تخصيص',
-  'مخصصة',
-  'لاستخدامها',
-  'قادرة',
-  'بناء',
-  'تنفيذ',
-  'تصميم',
-  'تقدير',
-  'منظومة',
-  'نظام',
-  'أنظمة',
-  'مشروع',
+  'a', 'an', 'the', 'and', 'or', 'of', 'for', 'to', 'in', 'on', 'at', 'by', 'with',
+  'from', 'as', 'is', 'are', 'was', 'were', 'be', 'that', 'this', 'its', 'such',
+  'eg', 'e', 'g', 'use', 'used', 'using', 'aimed', 'capable', 'tailored', 'designed',
+  'design', 'built', 'build', 'estimated', 'estimation', 'system', 'systems', 'key', 'project',
+  'في', 'من', 'على', 'إلى', 'الى', 'عن', 'مع', 'أو', 'او', 'و', 'التي', 'الذي',
+  'هذا', 'هذه', 'ذلك', 'مثل', 'بهدف', 'تهدف', 'يهدف', 'تخصيص', 'مخصصة',
+  'لاستخدامها', 'قادرة', 'بناء', 'تنفيذ', 'تصميم', 'تقدير', 'منظومة', 'نظام', 'أنظمة', 'مشروع',
 ]);
 
 export function pickCvText(
@@ -112,9 +43,8 @@ export function isCvPlaceholderText(value: string): boolean {
 }
 
 function normalizeArabicToken(token: string): string {
-  // Strip common Arabic proclitics & definite article for paraphrase matching only
   let t = token
-    .replace(/[\u064b-\u065f\u0670]/g, '') // remove diacritics
+    .replace(/[\u064b-\u065f\u0670]/g, '')
     .replace(/[أإآ]/g, 'ا')
     .replace(/ة$/g, 'ه')
     .replace(/ى$/g, 'ي');
@@ -168,42 +98,53 @@ function computeContainmentOverlap(a: Set<string>, b: Set<string>): number {
 }
 
 /**
- * Returns only project deliverables that add distinct technical detail beyond
- * the project's shortDescription (never repeating near-identical single bullets).
+ * Returns only project bullets (from deliverables + verified contributions)
+ * that add distinct technical detail beyond the project's shortDescription
+ * (never repeating near-identical bullets or duplicating across sections).
  */
 export function getDistinctProjectDeliverables(
   project: Project,
   lang: Language,
   maxItems = 3
 ): string[] {
+  if (maxItems <= 0) return [];
   const shortDesc = pickCvText(project.shortDescription, lang);
   const descTokens = tokenizeForSimilarity(shortDesc);
   const accepted: Array<{ text: string; tokens: Set<string> }> = [];
-  const totalCount = project.deliverables.length;
 
-  for (const deliverable of project.deliverables) {
-    const text = pickCvText(deliverable, lang);
+  // Combine verified deliverables and verified contributions without duplication
+  const candidateItems: LocalizedText[] = [
+    ...(project.deliverables ?? []),
+    ...(project.contributions ?? []).map((c) => ({
+      en: c.description.en || c.title.en,
+      ar: c.description.ar || c.title.ar,
+    })),
+  ];
+  const totalCount = candidateItems.length;
+
+  for (const item of candidateItems) {
+    const text = pickCvText(item, lang);
     if (!text) continue;
 
-    // Exact or substring duplicate check
-    const normText = text.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ').trim();
-    const normDesc = shortDesc.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ').trim();
-    if (normText === normDesc || normDesc.includes(normText) || normText.includes(normDesc)) {
-      continue;
+    if (shortDesc) {
+      const normText = text.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ').trim();
+      const normDesc = shortDesc.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ').trim();
+      if (normText === normDesc || normDesc.includes(normText) || normText.includes(normDesc)) {
+        continue;
+      }
     }
 
     const tokens = tokenizeForSimilarity(text);
-    const overlapWithDesc = computeContainmentOverlap(tokens, descTokens);
-
-    // Single-bullet summaries that paraphrase shortDescription are omitted
-    const threshold = totalCount === 1 ? 0.42 : 0.55;
-    if (overlapWithDesc >= threshold) {
-      continue;
+    if (shortDesc) {
+      const overlapWithDesc = computeContainmentOverlap(tokens, descTokens);
+      const threshold = totalCount === 1 ? 0.42 : 0.55;
+      if (overlapWithDesc >= threshold) {
+        continue;
+      }
     }
 
-    // Also avoid duplicating another already-accepted deliverable
     const duplicatesPrior = accepted.some(
-      (item) => computeContainmentOverlap(tokens, item.tokens) >= 0.62
+      (entry) => computeContainmentOverlap(tokens, entry.tokens) >= 0.62
     );
     if (duplicatesPrior) continue;
 
@@ -220,28 +161,21 @@ function scoreTextForRole(
   selectedSkillIds: string[]
 ): number {
   const normalized = text.toLowerCase();
+  const matchedIds = new Set<string>();
   let score = 0;
 
-  for (const tag of position.primaryTags) {
-    const phrase = tag.replace(/-/g, ' ');
-    const spacedNum = phrase.replace(/([a-z])(\d)/g, '$1 $2');
-    if (
-      normalized.includes(phrase) ||
-      normalized.includes(tag) ||
-      normalized.includes(spacedNum)
-    ) {
-      score += 8;
+  for (const req of position.requiredSkills) {
+    if (matchedIds.has(req.id)) continue;
+    if (req.aliases.some((a) => normalized.includes(a.toLowerCase()))) {
+      matchedIds.add(req.id);
+      score += 10;
     }
   }
-  for (const tag of position.secondaryTags) {
-    const phrase = tag.replace(/-/g, ' ');
-    if (normalized.includes(phrase) || normalized.includes(tag)) {
-      score += 2;
-    }
-  }
-  for (const kw of position.keywords) {
-    if (normalized.includes(kw.toLowerCase())) {
-      score += 3;
+  for (const pref of position.preferredSkills) {
+    if (matchedIds.has(pref.id)) continue;
+    if (pref.aliases.some((a) => normalized.includes(a.toLowerCase()))) {
+      matchedIds.add(pref.id);
+      score += 5;
     }
   }
 
@@ -252,7 +186,7 @@ function scoreTextForRole(
   for (const tag of extraTags) {
     const phrase = tag.replace(/-/g, ' ');
     if (normalized.includes(phrase) || normalized.includes(tag)) {
-      score += 7;
+      score += 6;
     }
   }
 
@@ -345,22 +279,36 @@ function getPrimaryEducationSnippet(
 }
 
 /**
+ * Returns a genuinely role-tailored, factually accurate professional headline
+ * for the CV header (never forcing an HVAC-only headline onto Mechanical,
+ * Robotics, Automation, Manufacturing, or General Engineering CVs).
+ */
+export function buildTailoredCvHeadline(
+  profile: ProfileData,
+  tailored: TailoredProfileResult,
+  lang: Language
+): string {
+  if (tailored.isCustomRole && tailored.customTitle.trim()) {
+    return lang === 'ar'
+      ? `مهندس ميكاترونكس | ${tailored.customTitle.trim()}`
+      : `Mechatronics Engineer | ${tailored.customTitle.trim()}`;
+  }
+  const roleHeadline = pickCvText(tailored.position.cvHeadline, lang);
+  return roleHeadline || pickCvText(profile.headline, lang);
+}
+
+/**
  * Dynamically derives a role-tailored professional summary strictly from the
- * verified live portfolio records (profile, education, ranked experience,
- * ranked projects, and ranked skills). Never invents facts or metrics.
+ * verified live portfolio records (education, ranked experience, ranked projects,
+ * and matched competencies). Never uses HVAC-focused summaries for unrelated roles
+ * and never invents responsibilities, achievements, tools, or dates.
  */
 export function buildTailoredCvSummary(
   profile: ProfileData,
   tailored: TailoredProfileResult,
   lang: Language
 ): string {
-  const baseSummary = pickCvText(profile.summary, lang);
   const posId = tailored.position.id;
-
-  if (posId === 'general-engineering' || posId === 'custom') {
-    return baseSummary;
-  }
-
   const eduSnippet = getPrimaryEducationSnippet(tailored.education, lang);
   const topEmployment = tailored.experience.find(
     (e) => e.item.kind === 'employment'
@@ -369,66 +317,96 @@ export function buildTailoredCvSummary(
     ? pickCvText(topEmployment.company, lang)
     : '';
 
-  // Top matched verified skills (pulling actual live skill strings, keeping top 3 from #1 group + 2 from #2 group)
-  const topSkillGroups = tailored.skills.filter(
-    (s) =>
-      s.item.showInCv !== false &&
-      (s.tier === 'strong' || s.tier === 'relevant')
-  );
-  const topSkillNames = topSkillGroups
+  // Pull verified matched competency labels first (guaranteed aligned to target role, zero HVAC bleed!)
+  const verifiedMatchedCompetencies = tailored.compatibility.matchedSkills
+    .filter((s) => posId === 'hvac-design' || s.id !== 'hvac-equipment')
+    .slice(0, 5)
+    .map((s) => pickCvText(s.label, lang));
+
+  // Fallback to top ranked skills if matchedSkills is empty (e.g. niche custom role)
+  const fallbackSkills = tailored.skills
+    .filter((s) => s.item.showInCv !== false)
     .slice(0, 2)
-    .flatMap((s, gIdx) =>
-      rankSkillsWithinGroup(
-        s.item,
-        tailored.position,
-        tailored.selectedSkillIds
-      )
-        .slice(0, gIdx === 0 ? 4 : 2)
+    .flatMap((s) =>
+      rankSkillsWithinGroup(s.item, tailored.position, tailored.selectedSkillIds)
+        .slice(0, 2)
         .map((sk) => pickCvText(sk, lang))
     )
-    .slice(0, 5);
+    .slice(0, 4);
+
+  const chosenSkills =
+    verifiedMatchedCompetencies.length > 0
+      ? verifiedMatchedCompetencies
+      : fallbackSkills;
 
   const topProjects = tailored.projects
-    .filter((p) => p.item.showInCv !== false && (p.tier === 'strong' || p.tier === 'relevant'))
+    .filter(
+      (p) =>
+        p.item.showInCv !== false &&
+        (p.tier === 'strong' || p.tier === 'relevant')
+    )
     .slice(0, 2)
-    .map((p) => pickCvText(p.item.title, lang));
+    .map((p) => pickCvText(p.item.title, lang))
+    .filter(Boolean);
 
-  const skillsStr = listNatural(topSkillNames, lang);
+  const skillsStr = listNatural(chosenSkills, lang);
   const projectsStr = listNatural(topProjects, lang);
 
-  if (!eduSnippet || !skillsStr) {
-    return baseSummary;
+  if (!eduSnippet) {
+    return pickCvText(profile.summary, lang);
   }
 
   if (lang === 'ar') {
     switch (posId) {
       case 'mechanical-design':
-        return `${eduSnippet} مع خبرة عملية في التصميم الميكانيكي وتصميم تجميعات الصاج القابلة للتصنيع${employerName ? ` لدى ${employerName}` : ''}. تشمل الكفاءات الموثّقة ${skillsStr}، مع تطبيق عملي من التصميم الهندسي حتى القطع بليزر CNC والثني${projectsStr ? `، إضافة إلى مشاريع هندسية مثل ${projectsStr}` : ''}.`;
+        return `${eduSnippet} بخبرة عملية في التصميم الميكانيكي والنمذجة ثلاثية الأبعاد وتصميم الصاج والرسومات التصنيعية DXF${employerName ? ` لدى ${employerName}` : ''}. تشمل الكفاءات الموثّقة ${skillsStr}، مع متابعة التحويل من التصميم الهندسي إلى التصنيع الفعلي بالقطع بالليزر CNC والثني والتجميع${projectsStr ? `، إلى جانب مشاريع تصميم هندسي منها ${projectsStr}` : ''}.`;
       case 'hvac-design':
-        return `${eduSnippet} يعمل حالياً كمهندس تصميم معدات التبريد والتكييف وتصميم الصاج${employerName ? ` لدى ${employerName}` : ''}، مع تركيز على التصميم الميكانيكي الهيكلي وأغلفة الصاج والتجميعات الميكانيكية ولوحات التحكم الكهربائية وتجهيز ملفات DXF والقطع بالليزر CNC. تشمل الكفاءات الموثّقة ${skillsStr}.`;
+        return `${eduSnippet} يعمل كمهندس تصميم معدات التبريد والتكييف وتصميم الصاج${employerName ? ` لدى ${employerName}` : ''}، مع تركيز على التصميم الميكانيكي الهيكلي للتشيلرات وغرف التبريد ووحدات التكييف المركزي، وأغلفة الصاج، ولوحات التحكم الكهربائية، وتجهيز ملفات DXF والقطع بالليزر CNC. تشمل الكفاءات الموثّقة ${skillsStr}.`;
       case 'automation-control':
-        return `${eduSnippet} بخبرة عملية في التحكم الصناعي والأتمتة، تشمل ${skillsStr}${employerName ? ` ودعم أعمال لوحات التحكم الكلاسيكي والمهام المرتبطة بـ PLC لخطوط الإنتاج لدى ${employerName}` : ''}${projectsStr ? `، إلى جانب مشاريع تقنية في النمذجة والتحكم مثل ${projectsStr}` : ''}.`;
+        return `${eduSnippet} بخبرة عملية في التحكم الصناعي والأتمتة، تشمل ${skillsStr}${employerName ? ` ودعم تصميم لوحات التحكم الكلاسيكي والتمديدات الكهربائية ودمج الحساسات والمهام المرتبطة بـ PLC لخطوط الإنتاج لدى ${employerName}` : ''}${projectsStr ? `، إضافة إلى مشاريع موثّقة في النمذجة والتحكم مثل ${projectsStr}` : ''}.`;
       case 'robotics-mechatronics':
-        return `${eduSnippet} متخصص في تكامل الأنظمة الميكانيكية والكهربائية والمدمجة للروبوتات الذكية. تشمل المهارات الموثّقة ${skillsStr}${projectsStr ? `، مُطبَّقة في مشاريع هندسية منها ${projectsStr}` : ''}، إلى جانب خبرة صناعية في التصميم الميكانيكي والتحكم.`;
+        return `${eduSnippet} متخصص في تكامل الأنظمة الميكانيكية والكهربائية والمدمجة للروبوتات الذاتية. تشمل الكفاءات الموثّقة ${skillsStr}${projectsStr ? `، مُطبَّقة عملياً في مشاريع هندسية منها ${projectsStr}` : ''}، مدعومة بخبرة صناعية في التصميم الميكانيكي والتحكم.`;
       case 'manufacturing':
-        return `${eduSnippet} مع خبرة مباشرة على خطوط الإنتاج والتصنيع الصناعي${employerName ? ` لدى ${employerName}` : ''} وتدريب صناعي عملي. تتركز المهارات الموثّقة حول ${skillsStr}، بدءاً من تفريد الصاج والتصميم للتصنيع حتى القطع بالليزر والثني والصيانة الدورية.`;
+        return `${eduSnippet} بخبرة مباشرة في تجهيز التصنيع وخطوط الإنتاج${employerName ? ` لدى ${employerName}` : ''} وتدريب صناعي عملي في المصانع. تتركز الكفاءات الموثّقة حول ${skillsStr}، بدءاً من إعداد ملفات DXF وتفريد الأجزاء للقطع بالليزر CNC حتى الثني والدهان والتجميع الميكانيكي والصيانة الدورية.`;
+      case 'general-engineering':
+        return `${eduSnippet} يجمع بين التصميم الميكانيكي وتصميم الصاج، والتصنيع الصناعي بـ CNC، ولوحات التحكم والأتمتة، ومشاريع الروبوتات والأنظمة المدمجة${employerName ? `، مع خبرة عملية حالية لدى ${employerName}` : ''}. تشمل الكفاءات الموثّقة ${skillsStr}.`;
+      case 'custom': {
+        const roleLabel = tailored.customTitle.trim();
+        return `${eduSnippet} بخبرة هندسية موثّقة تشمل ${skillsStr}${employerName ? `، وخبرة عملية لدى ${employerName}` : ''}${projectsStr ? `، ومشاريع هندسية منها ${projectsStr}` : ''}${roleLabel ? `، مع ترتيب السجل لإبراز أقرب الخبرات الموثّقة لدور «${roleLabel}»` : ''}.`;
+      }
       default:
-        return baseSummary;
+        return pickCvText(profile.summary, lang);
     }
   }
 
   switch (posId) {
     case 'mechanical-design':
-      return `${eduSnippet} with hands-on mechanical and sheet metal CAD design experience${employerName ? ` at ${employerName}` : ''}, taking industrial equipment designs through manufacturability, CNC fiber laser cutting, and forming. Core verified capabilities span ${skillsStr}${projectsStr ? `, supported by engineering design work including ${projectsStr}` : ''}.`;
+      return `${eduSnippet} with hands-on mechanical CAD, structural assembly, and sheet metal design experience${employerName ? ` at ${employerName}` : ''}, carrying 3D SolidWorks models through production-ready DXF drawings, CNC laser cutting, bending, and assembly follow-up. Verified capabilities include ${skillsStr}${projectsStr ? `, supported by engineering builds such as ${projectsStr}` : ''}.`;
     case 'hvac-design':
-      return `${eduSnippet} currently specializing as an HVAC Equipment & Sheet Metal Design Engineer${employerName ? ` at ${employerName}` : ''}, focused on mechanical structural design of industrial HVAC and refrigeration equipment, sheet metal enclosures, structural assemblies, electrical control panels, DXF generation, CNC fiber laser cutting, and bending follow-up. Verified capabilities include ${skillsStr}.`;
+      return `${eduSnippet} specializing as an HVAC Equipment & Sheet Metal Design Engineer${employerName ? ` at ${employerName}` : ''}, focused on mechanical structural design for chillers (60–240 TR), cold rooms, and central AC units, alongside sheet metal enclosures, electrical control panels, DXF generation, CNC fiber laser cutting, and production follow-up. Verified capabilities include ${skillsStr}.`;
     case 'automation-control':
-      return `${eduSnippet} with practical experience in industrial control and automation spanning ${skillsStr}${employerName ? `, including classic relay-based control panel work and PLC-related production-line support at ${employerName}` : ''}${projectsStr ? `, complemented by control modeling and embedded engineering projects such as ${projectsStr}` : ''}.`;
+      return `${eduSnippet} with practical industrial control and automation experience covering ${skillsStr}${employerName ? `, including electrical control panel design, wiring, sensor integration, classic relay-based panels, and PLC-related production-line support at ${employerName}` : ''}${projectsStr ? `, complemented by verified control and systems projects such as ${projectsStr}` : ''}.`;
     case 'robotics-mechatronics':
-      return `${eduSnippet} focused on autonomous robotics, kinematics, computer vision, and embedded mechatronic integration. Verified technical capabilities include ${skillsStr}${projectsStr ? `, applied across projects including ${projectsStr}` : ''}, paired with industrial mechanical and control experience.`;
+      return `${eduSnippet} focused on autonomous mobile manipulation, 6-DOF robotic arms, ROS 2, MoveIt 2, embedded motor control, and machine vision. Verified technical capabilities span ${skillsStr}${projectsStr ? `, applied across projects including ${projectsStr}` : ''}, paired with hands-on mechanical and control engineering experience.`;
     case 'manufacturing':
-      return `${eduSnippet} with hands-on production-line experience${employerName ? ` at ${employerName}` : ''} and industrial plant training. Verified capabilities focus on ${skillsStr}, covering sheet metal design-for-manufacturing, nesting, cutting, forming, and routine industrial equipment maintenance.`;
+      return `${eduSnippet} with direct production-preparation and shop-floor manufacturing experience${employerName ? ` at ${employerName}` : ''} plus industrial plant training. Verified capabilities focus on ${skillsStr}, spanning DXF part nesting, CNC fiber laser cutting, sheet metal bending, mechanical assembly follow-up, and routine equipment maintenance.`;
+    case 'general-engineering':
+      return `${eduSnippet} bridging mechanical & sheet metal CAD design, CNC production workflows, industrial control systems, and autonomous robotics${employerName ? `, with hands-on industry experience at ${employerName}` : ''}. Core verified capabilities include ${skillsStr}.`;
+    case 'custom': {
+      const roleLabel = tailored.customTitle.trim();
+      return `${eduSnippet} with verified engineering experience across ${skillsStr}${employerName ? ` at ${employerName}` : ''}${projectsStr ? `, supported by projects including ${projectsStr}` : ''}${roleLabel ? ` — prioritized strictly from verified records for ${roleLabel}` : ''}.`;
+    }
     default:
-      return baseSummary;
+      return pickCvText(profile.summary, lang);
   }
+}
+
+export function formatCvPhoneHref(phone: string): string {
+  return `tel:${phone.replace(/[^+\d]/g, '')}`;
+}
+
+export function formatCvYoutubeDisplay(url: string): string {
+  const match = url.match(/@[^/?]+/);
+  if (match) return `youtube.com/${match[0]}`;
+  return (url.replace(/^https?:\/\/(www\.)?/, '').split('?')[0] ?? url).replace(/\/$/, '');
 }

@@ -7,12 +7,14 @@
   "badge": "Recruiter Mode · Deterministic Matching",
   "entry": {
     "title": "Explore This Profile by Target Engineering Role",
-    "subtitle": "Select a target job position and optional technical focus areas to prioritize verified experience, projects, skills, and certifications — without hiding the complete portfolio or requiring an account.",
+    "subtitle": "Select a target job position and optional technical focus areas to evaluate verified experience, projects, skills, and certifications — without hiding the complete portfolio or requiring an account.",
     "noAccountNote": "No sign-in or recruiter account required · Powered strictly by verified portfolio records",
     "stepRole": "1. Select Target Job Position",
-    "stepCustomPlaceholder": "e.g., HVAC Project Engineer, Maintenance Engineer, Mechatronics R&D...",
+    "stepCustomPlaceholder": "e.g., Mechanical Design Engineer, PLC Automation Engineer, Maintenance Engineer...",
     "stepCustomLabel": "Custom Job Title",
-    "stepCustomHint": "A custom title is used strictly to rank the closest verified records via keyword matching. It does not claim an additional specialization outside the verified profile.",
+    "stepCustomJdLabel": "Paste Job Description (Optional — Deterministic Extraction)",
+    "stepCustomJdPlaceholder": "Paste required and preferred qualifications or responsibilities (e.g., SolidWorks, Sheet Metal, PLC, ANSYS, SCADA)... No external AI is used.",
+    "stepCustomHint": "Requirements are extracted deterministically from your title and pasted job description and compared transparently against verified portfolio records. Missing skills are never invented.",
     "stepSkills": "2. Optional Technical Focus Areas",
     "stepSkillsHint": "Optionally select skills or domains to give extra priority in the tailored view and generated CV.",
     "stepLanguage": "3. Preferred CV Language",
@@ -38,12 +40,35 @@
     "generateCv": "Generate Tailored CV (PDF)",
     "viewFullPortfolio": "View Full Portfolio",
     "quickSwitchLabel": "Switch target role:",
-    "transparencyNote": "Relevance is computed deterministically from verified portfolio records, tags, and technical keywords — never from an arbitrary percentage score or external AI.",
-    "customRoleNotice": "Custom position \"{{role}}\" is used strictly to prioritize the closest verified records in this portfolio. It does not represent an unverified title or claim.",
-    "insufficientMatchNotice": "No direct keyword overlap was found for this custom role in the current portfolio records. Displaying verified engineering records ordered by core priority.",
+    "transparencyNote": "Compatibility and rankings are computed deterministically from verified portfolio records (skills, experience, projects, contributions, education, and courses) — never from external AI.",
+    "customRoleNotice": "Custom position \"{{role}}\" is evaluated strictly against verified portfolio records. Matched, partial, and unverified requirements are shown transparently below.",
+    "customJdFallback": "Custom Job Description",
+    "insufficientMatchNotice": "Limited direct overlap was found for this custom role in the current verified records. Displaying verified engineering records ordered by core priority.",
     "matchedKeywordsLabel": "Matched",
+    "whyMatchedLabel": "Why this matched",
+    "compatibility": {
+      "heading": "Deterministic Profile Alignment",
+      "indexLabel": "Alignment Index",
+      "disclaimer": "Transparent rule-based alignment against verified portfolio records — not a hiring probability or AI prediction.",
+      "weightShort": "Wt {{w}}%",
+      "levels": {
+        "high": "High Alignment",
+        "moderate": "Moderate Alignment",
+        "exploratory": "Exploratory"
+      },
+      "importance": {
+        "required": "Required",
+        "preferred": "Preferred"
+      },
+      "matchedHeading": "Verified Matching Skills",
+      "partialHeading": "Partially Matching / Adjacent",
+      "missingHeading": "Missing / Unverified",
+      "noneFound": "No direct required/preferred competency matches detected yet.",
+      "nonePartial": "No partial/adjacent competencies flagged.",
+      "noneMissing": "All configured requirements for this profile are verified."
+    },
     "sections": {
-      "summary": "Professional Summary",
+      "summary": "Role-Tailored Professional Summary",
       "focusAreas": "Top Matched Verified Areas",
       "skills": "Relevant Technical Skills",
       "experience": "Relevant Experience & Industrial Training",
@@ -62,9 +87,22 @@
   "cv": {
     "eyebrow": "Smart CV Generator · Live Verified Data",
     "title": "Tailored Engineering CV & A4 PDF Export",
-    "subtitle": "Derived directly from verified portfolio records without altering source data. Choose a target role, language, and A4 template, preview live, and export a clean print-ready PDF.",
-    "readOnlyNotice": "Read-only public generator · Source portfolio records cannot be modified here",
-    "controlsHeading": "CV Configuration",
+    "subtitle": "Derived directly from verified portfolio records without altering source data. Choose a target role, customize included content, preview live, and export a clean A4 vector PDF.",
+    "readOnlyNotice": "Read-only public generator · Customizations apply only to your preview & PDF export",
+    "controlsHeading": "CV Studio",
+    "tabs": {
+      "setup": "Setup & Layout",
+      "content": "Customize Content"
+    },
+    "editor": {
+      "summaryLabel": "Edit Professional Summary",
+      "resetSummary": "Reset to Auto",
+      "experienceLabel": "Include / Exclude Experience",
+      "projectsLabel": "Include / Exclude Projects",
+      "skillsLabel": "Include / Exclude Skills",
+      "relevantOnly": "Relevant Only",
+      "selectAll": "Select All"
+    },
     "roleLabel": "Target Job Position",
     "customRoleLabel": "Custom Target Title",
     "customRolePlaceholder": "Optional custom job title...",
@@ -72,15 +110,15 @@
     "templateLabel": "CV Template",
     "templates": {
       "ats": {
-        "name": "ATS Single-Column",
-        "desc": "Clean single-column hierarchy optimized for Applicant Tracking Systems and crisp text parsing."
+        "name": "ATS Professional",
+        "desc": "Clean single-column hierarchy optimized for Applicant Tracking Systems and crisp text extraction."
       },
       "modern": {
         "name": "Modern Engineering",
-        "desc": "Structured Navy & Orange engineering header with clear scannable blocks and ATS-safe text."
+        "desc": "Structured Navy & Orange engineering header with clear scannable blocks and selectable vector text."
       }
     },
-    "sectionsLabel": "Preview Sections",
+    "sectionsLabel": "Section Order & Visibility",
     "sectionNames": {
       "summary": "Professional Summary",
       "experience": "Work Experience & Training",
@@ -97,7 +135,7 @@
     "previewHeading": "Live A4 Document Preview",
     "documentLabels": {
       "en": {
-        "targetFocus": "Tailored Focus",
+        "targetFocus": "Target Role",
         "summary": "Professional Summary",
         "experience": "Experience & Industrial Training",
         "projects": "Engineering Projects",
@@ -111,12 +149,13 @@
         "linkedin": "LinkedIn",
         "github": "GitHub",
         "email": "Email",
+        "phone": "Phone",
         "location": "Location",
         "credentialId": "ID",
         "customNote": "Tailored view prepared from verified engineering records for target role:"
       },
       "ar": {
-        "targetFocus": "التخصص المستهدف",
+        "targetFocus": "الوظيفة المستهدفة",
         "summary": "الملخص المهني",
         "experience": "الخبرات المهنية والتدريب الصناعي",
         "projects": "المشاريع الهندسية",
@@ -130,6 +169,7 @@
         "linkedin": "لينكدإن",
         "github": "جيت هاب",
         "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
         "location": "الموقع",
         "credentialId": "الرمز",
         "customNote": "نسخة مخصصة مبنية من السجلات الهندسية الموثّقة للوظيفة المستهدفة:"

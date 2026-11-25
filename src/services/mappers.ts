@@ -32,6 +32,7 @@ import type {
   MediaAsset,
   MediaCategory,
 } from '@/types/admin';
+import type { RecruiterProfileOverrides } from '@/types/recruiter';
 import { DEFAULT_HOME_SECTIONS_CONFIG } from '@/data/adminMock';
 
 const DEFAULT_CV_SECTION_ORDER: CvSectionConfig[] = [
@@ -277,6 +278,7 @@ export interface SiteSettingsRow {
   default_cv_template?: CvTemplateId | null;
   cv_section_order?: CvSectionConfig[] | null;
   home_sections_config?: Partial<HomeSectionsConfig> | null;
+  recruiter_profiles?: RecruiterProfileOverrides | null;
 }
 
 export interface SpecializationRow {
@@ -457,8 +459,8 @@ export function mapProjectFromRow(
         : [];
   const resolvedGroup: ProjectGroup =
     row.project_group === 'professional' ||
-    row.project_group === 'personal' ||
-    row.project_group === 'academic'
+      row.project_group === 'personal' ||
+      row.project_group === 'academic'
       ? row.project_group
       : 'academic';
 
@@ -915,6 +917,7 @@ export function mapSiteSettingsFromRow(row: SiteSettingsRow): AdminSiteSettings 
         ? row.cv_section_order
         : DEFAULT_CV_SECTION_ORDER,
     homeSections,
+    recruiterProfiles: row.recruiter_profiles ?? undefined,
   };
 }
 
@@ -936,6 +939,7 @@ export function mapSiteSettingsToRow(data: AdminSiteSettings): SiteSettingsRow {
         ? data.cvSectionOrder
         : DEFAULT_CV_SECTION_ORDER,
     home_sections_config: data.homeSections ?? DEFAULT_HOME_SECTIONS_CONFIG,
+    recruiter_profiles: data.recruiterProfiles ?? null,
   };
 }
 

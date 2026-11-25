@@ -1,24 +1,30 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowUpRight,
   Award,
   Briefcase,
   Building2,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  CircleMinus,
   ExternalLink,
   FileDown,
   FolderKanban,
+  Gauge,
   Github,
   GraduationCap,
   Info,
   Linkedin,
   Mail,
   MapPin,
+  Phone,
   SlidersHorizontal,
   Wrench,
+  Youtube,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Container } from '@/components/layout/Container';
@@ -34,9 +40,14 @@ import {
   buildTailoredProfile,
   isValidPositionId,
 } from '@/services/recruiterMatcher';
+import {
+  buildTailoredCvHeadline,
+  buildTailoredCvSummary,
+} from '@/services/cvPresentation';
 import type { Language } from '@/types/portfolio';
 import type { MatchTier, RecruiterPositionId } from '@/types/recruiter';
 import { cn } from '@/utils/cn';
+import { CUSTOM_JD_STORAGE_KEY } from './RecruiterEntryPage';
 
 function TierBadge({ tier }: { tier: MatchTier }) {
   const { t } = useTranslation('recruiter');
@@ -70,6 +81,17 @@ export function RecruiterResultsPage() {
     ? rawRole
     : 'hvac-design';
   const customTitle = searchParams.get('custom') ?? '';
+  const customDescription = useMemo(() => {
+    if (positionId !== 'custom') return '';
+    const fromUrl = searchParams.get('jd');
+    if (fromUrl) return fromUrl;
+    try {
+      return window.sessionStorage.getItem(CUSTOM_JD_STORAGE_KEY) ?? '';
+    } catch {
+      return '';
+    }
+  }, [positionId, searchParams]);
+
   const selectedSkillIds = useMemo(() => {
     const raw = searchParams.get('skills');
     if (!raw) return [];
@@ -78,6 +100,7 @@ export function RecruiterResultsPage() {
       .map((s) => s.trim())
       .filter((id) => RECRUITER_SKILL_FILTERS.some((opt) => opt.id === id));
   }, [searchParams]);
+
   const preferredCvLanguage: Language =
     searchParams.get('lang') === 'ar'
       ? 'ar'
@@ -98,8 +121,10 @@ export function RecruiterResultsPage() {
         {
           positionId,
           customTitle,
+          customDescription,
           selectedSkillIds,
           preferredCvLanguage,
+          profileOverrides: siteSettings.recruiterProfiles,
         }
       ),
     [
@@ -110,13 +135,25 @@ export function RecruiterResultsPage() {
       certifications,
       positionId,
       customTitle,
+      customDescription,
       selectedSkillIds,
       preferredCvLanguage,
+      siteSettings.recruiterProfiles,
     ]
   );
 
   useDocumentTitle(
     `${pick(tailored.displayPositionTitle)} — ${t('recruiter:results.eyebrow')}`
+  );
+
+  const tailoredHeadline = useMemo(
+    () => buildTailoredCvHeadline(profile, tailored, language),
+    [profile, tailored, language]
+  );
+
+  const tailoredSummary = useMemo(
+    () => buildTailoredCvSummary(profile, tailored, language),
+    [profile, tailored, language]
   );
 
   const companyById = useMemo(
@@ -147,21 +184,27 @@ export function RecruiterResultsPage() {
     if (positionId === 'custom' && customTitle.trim()) {
       p.set('custom', customTitle.trim());
     }
+    if (positionId === 'custom' && customDescription.trim().length > 0 && customDescription.trim().length <= 400) {
+      p.set('jd', customDescription.trim());
+    }
     if (selectedSkillIds.length > 0) {
       p.set('skills', selectedSkillIds.join(','));
     }
     p.set('lang', preferredCvLanguage);
     return p.toString();
-  }, [positionId, customTitle, selectedSkillIds, preferredCvLanguage]);
+  }, [positionId, customTitle, customDescription, selectedSkillIds, preferredCvLanguage]);
 
   const handleQuickRoleSwitch = (nextRole: RecruiterPositionId) => {
     const next = new URLSearchParams(searchParams);
     next.set('role', nextRole);
     if (nextRole !== 'custom') {
       next.delete('custom');
+      next.delete('jd');
     }
     setSearchParams(next);
   };
+
+  const { compatibility } = tailored;
 
   return (
     <>
@@ -198,7 +241,7 @@ export function RecruiterResultsPage() {
                   </span>
                 </h1>
                 <p className="text-sm font-medium text-text-secondary sm:text-base">
-                  {pick(profile.headline)} · {pick(profile.location)}
+                  {tailoredHeadline} · {pick(profile.location)}
                 </p>
               </div>
 
@@ -248,12 +291,12 @@ export function RecruiterResultsPage() {
                 <span>{t('recruiter:results.transparencyNote')}</span>
               </div>
 
-              {tailored.isCustomRole && tailored.customTitle && (
+              {tailored.isCustomRole && (tailored.customTitle || tailored.customDescription) && (
                 <div className="flex items-start gap-2.5 rounded-xl border border-accent-border bg-accent-subtle/40 px-4 py-3 text-xs leading-relaxed text-text-primary">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
                   <span>
                     {t('recruiter:results.customRoleNotice', {
-                      role: tailored.customTitle,
+                      role: tailored.customTitle || t('recruiter:results.customJdFallback'),
                     })}
                   </span>
                 </div>
@@ -273,13 +316,204 @@ export function RecruiterResultsPage() {
       {/* Tailored Content Sections */}
       <section className="py-10 sm:py-14">
         <Container className="space-y-10">
-          {/* 1. Professional Summary */}
+          {/* 0. Deterministic Compatibility Assessment & Explainable Breakdown */}
+          <Card className="space-y-6 p-5 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Gauge className="h-5 w-5 text-accent" aria-hidden="true" />
+                  <h2 className="text-lg font-bold text-text-primary sm:text-xl">
+                    {t('recruiter:results.compatibility.heading')}
+                  </h2>
+                  <Badge
+                    variant={
+                      compatibility.level === 'high'
+                        ? 'success'
+                        : compatibility.level === 'moderate'
+                          ? 'accent'
+                          : 'muted'
+                    }
+                  >
+                    {t(`recruiter:results.compatibility.levels.${compatibility.level}`)}
+                  </Badge>
+                </div>
+                <p className="max-w-3xl text-sm leading-relaxed text-text-secondary">
+                  {pick(compatibility.summary)}
+                </p>
+                <p className="text-xs text-text-secondary/80">
+                  {t('recruiter:results.compatibility.disclaimer')}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-4 rounded-2xl border border-accent-border bg-bg-primary px-5 py-4">
+                <div className="text-center">
+                  <div className="font-mono text-3xl font-bold text-accent sm:text-4xl">
+                    {compatibility.overallScore}
+                    <span className="text-base font-normal text-text-secondary">/100</span>
+                  </div>
+                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary">
+                    {t('recruiter:results.compatibility.indexLabel')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 6-Dimension Weighted Breakdown */}
+            <div className="grid gap-3 border-t border-border-default pt-5 sm:grid-cols-2 lg:grid-cols-3">
+              {compatibility.breakdown.map((dim) => (
+                <div
+                  key={dim.key}
+                  className="space-y-1.5 rounded-xl border border-border-default bg-bg-primary p-3.5"
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="font-semibold text-text-primary">
+                      {pick(dim.label)}
+                    </span>
+                    <span className="font-mono text-text-secondary">
+                      {dim.score}% · {t('recruiter:results.compatibility.weightShort', { w: dim.weight })}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-secondary">
+                    <div
+                      className="h-full rounded-full bg-accent transition-all duration-300"
+                      style={{ width: `${dim.score}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-text-secondary">
+                    {pick(dim.evidenceSummary)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Skills Gap & Traceable Evidence Matrix */}
+            {(compatibility.matchedSkills.length > 0 ||
+              compatibility.partialSkills.length > 0 ||
+              compatibility.missingSkills.length > 0) && (
+              <div className="grid gap-4 border-t border-border-default pt-5 lg:grid-cols-3">
+                {/* Verified Matching Skills */}
+                <div className="space-y-2.5 rounded-xl border border-success/30 bg-success-subtle/30 p-4">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-success">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>
+                      {t('recruiter:results.compatibility.matchedHeading')} (
+                      {compatibility.matchedSkills.length})
+                    </span>
+                  </div>
+                  {compatibility.matchedSkills.length > 0 ? (
+                    <ul className="space-y-2">
+                      {compatibility.matchedSkills.map((skill) => (
+                        <li
+                          key={skill.id}
+                          className="rounded-lg border border-border-default bg-bg-primary/90 p-2.5 text-xs"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-text-primary">
+                              {pick(skill.label)}
+                            </span>
+                            <span className="rounded bg-bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
+                              {t(`recruiter:results.compatibility.importance.${skill.importance}`)}
+                            </span>
+                          </div>
+                          {skill.evidenceSources.length > 0 && (
+                            <p className="mt-1 text-[11px] text-text-secondary">
+                              {skill.evidenceSources.map((src) => pick(src)).join(' · ')}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-text-secondary">
+                      {t('recruiter:results.compatibility.noneFound')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Partially Matching Skills */}
+                <div className="space-y-2.5 rounded-xl border border-accent-border bg-accent-subtle/20 p-4">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent">
+                    <CircleMinus className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>
+                      {t('recruiter:results.compatibility.partialHeading')} (
+                      {compatibility.partialSkills.length})
+                    </span>
+                  </div>
+                  {compatibility.partialSkills.length > 0 ? (
+                    <ul className="space-y-2">
+                      {compatibility.partialSkills.map((skill) => (
+                        <li
+                          key={skill.id}
+                          className="rounded-lg border border-border-default bg-bg-primary/90 p-2.5 text-xs"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-text-primary">
+                              {pick(skill.label)}
+                            </span>
+                            <span className="rounded bg-bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
+                              {t(`recruiter:results.compatibility.importance.${skill.importance}`)}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[11px] text-text-secondary">
+                            {pick(skill.explanation)}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-text-secondary">
+                      {t('recruiter:results.compatibility.nonePartial')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Missing / Unverified Requirements */}
+                <div className="space-y-2.5 rounded-xl border border-border-default bg-bg-primary p-4">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-text-secondary" aria-hidden="true" />
+                    <span>
+                      {t('recruiter:results.compatibility.missingHeading')} (
+                      {compatibility.missingSkills.length})
+                    </span>
+                  </div>
+                  {compatibility.missingSkills.length > 0 ? (
+                    <ul className="space-y-2">
+                      {compatibility.missingSkills.map((skill) => (
+                        <li
+                          key={skill.id}
+                          className="rounded-lg border border-border-default bg-bg-secondary/60 p-2.5 text-xs"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-text-primary">
+                              {pick(skill.label)}
+                            </span>
+                            <span className="rounded bg-bg-primary px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
+                              {t(`recruiter:results.compatibility.importance.${skill.importance}`)}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[11px] text-text-secondary">
+                            {pick(skill.explanation)}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-text-secondary">
+                      {t('recruiter:results.compatibility.noneMissing')}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* 1. Role-Tailored Professional Summary */}
           <Card className="space-y-4 p-6">
             <h2 className="text-lg font-bold text-text-primary sm:text-xl">
               {t('recruiter:results.sections.summary')}
             </h2>
             <p className="text-sm leading-relaxed text-text-secondary sm:text-[15px]">
-              {pick(profile.summary)}
+              {tailoredSummary}
             </p>
             {tailored.matchedFocusAreas.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 border-t border-border-default pt-4">
@@ -305,7 +539,7 @@ export function RecruiterResultsPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {tailored.skills.map(({ item: group, tier, matchedKeywords }) => (
+              {tailored.skills.map(({ item: group, tier, matchReasons }) => (
                 <Card
                   key={group.id}
                   className={cn(
@@ -339,12 +573,12 @@ export function RecruiterResultsPage() {
                       ))}
                     </div>
                   </div>
-                  {matchedKeywords.length > 0 && (
-                    <p className="border-t border-border-default pt-2.5 font-mono text-[11px] text-text-secondary">
-                      <span className="text-accent">
-                        {t('recruiter:results.matchedKeywordsLabel')}:
+                  {matchReasons.length > 0 && (
+                    <p className="border-t border-border-default pt-2.5 text-xs text-text-secondary">
+                      <span className="font-semibold text-accent">
+                        {t('recruiter:results.whyMatchedLabel')}:
                       </span>{' '}
-                      {matchedKeywords.join(' · ')}
+                      {matchReasons.map((r) => pick(r)).join(' · ')}
                     </p>
                   )}
                 </Card>
@@ -362,7 +596,7 @@ export function RecruiterResultsPage() {
             </div>
 
             <div className="space-y-4">
-              {tailored.experience.map(({ item: exp, tier, matchedKeywords }) => {
+              {tailored.experience.map(({ item: exp, tier, matchReasons }) => {
                 const linkedCompany = exp.companyId
                   ? companyById.get(exp.companyId)
                   : undefined;
@@ -414,12 +648,12 @@ export function RecruiterResultsPage() {
                       ))}
                     </ul>
 
-                    {matchedKeywords.length > 0 && (
-                      <p className="border-t border-border-default pt-3 font-mono text-[11px] text-text-secondary">
-                        <span className="text-accent">
-                          {t('recruiter:results.matchedKeywordsLabel')}:
+                    {matchReasons.length > 0 && (
+                      <p className="border-t border-border-default pt-3 text-xs text-text-secondary">
+                        <span className="font-semibold text-accent">
+                          {t('recruiter:results.whyMatchedLabel')}:
                         </span>{' '}
-                        {matchedKeywords.join(' · ')}
+                        {matchReasons.map((r) => pick(r)).join(' · ')}
                       </p>
                     )}
                   </Card>
@@ -446,7 +680,7 @@ export function RecruiterResultsPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {displayedPrimaryProjects.map(({ item: project, tier, matchedKeywords }) => (
+              {displayedPrimaryProjects.map(({ item: project, tier, matchReasons }) => (
                 <Card
                   key={project.id}
                   className={cn(
@@ -464,9 +698,11 @@ export function RecruiterResultsPage() {
                     <h3 className="text-base font-bold text-text-primary sm:text-lg">
                       {pick(project.title)}
                     </h3>
-                    <p className="text-sm leading-relaxed text-text-secondary">
-                      {pick(project.shortDescription)}
-                    </p>
+                    {pick(project.shortDescription) && (
+                      <p className="text-sm leading-relaxed text-text-secondary">
+                        {pick(project.shortDescription)}
+                      </p>
+                    )}
                     <div className="flex flex-wrap gap-1.5">
                       {project.technologies.slice(0, 6).map((tech) => (
                         <span
@@ -480,12 +716,12 @@ export function RecruiterResultsPage() {
                   </div>
 
                   <div className="space-y-2.5 border-t border-border-default pt-3">
-                    {matchedKeywords.length > 0 && (
-                      <p className="font-mono text-[11px] text-text-secondary">
-                        <span className="text-accent">
-                          {t('recruiter:results.matchedKeywordsLabel')}:
+                    {matchReasons.length > 0 && (
+                      <p className="text-xs text-text-secondary">
+                        <span className="font-semibold text-accent">
+                          {t('recruiter:results.whyMatchedLabel')}:
                         </span>{' '}
-                        {matchedKeywords.join(' · ')}
+                        {matchReasons.map((r) => pick(r)).join(' · ')}
                       </p>
                     )}
                     <Link
@@ -543,9 +779,11 @@ export function RecruiterResultsPage() {
                           <h3 className="text-base font-semibold text-text-primary">
                             {pick(project.title)}
                           </h3>
-                          <p className="text-xs leading-relaxed text-text-secondary">
-                            {pick(project.shortDescription)}
-                          </p>
+                          {pick(project.shortDescription) && (
+                            <p className="text-xs leading-relaxed text-text-secondary">
+                              {pick(project.shortDescription)}
+                            </p>
+                          )}
                         </div>
                         <Link
                           to={`/portfolio/${project.slug}`}
@@ -613,7 +851,7 @@ export function RecruiterResultsPage() {
                   </h2>
                 </div>
                 <div className="space-y-3">
-                  {tailored.certifications.map(({ item: cert, tier }) => (
+                  {tailored.certifications.map(({ item: cert, tier, matchReasons }) => (
                     <Card key={cert.id} className="space-y-2 p-4">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <h3 className="text-sm font-bold text-text-primary">
@@ -624,6 +862,14 @@ export function RecruiterResultsPage() {
                       <p className="text-xs text-text-secondary">
                         {pick(cert.category)} · {pick(cert.issuer)}
                       </p>
+                      {matchReasons.length > 0 && (
+                        <p className="text-[11px] text-text-secondary">
+                          <span className="font-semibold text-accent">
+                            {t('recruiter:results.whyMatchedLabel')}:
+                          </span>{' '}
+                          {matchReasons.map((r) => pick(r)).join(' · ')}
+                        </p>
+                      )}
                       {cert.credentialUrl && (
                         <a
                           href={cert.credentialUrl}
@@ -653,16 +899,29 @@ export function RecruiterResultsPage() {
                   <MapPin className="h-4 w-4 text-accent" aria-hidden="true" />
                   <span>{pick(profile.location)}</span>
                 </span>
-                {siteSettings.showContactEmail && (
+                {siteSettings.showContactEmail && profile.contact.email && (
                   <a
                     href={`mailto:${profile.contact.email}`}
                     className="inline-flex items-center gap-1.5 hover:text-accent"
                   >
                     <Mail className="h-4 w-4 text-accent" aria-hidden="true" />
-                    <span className="font-mono text-xs">{profile.contact.email}</span>
+                    <span className="font-mono text-xs" dir="ltr">
+                      {profile.contact.email}
+                    </span>
                   </a>
                 )}
-                {siteSettings.showLinkedinLink && (
+                {profile.contact.phone?.trim() && (
+                  <a
+                    href={`tel:${profile.contact.phone.replace(/[^+\d]/g, '')}`}
+                    className="inline-flex items-center gap-1.5 hover:text-accent"
+                  >
+                    <Phone className="h-4 w-4 text-accent" aria-hidden="true" />
+                    <span className="font-mono text-xs" dir="ltr">
+                      {profile.contact.phone.trim()}
+                    </span>
+                  </a>
+                )}
+                {siteSettings.showLinkedinLink && profile.contact.linkedinUrl && (
                   <a
                     href={profile.contact.linkedinUrl}
                     target="_blank"
@@ -673,9 +932,20 @@ export function RecruiterResultsPage() {
                     <span>{t('common:footer.linkedinLabel')}</span>
                   </a>
                 )}
-                {profile.contact.githubUrl && (
+                {profile.contact.youtubeUrl?.trim() && (
                   <a
-                    href={profile.contact.githubUrl}
+                    href={profile.contact.youtubeUrl.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 hover:text-accent"
+                  >
+                    <Youtube className="h-4 w-4 text-accent" aria-hidden="true" />
+                    <span>{t('common:footer.youtubeLabel')}</span>
+                  </a>
+                )}
+                {profile.contact.githubUrl?.trim() && (
+                  <a
+                    href={profile.contact.githubUrl.trim()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 hover:text-accent"

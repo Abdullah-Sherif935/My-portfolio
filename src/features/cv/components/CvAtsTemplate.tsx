@@ -2,8 +2,10 @@ import type { CvSectionConfig } from '@/types/admin';
 import type { Language, ProfileData } from '@/types/portfolio';
 import type { TailoredProfileResult } from '@/types/recruiter';
 import {
+  buildTailoredCvHeadline,
   buildTailoredCvSummary,
   formatCvGrade,
+  formatCvPhoneHref,
   getDistinctProjectDeliverables,
   isCvPlaceholderText,
   pickCvText,
@@ -26,9 +28,18 @@ export interface CvDocumentLabels {
   linkedin: string;
   github: string;
   email: string;
+  phone?: string;
   location: string;
   credentialId: string;
   customNote: string;
+}
+
+export interface CvTemplateCustomizations {
+  customSummary?: string | null;
+  excludedExperienceIds?: string[];
+  excludedProjectIds?: string[];
+  excludedSkillGroupIds?: string[];
+  excludedSkillKeys?: string[];
 }
 
 export interface CvTemplateProps {
@@ -40,6 +51,7 @@ export interface CvTemplateProps {
   showContactEmail: boolean;
   showLinkedinLink: boolean;
   showCoursesSection: boolean;
+  customizations?: CvTemplateCustomizations;
 }
 
 export function CvAtsTemplate({
@@ -51,22 +63,31 @@ export function CvAtsTemplate({
   showContactEmail,
   showLinkedinLink,
   showCoursesSection,
+  customizations,
 }: CvTemplateProps) {
   const isRtl = cvLanguage === 'ar';
+  const excludedExp = new Set(customizations?.excludedExperienceIds ?? []);
+  const excludedProj = new Set(customizations?.excludedProjectIds ?? []);
+  const excludedSkillGroups = new Set(customizations?.excludedSkillGroupIds ?? []);
+  const excludedSkillKeys = new Set(customizations?.excludedSkillKeys ?? []);
+
   const visibleExperience = tailored.experience.filter(
-    (e) => e.item.showInCv !== false
+    (e) => e.item.showInCv !== false && !excludedExp.has(e.item.id)
   );
   const visibleProjects = tailored.projects.filter(
-    (p) => p.item.showInCv !== false
+    (p) => p.item.showInCv !== false && !excludedProj.has(p.item.id)
   );
   const visibleSkills = tailored.skills.filter(
-    (s) => s.item.showInCv !== false
+    (s) => s.item.showInCv !== false && !excludedSkillGroups.has(s.item.id)
   );
   const visibleCerts = showCoursesSection
     ? tailored.certifications.filter((c) => c.item.showInCv !== false)
     : [];
 
-  const summaryText = buildTailoredCvSummary(profile, tailored, cvLanguage);
+  const headlineText = buildTailoredCvHeadline(profile, tailored, cvLanguage);
+  const summaryText =
+    customizations?.customSummary?.trim() ||
+    buildTailoredCvSummary(profile, tailored, cvLanguage);
 
   const portfolioHref = profile.contact.websiteDisplay.startsWith('http')
     ? profile.contact.websiteDisplay
@@ -76,15 +97,15 @@ export function CvAtsTemplate({
     switch (sectionKey) {
       case 'summary':
         return (
-          <section key="summary" className="cv-section cv-section-keep space-y-1.5">
-            <h2 className="cv-section-heading border-b border-slate-300 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-900 uppercase">
+          <section key="summary" className="cv-section space-y-1.5">
+            <h2 className="cv-section-heading border-b border-slate-400 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-950 uppercase">
               {labels.summary}
             </h2>
-            <p className="text-[9.4pt] leading-[1.52] text-slate-800">
+            <p className="cv-entry-block text-[9.3pt] leading-[1.52] text-slate-800">
               {summaryText}
             </p>
             {tailored.isCustomRole && tailored.customTitle && (
-              <p className="text-[8.4pt] text-slate-600 italic">
+              <p className="text-[8.3pt] text-slate-600 italic">
                 {labels.customNote} {tailored.customTitle}
               </p>
             )}
@@ -95,10 +116,10 @@ export function CvAtsTemplate({
         if (visibleExperience.length === 0) return null;
         return (
           <section key="experience" className="cv-section space-y-2">
-            <h2 className="cv-section-heading border-b border-slate-300 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-900 uppercase">
+            <h2 className="cv-section-heading border-b border-slate-400 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-950 uppercase">
               {labels.experience}
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {visibleExperience.map(({ item: exp }) => {
                 const orderedResponsibilities = rankExperienceResponsibilities(
                   exp,
@@ -108,7 +129,7 @@ export function CvAtsTemplate({
                 return (
                   <article key={exp.id} className="cv-entry-block space-y-1">
                     <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="text-[9.8pt] font-bold text-slate-900">
+                      <h3 className="text-[9.8pt] font-bold text-slate-950">
                         {pickCvText(exp.role, cvLanguage)}
                       </h3>
                       <span className="shrink-0 text-[8.5pt] font-medium text-slate-600">
@@ -122,7 +143,7 @@ export function CvAtsTemplate({
                         : ''}
                     </p>
                     {orderedResponsibilities.length > 0 && (
-                      <ul className="list-disc space-y-1 ps-4 text-[9pt] leading-[1.48] text-slate-800">
+                      <ul className="list-disc space-y-0.5 ps-4 text-[9pt] leading-[1.46] text-slate-800">
                         {orderedResponsibilities.map((resp, idx) => (
                           <li key={idx}>{pickCvText(resp, cvLanguage)}</li>
                         ))}
@@ -139,15 +160,16 @@ export function CvAtsTemplate({
         if (visibleProjects.length === 0) return null;
         return (
           <section key="projects" className="cv-section space-y-2">
-            <h2 className="cv-section-heading border-b border-slate-300 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-900 uppercase">
+            <h2 className="cv-section-heading border-b border-slate-400 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-950 uppercase">
               {labels.projects}
             </h2>
             <div className="space-y-2.5">
               {visibleProjects.map(({ item: project, tier }) => {
+                const shortDesc = pickCvText(project.shortDescription, cvLanguage);
                 const distinctDeliverables = getDistinctProjectDeliverables(
                   project,
                   cvLanguage,
-                  tier === 'supporting' ? 0 : 3
+                  tier === 'supporting' ? 1 : 3
                 );
                 const isCompactSupporting =
                   tailored.position.id !== 'general-engineering' &&
@@ -159,10 +181,10 @@ export function CvAtsTemplate({
                       key={project.id}
                       className="cv-entry-block text-[8.9pt] leading-[1.46] text-slate-700"
                     >
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-slate-950">
                         <bdi>{pickCvText(project.title, cvLanguage)}</bdi>
-                      </span>{' '}
-                      — {pickCvText(project.shortDescription, cvLanguage)}
+                      </span>
+                      {shortDesc ? ` — ${shortDesc}` : ''}
                       {project.technologies.length > 0 && (
                         <span className="text-[8.3pt] text-slate-600">
                           {' '}
@@ -176,18 +198,20 @@ export function CvAtsTemplate({
                 return (
                   <article key={project.id} className="cv-entry-block space-y-1">
                     <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="text-[9.7pt] font-bold text-slate-900">
+                      <h3 className="text-[9.7pt] font-bold text-slate-950">
                         <bdi>{pickCvText(project.title, cvLanguage)}</bdi>
                       </h3>
                       <span className="shrink-0 text-[8.4pt] text-slate-600">
                         {pickCvText(project.kindLabel, cvLanguage)}
                       </span>
                     </div>
-                    <p className="text-[9pt] leading-[1.46] text-slate-800">
-                      {pickCvText(project.shortDescription, cvLanguage)}
-                    </p>
+                    {shortDesc && (
+                      <p className="text-[9pt] leading-[1.45] text-slate-800">
+                        {shortDesc}
+                      </p>
+                    )}
                     {distinctDeliverables.length > 0 && (
-                      <ul className="list-disc space-y-0.5 ps-4 text-[8.8pt] leading-[1.44] text-slate-700">
+                      <ul className="list-disc space-y-0.5 ps-4 text-[8.8pt] leading-[1.43] text-slate-700">
                         {distinctDeliverables.map((delivText, idx) => (
                           <li key={idx}>{delivText}</li>
                         ))}
@@ -208,40 +232,46 @@ export function CvAtsTemplate({
           </section>
         );
 
-      case 'skills':
+      case 'skills': {
         if (visibleSkills.length === 0) return null;
+        const renderedGroups = visibleSkills
+          .map(({ item: group }) => {
+            const orderedSkills = rankSkillsWithinGroup(
+              group,
+              tailored.position,
+              tailored.selectedSkillIds
+            ).filter((sk) => !excludedSkillKeys.has(`${group.id}::${sk.en}`));
+            return { group, orderedSkills };
+          })
+          .filter((entry) => entry.orderedSkills.length > 0);
+
+        if (renderedGroups.length === 0 && profile.languages.length === 0) return null;
+
         return (
-          <section key="skills" className="cv-section cv-section-keep space-y-2">
-            <h2 className="cv-section-heading border-b border-slate-300 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-900 uppercase">
+          <section key="skills" className="cv-section space-y-1.5">
+            <h2 className="cv-section-heading border-b border-slate-400 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-950 uppercase">
               {labels.skills}
             </h2>
             <div className="space-y-1.5">
-              {visibleSkills.map(({ item: group }) => {
-                const orderedSkills = rankSkillsWithinGroup(
-                  group,
-                  tailored.position,
-                  tailored.selectedSkillIds
-                );
-                return (
-                  <p
-                    key={group.id}
-                    className="cv-entry-block text-[9pt] leading-[1.48] text-slate-800"
-                  >
-                    <span className="font-bold text-slate-900">
-                      {pickCvText(group.title, cvLanguage)}:
-                    </span>{' '}
-                    {orderedSkills.map((s, idx) => (
-                      <span key={idx}>
-                        {idx > 0 ? ' · ' : ''}
-                        <bdi>{pickCvText(s, cvLanguage)}</bdi>
-                      </span>
-                    ))}
-                  </p>
-                );
-              })}
+              {renderedGroups.map(({ group, orderedSkills }) => (
+                <p
+                  key={group.id}
+                  className="cv-entry-block text-[9pt] leading-[1.46] text-slate-800"
+                >
+                  <span className="font-bold text-slate-950">
+                    {pickCvText(group.title, cvLanguage)}:
+                  </span>{' '}
+                  {orderedSkills.map((s, idx) => (
+                    <span key={idx}>
+                      {idx > 0 ? ' · ' : ''}
+                      <bdi>{pickCvText(s, cvLanguage)}</bdi>
+                    </span>
+                  ))}
+                </p>
+              ))}
               {profile.languages.length > 0 && (
-                <p className="cv-entry-block text-[9pt] leading-[1.48] text-slate-800">
-                  <span className="font-bold text-slate-900">
+                <p className="cv-entry-block text-[9pt] leading-[1.46] text-slate-800">
+                  <span className="font-bold text-slate-950">
                     {labels.languages}:
                   </span>{' '}
                   {profile.languages
@@ -255,12 +285,13 @@ export function CvAtsTemplate({
             </div>
           </section>
         );
+      }
 
       case 'education':
         if (tailored.education.length === 0) return null;
         return (
-          <section key="education" className="cv-section cv-section-keep space-y-2">
-            <h2 className="cv-section-heading border-b border-slate-300 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-900 uppercase">
+          <section key="education" className="cv-section space-y-1.5">
+            <h2 className="cv-section-heading border-b border-slate-400 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-950 uppercase">
               {labels.education}
             </h2>
             <div className="space-y-1.5">
@@ -271,7 +302,7 @@ export function CvAtsTemplate({
                 return (
                   <article key={edu.id} className="cv-entry-block space-y-0.5">
                     <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="text-[9.7pt] font-bold text-slate-900">
+                      <h3 className="text-[9.7pt] font-bold text-slate-950">
                         {pickCvText(edu.degree, cvLanguage)}
                       </h3>
                       <span className="shrink-0 text-[8.5pt] font-medium text-slate-600">
@@ -292,14 +323,11 @@ export function CvAtsTemplate({
       case 'certifications':
         if (visibleCerts.length === 0) return null;
         return (
-          <section
-            key="certifications"
-            className="cv-section cv-section-keep space-y-1.5"
-          >
-            <h2 className="cv-section-heading border-b border-slate-300 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-900 uppercase">
+          <section key="certifications" className="cv-section space-y-1.5">
+            <h2 className="cv-section-heading border-b border-slate-400 pb-1 text-[10.5pt] font-bold tracking-wide text-slate-950 uppercase">
               {labels.certifications}
             </h2>
-            <ul className="space-y-1 text-[9pt] leading-[1.46] text-slate-800">
+            <ul className="space-y-1 text-[9pt] leading-[1.45] text-slate-800">
               {visibleCerts.map(({ item: cert }) => {
                 const issuerText = pickCvText(cert.issuer, cvLanguage);
                 const dateText = pickCvText(cert.issueDate, cvLanguage);
@@ -314,7 +342,7 @@ export function CvAtsTemplate({
                 }
                 return (
                   <li key={cert.id} className="cv-entry-block">
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold text-slate-950">
                       <bdi>{pickCvText(cert.title, cvLanguage)}</bdi>
                     </span>
                     {metaParts.length > 0 && (
@@ -352,31 +380,35 @@ export function CvAtsTemplate({
       className="cv-print-sheet mx-auto w-full max-w-[210mm] rounded-lg border border-slate-200 bg-white p-6 text-slate-900 shadow-lg sm:p-9 print:max-w-none print:rounded-none print:border-0 print:bg-white print:p-0 print:shadow-none"
     >
       {/* ATS Single-Column Header */}
-      <header className="mb-4 border-b-2 border-slate-900 pb-3 text-center print:mb-4 print:pb-2.5">
+      <header className="mb-4 border-b-2 border-slate-900 pb-3 text-center print:mb-3.5 print:pb-2.5">
         <h1 className="text-[18pt] font-bold leading-tight text-slate-950">
           {pickCvText(profile.fullName, cvLanguage)}
         </h1>
-        <p className="mt-1 text-[10pt] font-semibold text-slate-700">
-          {pickCvText(profile.headline, cvLanguage)}
-          {tailored.position.id !== 'general-engineering' && (
-            <span className="font-normal text-slate-600">
-              {' '}
-              | {labels.targetFocus}:{' '}
-              {pickCvText(tailored.displayPositionTitle, cvLanguage)}
-            </span>
-          )}
+        <p className="mt-1 text-[9.8pt] font-semibold text-slate-700">
+          {headlineText}
         </p>
 
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[8.6pt] text-slate-700">
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-[8.5pt] text-slate-700">
           <span>{pickCvText(profile.location, cvLanguage)}</span>
           {showContactEmail && profile.contact.email && (
             <>
               <span aria-hidden="true">·</span>
               <a
                 href={`mailto:${profile.contact.email}`}
-                className="text-slate-800 underline decoration-slate-400"
+                className="text-slate-900 underline decoration-slate-400"
               >
                 <bdi>{profile.contact.email}</bdi>
+              </a>
+            </>
+          )}
+          {profile.contact.phone?.trim() && (
+            <>
+              <span aria-hidden="true">·</span>
+              <a
+                href={formatCvPhoneHref(profile.contact.phone)}
+                className="text-slate-900 underline decoration-slate-400"
+              >
+                <bdi>{profile.contact.phone.trim()}</bdi>
               </a>
             </>
           )}
@@ -387,20 +419,20 @@ export function CvAtsTemplate({
                 href={profile.contact.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-800 underline decoration-slate-400"
+                className="text-slate-900 underline decoration-slate-400"
               >
                 {labels.linkedin}: <bdi>{profile.contact.linkedinDisplay}</bdi>
               </a>
             </>
           )}
-          {profile.contact.githubUrl && (
+          {profile.contact.githubUrl?.trim() && (
             <>
               <span aria-hidden="true">·</span>
               <a
-                href={profile.contact.githubUrl}
+                href={profile.contact.githubUrl.trim()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-800 underline decoration-slate-400"
+                className="text-slate-900 underline decoration-slate-400"
               >
                 {labels.github}
               </a>
@@ -413,7 +445,7 @@ export function CvAtsTemplate({
                 href={portfolioHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-800 underline decoration-slate-400"
+                className="text-slate-900 underline decoration-slate-400"
               >
                 <bdi>{profile.contact.websiteDisplay}</bdi>
               </a>
@@ -423,7 +455,7 @@ export function CvAtsTemplate({
       </header>
 
       {/* Ordered CV Body Sections */}
-      <div className="space-y-4 print:space-y-3.5">
+      <div className="space-y-3.5 print:space-y-3">
         {sections
           .filter((sec) => sec.visible)
           .map((sec) => renderSection(sec.key))}
