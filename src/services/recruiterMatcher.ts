@@ -1001,6 +1001,7 @@ function evaluateItemAgainstProfile(params: {
   score: number;
   rawScore: number;
   directHits: number;
+  requiredDirectHits: number;
   matchedKeywords: string[];
   matchReasons: LocalizedText[];
 } {
@@ -1026,6 +1027,7 @@ function evaluateItemAgainstProfile(params: {
 
   let score = 0;
   let directHits = 0;
+  let requiredDirectHits = 0;
 
   // Deduplicated concept scoring: each requirement ID is scored at most ONCE per item
   for (const reqSkill of requiredSkills) {
@@ -1035,6 +1037,7 @@ function evaluateItemAgainstProfile(params: {
       matchedConceptIds.add(reqSkill.id);
       score += isGeneral ? 5 : 10;
       directHits += 1;
+      requiredDirectHits += 1;
       matchedReqLabels.push(reqSkill.label);
     } else if (hit === 'partial') {
       matchedConceptIds.add(reqSkill.id);
@@ -1072,6 +1075,7 @@ function evaluateItemAgainstProfile(params: {
   if (categoryMatch && !isGeneral) {
     score += 7;
     directHits += 1;
+    requiredDirectHits += 1;
   }
 
   const reasons: LocalizedText[] = [];
@@ -1112,6 +1116,7 @@ function evaluateItemAgainstProfile(params: {
     score: finalScore,
     rawScore: score,
     directHits,
+    requiredDirectHits,
     matchedKeywords,
     matchReasons: reasons,
   };
@@ -1120,6 +1125,7 @@ function evaluateItemAgainstProfile(params: {
 function classifyTier(
   rawScore: number,
   directHits: number,
+  requiredDirectHits: number,
   isGeneral: boolean,
   cvPriority: number
 ): MatchTier {
@@ -1129,8 +1135,8 @@ function classifyTier(
     return 'supporting';
   }
   if (!directHits) return 'supporting';
-  if (rawScore >= 17 || directHits >= 2) return 'strong';
-  if (rawScore >= 10) return 'relevant';
+  if (rawScore >= 17 || (requiredDirectHits >= 1 && directHits >= 2)) return 'strong';
+  if (requiredDirectHits >= 1 || directHits >= 2) return 'relevant';
   return 'supporting';
 }
 
@@ -1233,7 +1239,7 @@ export function buildTailoredProfile(
 
       return {
         item: exp,
-        tier: classifyTier(res.rawScore, res.directHits, isGeneral, exp.cvPriority ?? 50),
+        tier: classifyTier(res.rawScore, res.directHits, res.requiredDirectHits, isGeneral, exp.cvPriority ?? 50),
         score: res.score,
         matchedKeywords: res.matchedKeywords,
         matchReasons: res.matchReasons,
@@ -1286,7 +1292,7 @@ export function buildTailoredProfile(
 
       return {
         item: project,
-        tier: classifyTier(res.rawScore, res.directHits, isGeneral, project.cvPriority ?? 50),
+        tier: classifyTier(res.rawScore, res.directHits, res.requiredDirectHits, isGeneral, project.cvPriority ?? 50),
         score: res.score,
         matchedKeywords: res.matchedKeywords,
         matchReasons: res.matchReasons,
@@ -1321,7 +1327,7 @@ export function buildTailoredProfile(
 
       return {
         item: group,
-        tier: classifyTier(res.rawScore, res.directHits, isGeneral, group.cvPriority ?? 50),
+        tier: classifyTier(res.rawScore, res.directHits, res.requiredDirectHits, isGeneral, group.cvPriority ?? 50),
         score: res.score,
         matchedKeywords: res.matchedKeywords,
         matchReasons: res.matchReasons,
@@ -1356,7 +1362,7 @@ export function buildTailoredProfile(
 
       return {
         item: cert,
-        tier: classifyTier(res.rawScore, res.directHits, isGeneral, 60),
+        tier: classifyTier(res.rawScore, res.directHits, res.requiredDirectHits, isGeneral, 60),
         score: res.score,
         matchedKeywords: res.matchedKeywords,
         matchReasons: res.matchReasons,
