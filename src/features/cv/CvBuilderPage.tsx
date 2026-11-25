@@ -67,6 +67,7 @@ export function CvBuilderPage() {
   useDocumentTitle(t('recruiter:meta.cvBuilderTitle'));
 
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('setup');
+  const [pageCount, setPageCount] = useState<number>(1);
 
   const initialRoleParam = searchParams.get('role');
   const [positionId, setPositionId] = useState<RecruiterPositionId>(
@@ -845,11 +846,11 @@ export function CvBuilderPage() {
                   {t('recruiter:cv.previewHeading')}
                 </span>
                 <span className="font-mono text-xs text-text-secondary" dir="ltr">
-                  210 × 297 mm · A4
+                  210 × 297 mm · A4 · {pageCount} {pageCount === 1 ? 'Page' : 'Pages'}
                 </span>
               </div>
 
-              <div className="overflow-x-auto rounded-2xl border border-border-default bg-bg-secondary/60 p-3 sm:p-6 print:overflow-visible print:rounded-none print:border-0 print:bg-white print:p-0">
+              <div className="overflow-hidden rounded-2xl border border-border-default bg-bg-secondary/60 p-3 sm:p-6 print:overflow-visible print:rounded-none print:border-0 print:bg-white print:p-0">
                 {template === 'modern' ? (
                   <CvModernTemplate
                     profile={profile}
@@ -861,6 +862,7 @@ export function CvBuilderPage() {
                     showLinkedinLink={siteSettings.showLinkedinLink}
                     showCoursesSection={siteSettings.showCoursesSection}
                     customizations={customizations}
+                    onPageCountChange={setPageCount}
                   />
                 ) : (
                   <CvAtsTemplate
@@ -873,6 +875,7 @@ export function CvBuilderPage() {
                     showLinkedinLink={siteSettings.showLinkedinLink}
                     showCoursesSection={siteSettings.showCoursesSection}
                     customizations={customizations}
+                    onPageCountChange={setPageCount}
                   />
                 )}
               </div>

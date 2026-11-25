@@ -104,20 +104,14 @@ html[lang='ar'] .font-mono {
 }
 
 /* ============================================================================
-   Phase 14 — Client-Side A4 Multi-Page Vector Print-to-PDF Rules
-   Pure white A4 paper canvas, clean pagination, no orphaned headings,
-   no clipped blocks, and automatic page numbering on multi-page CVs.
+   Phase 14 — WYSIWYG A4 Multi-Page Vector Print-to-PDF Rules
+   Each .cv-a4-page is an exact 210mm × 297mm sheet with built-in margins
+   (12mm 13mm 15mm 13mm) and page counter, so Live Preview matches PDF 1-to-1.
    ============================================================================ */
 @page {
   size: A4 portrait;
-  margin: 12mm 13mm 15mm 13mm;
+  margin: 0;
   background: #ffffff;
-  @bottom-right {
-    content: counter(page) " / " counter(pages);
-    font-family: Inter, system-ui, sans-serif;
-    font-size: 8pt;
-    color: #64748b;
-  }
 }
 
 @media print {
@@ -161,9 +155,26 @@ html[lang='ar'] .font-mono {
     display: none !important;
   }
 
-  .cv-print-sheet {
-    width: 100% !important;
-    max-width: none !important;
+  .cv-a4-viewport,
+  .cv-a4-stack {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .cv-a4-page-slot {
+    width: 210mm !important;
+    height: 296.8mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .cv-a4-page {
+    width: 210mm !important;
+    height: 296.8mm !important;
+    transform: none !important;
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
@@ -174,30 +185,16 @@ html[lang='ar'] .font-mono {
     print-color-adjust: exact !important;
   }
 
+  .cv-a4-page-break {
+    break-after: page;
+    page-break-after: always;
+  }
+
   .cv-modern-header {
     background-color: #0b1120 !important;
     color: #ffffff !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }
-
-  .cv-section {
-    break-inside: auto;
-    page-break-inside: auto;
-  }
-
-  .cv-section-heading {
-    break-after: avoid;
-    page-break-after: avoid;
-  }
-
-  .cv-entry-block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    orphans: 3;
-    widows: 3;
   }
 
   a {
