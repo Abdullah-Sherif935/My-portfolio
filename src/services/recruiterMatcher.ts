@@ -256,7 +256,7 @@ export const RECRUITER_POSITIONS: RecruiterPositionOption[] = [
     ]),
     primaryTags: ['hvac', 'refrigeration', 'chillers', 'cold-rooms', 'sheet-metal', 'solidworks'],
     secondaryTags: ['autocad', 'cad', 'manufacturing', 'cnc', 'bending', 'classic-control', 'maintenance', 'mechanical-design'],
-    preferredCategories: ['hvac-refrigeration', 'sheet-metal-design', 'mechanical-design'],
+    preferredCategories: ['hvac-refrigeration', 'sheet-metal-design'],
     keywords: ['hvac', 'refrigeration', 'chiller', 'cold room', 'central ac', 'sheet metal', 'solidworks', 'dxf'],
     weights: {
       requiredSkills: 35,
@@ -349,7 +349,7 @@ export const RECRUITER_POSITIONS: RecruiterPositionOption[] = [
     ]),
     primaryTags: ['plc', 'classic-control', 'automation', 'control-systems', 'electronics', 'sensors', 'matlab'],
     secondaryTags: ['modeling', 'embedded', 'esp32', 'maintenance', 'production', 'industrial-operations'],
-    preferredCategories: ['plc-automation', 'industrial-maintenance', 'robotics-mechatronics'],
+    preferredCategories: ['plc-automation'],
     keywords: ['plc', 'classic control', 'relay', 'control panel', 'wiring', 'sensor', 'matlab', 'simulink', 'dc motor'],
     weights: {
       requiredSkills: 36,
@@ -388,14 +388,13 @@ export const RECRUITER_POSITIONS: RecruiterPositionOption[] = [
     ]),
     preferredSkills: req([
       'machine-vision',
-      'mechanical-design',
-      'solidworks',
       'mechatronics-degree',
       'python-cpp',
+      'solidworks',
     ]),
     primaryTags: ['robotics', 'mechatronics', 'ros2', 'moveit2', 'esp32', 'embedded', 'machine-vision', 'autonomous-mobile-robots', 'manipulators'],
-    secondaryTags: ['control-systems', 'sensors', 'electronics', 'mechanical-design', 'cad', 'matlab'],
-    preferredCategories: ['robotics-mechatronics', 'plc-automation', 'mechanical-design'],
+    secondaryTags: ['control-systems', 'sensors', 'electronics', 'cad', 'matlab'],
+    preferredCategories: ['robotics-mechatronics'],
     keywords: ['ros 2', 'ros2', 'moveit', 'tf2', 'robotics', 'robotic', '6-dof', 'esp32', 'yolov8', 'roboflow', 'odometry', 'autonomous'],
     weights: {
       requiredSkills: 34,

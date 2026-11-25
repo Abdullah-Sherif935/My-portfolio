@@ -110,10 +110,14 @@ export function CvBuilderPage() {
   const [sections, setSections] = useState<CvSectionConfig[]>(
     siteSettings.cvSectionOrder
   );
+  const [userReorderedSections, setUserReorderedSections] = useState(false);
+  const [focusMode, setFocusMode] = useState<'focused' | 'all'>('focused');
 
   useEffect(() => {
-    setSections(siteSettings.cvSectionOrder);
-  }, [siteSettings.cvSectionOrder]);
+    if (!userReorderedSections) {
+      setSections(siteSettings.cvSectionOrder);
+    }
+  }, [siteSettings.cvSectionOrder, userReorderedSections]);
 
   // Interactive Content Customizations (preview/export only — never mutates Supabase)
   const [customSummaryDraft, setCustomSummaryDraft] = useState<string | null>(null);
@@ -198,6 +202,64 @@ export function CvBuilderPage() {
     [profile, tailored, cvLanguage]
   );
 
+  // Automatically focus projects, skill groups & section priority when switching target role
+  useEffect(() => {
+    const eligibleProj = tailored.projects.filter((p) => p.item.showInCv !== false);
+    const eligibleSkills = tailored.skills.filter((s) => s.item.showInCv !== false);
+
+    if (focusMode === 'focused' && positionId !== 'general-engineering') {
+      const relevantProjs = eligibleProj.filter(
+        (p) => p.tier === 'strong' || p.tier === 'relevant'
+      );
+      if (relevantProjs.length > 0) {
+        setExcludedProjectIds(
+          eligibleProj
+            .filter((p) => p.tier === 'supporting')
+            .map((p) => p.item.id)
+        );
+      } else {
+        setExcludedProjectIds([]);
+      }
+
+      const relevantSkills = eligibleSkills.filter(
+        (s) => s.tier === 'strong' || s.tier === 'relevant'
+      );
+      if (relevantSkills.length > 0) {
+        setExcludedSkillGroupIds(
+          eligibleSkills
+            .filter((s) => s.tier === 'supporting')
+            .map((s) => s.item.id)
+        );
+      } else {
+        setExcludedSkillGroupIds([]);
+      }
+    } else {
+      setExcludedProjectIds([]);
+      setExcludedSkillGroupIds([]);
+    }
+
+    // For Robotics & Mechatronics, elevate Engineering Projects ahead of Work Experience automatically
+    if (!userReorderedSections) {
+      const baseOrder = structuredClone(siteSettings.cvSectionOrder);
+      if (positionId === 'robotics-mechatronics') {
+        const expIdx = baseOrder.findIndex((s) => s.key === 'experience');
+        const projIdx = baseOrder.findIndex((s) => s.key === 'projects');
+        if (expIdx !== -1 && projIdx !== -1 && projIdx > expIdx) {
+          const [projSec] = baseOrder.splice(projIdx, 1);
+          if (projSec) baseOrder.splice(expIdx, 0, projSec);
+        }
+      }
+      setSections(baseOrder);
+    }
+  }, [
+    positionId,
+    focusMode,
+    tailored.projects,
+    tailored.skills,
+    siteSettings.cvSectionOrder,
+    userReorderedSections,
+  ]);
+
   const customizations: CvTemplateCustomizations = useMemo(
     () => ({
       customSummary: customSummaryDraft,
@@ -251,6 +313,7 @@ export function CvBuilderPage() {
     if (!currentItem || !targetItem) return;
     next[index] = targetItem;
     next[target] = currentItem;
+    setUserReorderedSections(true);
     setSections(next);
   };
 
@@ -467,6 +530,50 @@ export function CvBuilderPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Role-Focused vs Full Profile Filter Toggle */}
+                    {positionId !== 'general-engineering' && (
+                      <div className="space-y-2 rounded-xl border border-border-default bg-bg-primary p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+                            {language === 'ar' ? 'نطاق محتوى السيرة' : 'CV Content Scope'}
+                          </span>
+                          <span className="font-mono text-[10px] text-accent">
+                            {language === 'ar'
+                              ? `${cvEligibleProjects.length - excludedProjectIds.length}/${cvEligibleProjects.length} مشاريع`
+                              : `${cvEligibleProjects.length - excludedProjectIds.length}/${cvEligibleProjects.length} projects`}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setFocusMode('focused')}
+                            aria-pressed={focusMode === 'focused'}
+                            className={cn(
+                              'rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer',
+                              focusMode === 'focused'
+                                ? 'border-accent bg-accent-subtle text-accent'
+                                : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
+                            )}
+                          >
+                            {language === 'ar' ? 'مخصّص للوظيفة فقط' : 'Role-Focused'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFocusMode('all')}
+                            aria-pressed={focusMode === 'all'}
+                            className={cn(
+                              'rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer',
+                              focusMode === 'all'
+                                ? 'border-accent bg-accent-subtle text-accent'
+                                : 'border-border-default bg-bg-secondary text-text-secondary hover:text-text-primary'
+                            )}
+                          >
+                            {language === 'ar' ? 'كل السجلات' : 'Full Profile'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* CV Language Selector */}
                     <div className="space-y-2">
@@ -850,37 +957,37 @@ export function CvBuilderPage() {
                 </span>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-border-default bg-bg-secondary/60 p-3 sm:p-6 print:overflow-visible print:rounded-none print:border-0 print:bg-white print:p-0">
-                {template === 'modern' ? (
-                  <CvModernTemplate
-                    profile={profile}
-                    tailored={tailored}
-                    cvLanguage={cvLanguage}
-                    sections={sections}
-                    labels={documentLabels}
-                    showContactEmail={siteSettings.showContactEmail}
-                    showLinkedinLink={siteSettings.showLinkedinLink}
-                    showCoursesSection={siteSettings.showCoursesSection}
-                    customizations={customizations}
-                    onPageCountChange={setPageCount}
-                  />
-                ) : (
-                  <CvAtsTemplate
-                    profile={profile}
-                    tailored={tailored}
-                    cvLanguage={cvLanguage}
-                    sections={sections}
-                    labels={documentLabels}
-                    showContactEmail={siteSettings.showContactEmail}
-                    showLinkedinLink={siteSettings.showLinkedinLink}
-                    showCoursesSection={siteSettings.showCoursesSection}
-                    customizations={customizations}
-                    onPageCountChange={setPageCount}
-                  />
-                )}
+                <div className="overflow-hidden rounded-2xl border border-border-default bg-bg-secondary/60 p-3 sm:p-6 print:overflow-visible print:rounded-none print:border-0 print:bg-white print:p-0">
+                  {template === 'modern' ? (
+                    <CvModernTemplate
+                      profile={profile}
+                      tailored={tailored}
+                      cvLanguage={cvLanguage}
+                      sections={sections}
+                      labels={documentLabels}
+                      showContactEmail={siteSettings.showContactEmail}
+                      showLinkedinLink={siteSettings.showLinkedinLink}
+                      showCoursesSection={siteSettings.showCoursesSection}
+                      customizations={customizations}
+                      onPageCountChange={setPageCount}
+                    />
+                  ) : (
+                    <CvAtsTemplate
+                      profile={profile}
+                      tailored={tailored}
+                      cvLanguage={cvLanguage}
+                      sections={sections}
+                      labels={documentLabels}
+                      showContactEmail={siteSettings.showContactEmail}
+                      showLinkedinLink={siteSettings.showLinkedinLink}
+                      showCoursesSection={siteSettings.showCoursesSection}
+                      customizations={customizations}
+                      onPageCountChange={setPageCount}
+                    />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
         </Container>
       </section>
     </>
