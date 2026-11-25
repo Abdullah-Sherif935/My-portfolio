@@ -1126,9 +1126,9 @@ function classifyTier(
     if (cvPriority >= 70 || score >= 10) return 'relevant';
     return 'supporting';
   }
-  if (directHits === 0) return 'supporting';
+  if (!directHits) return 'supporting';
   if (score >= 18 || directHits >= 2) return 'strong';
-  if (score >= 8) return 'relevant';
+  if (score >= 12) return 'relevant';
   return 'supporting';
 }
 
