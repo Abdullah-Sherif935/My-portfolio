@@ -175,10 +175,12 @@
     "subjectPlaceholder": "Project inquiry, role opportunity, or technical question",
     "messageLabel": "Message",
     "messagePlaceholder": "Describe the engineering scope, requirements, or inquiry...",
-    "submitButton": "Validate & Preview Submission",
-    "successTitle": "Message Validated Locally",
-    "successDescription": "Your inquiry passed validation. Live message delivery will be enabled once backend mail integration is connected.",
-    "sendAnother": "Reset Form",
+    "submitButton": "Send Message",
+    "sendingButton": "Sending...",
+    "sendError": "Could not send your message right now. Please try again or reach out directly via email or LinkedIn.",
+    "successTitle": "Message Sent Successfully",
+    "successDescription": "Thank you for reaching out. Your inquiry has been delivered directly to Abdullah Sherif's inbox and you will receive a response shortly.",
+    "sendAnother": "Send Another Message",
     "channelsHeading": "Direct Channels"
   },
   "future": {
