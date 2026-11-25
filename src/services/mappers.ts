@@ -455,18 +455,27 @@ export function mapProjectFromRow(
       : row.category
         ? [row.category]
         : [];
+  const resolvedGroup: ProjectGroup =
+    row.project_group === 'professional' ||
+    row.project_group === 'personal' ||
+    row.project_group === 'academic'
+      ? row.project_group
+      : 'academic';
+
+  const unifiedKindLabel: LocalizedText =
+    resolvedGroup === 'professional'
+      ? { en: 'Professional Project', ar: 'مشروع مهني' }
+      : resolvedGroup === 'personal'
+        ? { en: 'Personal Project', ar: 'مشروع شخصي' }
+        : { en: 'Academic Project', ar: 'مشروع أكاديمي' };
+
   return {
     id: row.id,
     slug: row.slug,
     code: row.code,
     kind: row.kind,
-    kindLabel: row.kind_label,
-    projectGroup:
-      row.project_group === 'professional' ||
-        row.project_group === 'personal' ||
-        row.project_group === 'academic'
-        ? row.project_group
-        : 'academic',
+    kindLabel: unifiedKindLabel,
+    projectGroup: resolvedGroup,
     title: row.title,
     shortDescription: row.short_description,
     overview: row.overview,
