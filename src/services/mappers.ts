@@ -875,6 +875,7 @@ export function mapSiteSettingsFromRow(row: SiteSettingsRow): AdminSiteSettings 
         ...(rawHome?.heroCards?.coreFocus ?? {}),
       },
     },
+    visibility: rawHome?.visibility,
     intro: {
       ...DEFAULT_HOME_SECTIONS_CONFIG.intro,
       ...(rawHome?.intro ?? {}),
