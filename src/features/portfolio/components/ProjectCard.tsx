@@ -55,17 +55,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
           {pick(project.shortDescription)}
         </p>
 
-        <div className="mb-4 flex flex-wrap gap-1.5 sm:mb-5">
-          {project.technologies.map((tech) => (
-            <span
-              key={tech}
-              className="rounded-md border border-border-default bg-bg-primary px-2 py-0.5 font-mono text-[11px] text-text-secondary sm:px-2.5 sm:py-1"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
-
         <div className="border-t border-border-default pt-3 sm:pt-4">
           <Link
             to={`/portfolio/${project.slug}`}
