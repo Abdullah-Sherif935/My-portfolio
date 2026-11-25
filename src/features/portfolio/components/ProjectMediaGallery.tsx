@@ -116,7 +116,7 @@ export function ProjectMediaGallery({
 
   return (
     <>
-      <Card className="space-y-4 p-5 sm:p-6">
+      <Card className="min-w-0 overflow-hidden space-y-4 p-4 sm:p-6">
         {/* Header with image counter */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary sm:text-xl">

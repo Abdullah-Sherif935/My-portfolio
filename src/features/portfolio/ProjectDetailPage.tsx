@@ -351,7 +351,7 @@ export function ProjectDetailPage() {
 
         {/* Main Content + Sidebar (Zero Empty Sections) */}
         <div className="grid gap-8 lg:grid-cols-12">
-          <div className="space-y-6 lg:col-span-8">
+          <div className="min-w-0 space-y-6 lg:col-span-8">
             {/* 1. Overview */}
             {hasOverview && (
               <Card className="space-y-3 p-6 sm:p-8">
