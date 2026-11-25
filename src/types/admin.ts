@@ -93,8 +93,20 @@ export interface HomeHeroCardsConfig {
   coreFocus: HomeHeroHighlightCard;
 }
 
+export interface HomeSectionsVisibility {
+  intro: boolean;
+  specializations: boolean;
+  featuredProjects: boolean;
+  experience: boolean;
+  companies: boolean;
+  skills: boolean;
+  certifications: boolean;
+  contact: boolean;
+}
+
 export interface HomeSectionsConfig {
   heroCards?: HomeHeroCardsConfig;
+  visibility?: Partial<HomeSectionsVisibility>;
   intro: HomeIntroSectionConfig;
   specializations: HomeSpecializationsSectionConfig;
 }

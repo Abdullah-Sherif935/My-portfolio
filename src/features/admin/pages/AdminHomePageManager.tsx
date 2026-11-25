@@ -14,7 +14,7 @@ import { LocalizedFieldGroup } from '@/features/admin/components/LocalizedFieldG
 import { HomeIntroAcademicTab } from './HomeIntroAcademicTab';
 import { HomeSpecializationsTab } from './HomeSpecializationsTab';
 import { DEFAULT_HOME_SECTIONS_CONFIG } from '@/data/adminMock';
-import type { HomeHeroCardsConfig } from '@/types/admin';
+import type { HomeHeroCardsConfig, HomeSectionsVisibility } from '@/types/admin';
 import type { ProfileData } from '@/types/portfolio';
 import { cn } from '@/utils/cn';
 
@@ -181,12 +181,119 @@ export function AdminHomePageManager() {
       }
     };
 
-    const homeSectionLinks = [
-      { name: t('homeMgr.sections.experience'), to: '/admin/pages/experience', route: '/experience' },
-      { name: t('homeMgr.sections.companies'), to: '/admin/pages/clients', route: '/companies' },
-      { name: t('homeMgr.sections.skills'), to: '/admin/pages/skills', route: '/skills' },
-      { name: t('homeMgr.sections.certifications'), to: '/admin/pages/certifications', route: '/certifications' },
-      { name: t('homeMgr.sections.contact'), to: '/admin/pages/contact', route: '/contact' },
+    const vis = siteSettings.homeSections.visibility;
+    const sectionVisibility: HomeSectionsVisibility = {
+      intro:
+        vis?.intro !== false && siteSettings.homeSections.intro.visible !== false,
+      specializations:
+        vis?.specializations !== false &&
+        siteSettings.homeSections.specializations.visible !== false,
+      featuredProjects: vis?.featuredProjects !== false,
+      experience: vis?.experience !== false,
+      companies: vis?.companies !== false,
+      skills: vis?.skills !== false,
+      certifications:
+        vis?.certifications !== false && siteSettings.showCoursesSection !== false,
+      contact: vis?.contact !== false,
+    };
+
+    const handleToggleSectionVisibility = async (
+      key: keyof HomeSectionsVisibility,
+      checked: boolean
+    ) => {
+      try {
+        setError(null);
+        const nextVisibility: HomeSectionsVisibility = {
+          ...sectionVisibility,
+          [key]: checked,
+        };
+        await updateSiteSettings({
+          ...siteSettings,
+          showCoursesSection:
+            key === 'certifications' ? checked : siteSettings.showCoursesSection,
+          homeSections: {
+            ...siteSettings.homeSections,
+            visibility: nextVisibility,
+            intro:
+              key === 'intro'
+                ? { ...siteSettings.homeSections.intro, visible: checked }
+                : siteSettings.homeSections.intro,
+            specializations:
+              key === 'specializations'
+                ? { ...siteSettings.homeSections.specializations, visible: checked }
+                : siteSettings.homeSections.specializations,
+          },
+        });
+        stampSaved();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t('prototype.syncError'));
+      }
+    };
+
+    const homeSectionsList: Array<{
+      key: keyof HomeSectionsVisibility;
+      code: string;
+      name: string;
+      route: string;
+      to?: string;
+      tab?: HomeSubTab;
+    }> = [
+      {
+        key: 'intro',
+        code: '01',
+        name: t('homeMgr.tabs.profileAcademic'),
+        route: '/#intro',
+        tab: 'profile-academic',
+      },
+      {
+        key: 'specializations',
+        code: '02',
+        name: t('homeMgr.tabs.specializations'),
+        route: '/#specializations',
+        tab: 'specializations',
+      },
+      {
+        key: 'featuredProjects',
+        code: '03',
+        name: t('homeMgr.tabs.featured'),
+        route: '/portfolio',
+        tab: 'featured',
+      },
+      {
+        key: 'experience',
+        code: '04',
+        name: t('homeMgr.sections.experience'),
+        route: '/experience',
+        to: '/admin/pages/experience',
+      },
+      {
+        key: 'companies',
+        code: '05',
+        name: t('homeMgr.sections.companies'),
+        route: '/companies',
+        to: '/admin/pages/companies',
+      },
+      {
+        key: 'skills',
+        code: '06',
+        name: t('homeMgr.sections.skills'),
+        route: '/skills',
+        to: '/admin/pages/skills',
+      },
+      {
+        key: 'certifications',
+        code: '07',
+        name: t('homeMgr.sections.certifications'),
+        route: '/certifications',
+        to: '/admin/pages/certifications',
+      },
+      {
+        key: 'contact',
+        code: '08',
+        name: t('homeMgr.sections.contact'),
+        route: '/contact',
+        to: '/admin/pages/contact',
+      },
     ];
 
     return (
@@ -538,7 +645,7 @@ export function AdminHomePageManager() {
           </Card>
         )}
 
-        {/* Sub-Tab 3: Homepage Sections Overview */}
+        {/* Sub-Tab 3: Homepage Sections Visibility & Quick Links (01–08) */}
         {activeTab === 'sections' && (
           <Card className="space-y-4 p-5 sm:p-6">
             <SectionMappingBadge location={t('homeMgr.mapSections')} />
@@ -546,22 +653,80 @@ export function AdminHomePageManager() {
               {t('homeMgr.sectionsDescription')}
             </p>
 
+            {error && (
+              <div
+                role="alert"
+                className="rounded-xl border border-error/40 bg-error-subtle px-4 py-2.5 text-xs text-error"
+              >
+                {error}
+              </div>
+            )}
+
             <div className="grid gap-3 sm:grid-cols-2">
-              {homeSectionLinks.map((sec) => (
-                <Link key={sec.to} to={sec.to} className="group block">
-                  <div className="flex items-center justify-between gap-3 rounded-xl border border-border-default bg-bg-primary p-4 transition-colors group-hover:border-accent">
-                    <div>
-                      <p className="text-sm font-semibold text-text-primary group-hover:text-accent">
-                        {sec.name}
-                      </p>
-                      <p className="font-mono text-[11px] text-text-secondary" dir="ltr">
-                        {sec.route}
-                      </p>
-                    </div>
-                    <ArrowUpRight className="h-4 w-4 text-text-secondary group-hover:text-accent" aria-hidden="true" />
+              {homeSectionsList.map((sec) => {
+                const visible = sectionVisibility[sec.key];
+                return (
+                  <div
+                    key={sec.key}
+                    className={cn(
+                      'flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors',
+                      visible
+                        ? 'border-border-default bg-bg-primary'
+                        : 'border-border-default/60 bg-bg-primary/50 opacity-75'
+                    )}
+                  >
+                    <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={visible}
+                        disabled={isSaving}
+                        onChange={(e) =>
+                          void handleToggleSectionVisibility(sec.key, e.target.checked)
+                        }
+                        className="mt-1 h-4 w-4 shrink-0 rounded accent-accent"
+                      />
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant="muted" mono>
+                            {sec.code}
+                          </Badge>
+                          <Badge variant={visible ? 'accent' : 'default'}>
+                            {visible ? t('common.visible') : t('common.hidden')}
+                          </Badge>
+                        </div>
+                        <p className="truncate text-sm font-semibold text-text-primary">
+                          {sec.name}
+                        </p>
+                        <p
+                          className="font-mono text-[11px] text-text-secondary"
+                          dir="ltr"
+                        >
+                          {sec.route}
+                        </p>
+                      </div>
+                    </label>
+
+                    {sec.to ? (
+                      <Link
+                        to={sec.to}
+                        className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg border border-border-default bg-bg-secondary px-2.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
+                      >
+                        <span>{t('common.edit')}</span>
+                        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => sec.tab && handleSelectTab(sec.tab)}
+                        className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-border-default bg-bg-secondary px-2.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
+                      >
+                        <span>{t('common.edit')}</span>
+                        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    )}
                   </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           </Card>
         )}
