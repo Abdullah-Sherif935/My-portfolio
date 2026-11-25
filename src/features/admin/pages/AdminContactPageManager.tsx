@@ -189,13 +189,38 @@ export function AdminContactPageManager() {
               />
             </div>
 
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="space-y-1.5">
+              <label htmlFor="cnt-phone" className="block text-sm font-medium text-text-primary">
+                {t('profile.phone')}
+              </label>
+              <input
+                id="cnt-phone"
+                type="tel"
+                dir="ltr"
+                placeholder={t('settings.phonePlaceholder')}
+                value={form.contact.phone ?? ''}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    contact: {
+                      ...p.contact,
+                      phone: e.target.value.trim() ? e.target.value : null,
+                    },
+                  }))
+                }
+                className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1.5">
               <label htmlFor="cnt-gh" className="block text-sm font-medium text-text-primary">
                 {t('profile.githubUrl')}
               </label>
               <input
                 id="cnt-gh"
+                type="url"
                 dir="ltr"
+                placeholder={t('settings.githubPlaceholder')}
                 value={form.contact.githubUrl ?? ''}
                 onChange={(e) =>
                   setForm((p) => ({
@@ -203,6 +228,29 @@ export function AdminContactPageManager() {
                     contact: {
                       ...p.contact,
                       githubUrl: e.target.value.trim() ? e.target.value : null,
+                    },
+                  }))
+                }
+                className="h-10 w-full rounded-[10px] border border-border-default bg-bg-primary px-3.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <label htmlFor="cnt-yt" className="block text-sm font-medium text-text-primary">
+                {t('profile.youtubeUrl')}
+              </label>
+              <input
+                id="cnt-yt"
+                type="url"
+                dir="ltr"
+                placeholder={t('settings.youtubePlaceholder')}
+                value={form.contact.youtubeUrl ?? ''}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    contact: {
+                      ...p.contact,
+                      youtubeUrl: e.target.value.trim() ? e.target.value : null,
                     },
                   }))
                 }

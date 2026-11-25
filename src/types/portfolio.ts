@@ -30,11 +30,13 @@ export interface ProfileData {
   avatarAlt?: LocalizedText;
   contact: {
     email: string;
+    phone?: string | null;
     linkedinUrl: string;
     linkedinDisplay: string;
     websiteDisplay: string;
     githubUrl: string | null;
     githubDisplay: LocalizedText;
+    youtubeUrl?: string | null;
   };
   languages: Array<{
     name: LocalizedText;

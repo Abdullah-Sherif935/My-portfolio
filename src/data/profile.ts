@@ -34,6 +34,7 @@ export const PROFILE: ProfileData = {
   },
   contact: {
     email: 'eng.abdullah.sheif@gmail.com',
+    phone: null,
     linkedinUrl: 'https://www.linkedin.com/in/abdullah-sherif-abdulraouf',
     linkedinDisplay: 'linkedin.com/in/abdullah-sherif-abdulraouf',
     websiteDisplay: 'eng-abdullah.work',
@@ -42,6 +43,7 @@ export const PROFILE: ProfileData = {
       en: 'GitHub profile — To be added',
       ar: 'حساب GitHub — يُضاف لاحقاً',
     },
+    youtubeUrl: 'https://youtube.com/@engabdullah-sherif?si=y_QbLbm5jIRLBRUp',
   },
   languages: [
     {

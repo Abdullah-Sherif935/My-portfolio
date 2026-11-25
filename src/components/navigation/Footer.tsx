@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowUp, Github, Linkedin, Mail } from 'lucide-react';
+import { ArrowUp, Github, Linkedin, Mail, Phone, Youtube } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Container } from '@/components/layout/Container';
 import { BrandMark } from '@/components/common/BrandMark';
@@ -83,20 +83,33 @@ export function Footer() {
                 {t('footer.connectHeading')}
               </h2>
               <ul className="space-y-3 text-sm text-text-secondary">
-                {siteSettings.showContactEmail && (
+                {siteSettings.showContactEmail && profile.contact.email && (
                   <li>
                     <a
                       href={`mailto:${profile.contact.email}`}
                       className="inline-flex max-w-full items-center gap-2.5 transition-colors hover:text-accent"
                     >
                       <Mail className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                      <span className="truncate font-mono text-xs">
+                      <span className="truncate font-mono text-xs" dir="ltr">
                         {profile.contact.email}
                       </span>
                     </a>
                   </li>
                 )}
-                {siteSettings.showLinkedinLink && (
+                {profile.contact.phone?.trim() && (
+                  <li>
+                    <a
+                      href={`tel:${profile.contact.phone.replace(/[^+\d]/g, '')}`}
+                      className="inline-flex max-w-full items-center gap-2.5 transition-colors hover:text-accent"
+                    >
+                      <Phone className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                      <span className="truncate font-mono text-xs" dir="ltr">
+                        {profile.contact.phone.trim()}
+                      </span>
+                    </a>
+                  </li>
+                )}
+                {siteSettings.showLinkedinLink && profile.contact.linkedinUrl && (
                   <li>
                     <a
                       href={profile.contact.linkedinUrl}
@@ -109,16 +122,29 @@ export function Footer() {
                     </a>
                   </li>
                 )}
-                <li>
-                  {profile.contact.githubUrl ? (
+                {profile.contact.youtubeUrl?.trim() && (
+                  <li>
                     <a
-                      href={profile.contact.githubUrl}
+                      href={profile.contact.youtubeUrl.trim()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 transition-colors hover:text-accent"
+                    >
+                      <Youtube className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                      <span>{t('footer.youtubeLabel')}</span>
+                    </a>
+                  </li>
+                )}
+                <li>
+                  {profile.contact.githubUrl?.trim() ? (
+                    <a
+                      href={profile.contact.githubUrl.trim()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2.5 transition-colors hover:text-accent"
                     >
                       <Github className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                      <span>{t('footer.githubLabel')}</span>
+                      <span>{t('footer.githubActiveLabel')}</span>
                     </a>
                   ) : (
                     <Link

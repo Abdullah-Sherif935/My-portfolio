@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { CheckCircle2, ExternalLink, Github, Linkedin, Mail } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Github, Linkedin, Mail, Phone, Youtube } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/common/PageHeader';
 import { PlaceholderNotice } from '@/components/common/PlaceholderNotice';
@@ -185,7 +185,7 @@ export function ContactPage() {
                 {t('pages:contact.channelsHeading')}
               </h2>
 
-              {siteSettings.showContactEmail && (
+              {siteSettings.showContactEmail && profile.contact.email && (
                 <Card className="flex items-start gap-4 p-5">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
                     <Mail className="h-5 w-5" aria-hidden="true" />
@@ -196,6 +196,7 @@ export function ContactPage() {
                     </h3>
                     <a
                       href={`mailto:${profile.contact.email}`}
+                      dir="ltr"
                       className="block truncate font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
                     >
                       {profile.contact.email}
@@ -205,7 +206,28 @@ export function ContactPage() {
                 </Card>
               )}
 
-              {siteSettings.showLinkedinLink && (
+              {profile.contact.phone?.trim() && (
+                <Card className="flex items-start gap-4 p-5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
+                    <Phone className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="text-sm font-semibold text-text-primary">
+                      {t('home:contact.phoneTitle')}
+                    </h3>
+                    <a
+                      href={`tel:${profile.contact.phone.replace(/[^+\d]/g, '')}`}
+                      dir="ltr"
+                      className="block truncate font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
+                    >
+                      {profile.contact.phone.trim()}
+                    </a>
+                    <p className="text-xs text-text-secondary">{t('home:contact.phoneNote')}</p>
+                  </div>
+                </Card>
+              )}
+
+              {siteSettings.showLinkedinLink && profile.contact.linkedinUrl && (
                 <Card className="flex items-start gap-4 p-5">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
                     <Linkedin className="h-5 w-5" aria-hidden="true" />
@@ -218,12 +240,40 @@ export function ContactPage() {
                       href={profile.contact.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      dir="ltr"
                       className="inline-flex max-w-full items-center gap-1.5 font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
                     >
                       <span className="truncate">{profile.contact.linkedinDisplay}</span>
                       <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     </a>
                     <p className="text-xs text-text-secondary">{t('home:contact.linkedinNote')}</p>
+                  </div>
+                </Card>
+              )}
+
+              {profile.contact.youtubeUrl?.trim() && (
+                <Card className="flex items-start gap-4 p-5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-border bg-accent-subtle text-accent">
+                    <Youtube className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="text-sm font-semibold text-text-primary">
+                      {t('home:contact.youtubeTitle')}
+                    </h3>
+                    <a
+                      href={profile.contact.youtubeUrl.trim()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      dir="ltr"
+                      className="inline-flex max-w-full items-center gap-1.5 font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
+                    >
+                      <span className="truncate">
+                        {profile.contact.youtubeUrl.trim().match(/@[^/?]+/)?.[0] ??
+                          profile.contact.youtubeUrl.trim().replace(/^https?:\/\/(www\.)?/, '').split('?')[0]}
+                      </span>
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    </a>
+                    <p className="text-xs text-text-secondary">{t('home:contact.youtubeNote')}</p>
                   </div>
                 </Card>
               )}
@@ -236,14 +286,22 @@ export function ContactPage() {
                   <h3 className="text-sm font-semibold text-text-primary">
                     {t('home:contact.githubTitle')}
                   </h3>
-                  {profile.contact.githubUrl ? (
+                  {profile.contact.githubUrl?.trim() ? (
                     <a
-                      href={profile.contact.githubUrl}
+                      href={profile.contact.githubUrl.trim()}
                       target="_blank"
                       rel="noopener noreferrer"
+                      dir="ltr"
                       className="inline-flex max-w-full items-center gap-1.5 font-mono text-xs text-accent hover:text-accent-hover sm:text-sm"
                     >
-                      <span className="truncate">{profile.contact.githubUrl}</span>
+                      <span className="truncate">
+                        {(
+                          profile.contact.githubUrl
+                            .trim()
+                            .replace(/^https?:\/\/(www\.)?/, '')
+                            .split('?')[0] ?? profile.contact.githubUrl.trim()
+                        ).replace(/\/$/, '')}
+                      </span>
                       <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     </a>
                   ) : (
