@@ -24,24 +24,40 @@ export function ProjectThumbnail({
       )}
     >
       {imageUrl ? (
-        <>
-          <img
-            src={imageUrl}
-            alt={imageAlt || code}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-          />
-          {/* Signature Engineering Technical Frame & Golden Corner Registration Ticks */}
+        <div className="relative h-full w-full bg-bg-primary p-3">
+          {/* Subtle Blueprint Grid behind the frame */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-3 rounded-lg border border-dashed border-border-strong/70"
-          >
-            <span className="absolute -top-px -start-px h-3.5 w-3.5 border-t-2 border-s-2 border-accent" />
-            <span className="absolute -top-px -end-px h-3.5 w-3.5 border-t-2 border-e-2 border-accent" />
-            <span className="absolute -bottom-px -start-px h-3.5 w-3.5 border-b-2 border-s-2 border-accent" />
-            <span className="absolute -bottom-px -end-px h-3.5 w-3.5 border-b-2 border-e-2 border-accent" />
+            className="engineering-grid pointer-events-none absolute inset-0 opacity-75"
+          />
+          {/* Outer Golden Engineering Frame — Image sits strictly INSIDE */}
+          <div className="relative h-full w-full rounded-lg border border-dashed border-border-strong/80 p-1">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-px -start-px z-10 h-3.5 w-3.5 border-t-2 border-s-2 border-accent"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-px -end-px z-10 h-3.5 w-3.5 border-t-2 border-e-2 border-accent"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-px -start-px z-10 h-3.5 w-3.5 border-b-2 border-s-2 border-accent"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-px -end-px z-10 h-3.5 w-3.5 border-b-2 border-e-2 border-accent"
+            />
+            <div className="h-full w-full overflow-hidden rounded-md bg-bg-secondary/40">
+              <img
+                src={imageUrl}
+                alt={imageAlt || code}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+              />
+            </div>
           </div>
-        </>
+        </div>
       ) : (
         <>
           {/* Subtle Blueprint Grid */}

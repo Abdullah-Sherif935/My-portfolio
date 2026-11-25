@@ -321,28 +321,43 @@ export function ProjectDetailPage() {
                       ? pick(project.coverImageAlt)
                       : pick(project.title)
                   }
-                  className="group relative block w-full cursor-zoom-in bg-bg-primary"
+                  className="group relative block w-full cursor-zoom-in bg-bg-primary p-3"
                 >
-                  <img
-                    src={project.coverImageUrl}
-                    alt={
-                      project.coverImageAlt
-                        ? pick(project.coverImageAlt)
-                        : pick(project.title)
-                    }
-                    className="aspect-[16/10] max-h-[290px] w-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02]"
-                  />
-                  {/* Signature Engineering Technical Frame & Golden Corner Registration Ticks */}
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-3 rounded-lg border border-dashed border-border-strong/70"
-                  >
-                    <span className="absolute -top-px -start-px h-4 w-4 border-t-2 border-s-2 border-accent" />
-                    <span className="absolute -top-px -end-px h-4 w-4 border-t-2 border-e-2 border-accent" />
-                    <span className="absolute -bottom-px -start-px h-4 w-4 border-b-2 border-s-2 border-accent" />
-                    <span className="absolute -bottom-px -end-px h-4 w-4 border-b-2 border-e-2 border-accent" />
+                    className="engineering-grid pointer-events-none absolute inset-0 opacity-75"
+                  />
+                  {/* Outer Golden Engineering Frame — Image sits strictly INSIDE */}
+                  <div className="relative rounded-lg border border-dashed border-border-strong/80 p-1.5">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -top-px -start-px z-10 h-4 w-4 border-t-2 border-s-2 border-accent"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -top-px -end-px z-10 h-4 w-4 border-t-2 border-e-2 border-accent"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -bottom-px -start-px z-10 h-4 w-4 border-b-2 border-s-2 border-accent"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -bottom-px -end-px z-10 h-4 w-4 border-b-2 border-e-2 border-accent"
+                    />
+                    <div className="overflow-hidden rounded-md bg-bg-primary">
+                      <img
+                        src={project.coverImageUrl}
+                        alt={
+                          project.coverImageAlt
+                            ? pick(project.coverImageAlt)
+                            : pick(project.title)
+                        }
+                        className="aspect-[16/10] max-h-[270px] w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                      />
+                    </div>
                   </div>
-                  <span className="pointer-events-none absolute end-3 bottom-3 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border-default bg-bg-secondary/90 text-text-secondary opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+                  <span className="pointer-events-none absolute end-5 bottom-5 z-20 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border-default bg-bg-secondary/90 text-text-secondary opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
                     <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                 </button>
