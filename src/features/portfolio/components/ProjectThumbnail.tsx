@@ -24,12 +24,24 @@ export function ProjectThumbnail({
       )}
     >
       {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={imageAlt || code}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-        />
+        <>
+          <img
+            src={imageUrl}
+            alt={imageAlt || code}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+          />
+          {/* Signature Engineering Technical Frame & Golden Corner Registration Ticks */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-3 rounded-lg border border-dashed border-border-strong/70"
+          >
+            <span className="absolute -top-px -start-px h-3.5 w-3.5 border-t-2 border-s-2 border-accent" />
+            <span className="absolute -top-px -end-px h-3.5 w-3.5 border-t-2 border-e-2 border-accent" />
+            <span className="absolute -bottom-px -start-px h-3.5 w-3.5 border-b-2 border-s-2 border-accent" />
+            <span className="absolute -bottom-px -end-px h-3.5 w-3.5 border-b-2 border-e-2 border-accent" />
+          </div>
+        </>
       ) : (
         <>
           {/* Subtle Blueprint Grid */}

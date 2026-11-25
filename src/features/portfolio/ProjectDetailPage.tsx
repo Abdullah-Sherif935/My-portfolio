@@ -330,8 +330,18 @@ export function ProjectDetailPage() {
                         ? pick(project.coverImageAlt)
                         : pick(project.title)
                     }
-                    className="aspect-[16/10] max-h-[290px] w-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
+                    className="aspect-[16/10] max-h-[290px] w-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02]"
                   />
+                  {/* Signature Engineering Technical Frame & Golden Corner Registration Ticks */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-3 rounded-lg border border-dashed border-border-strong/70"
+                  >
+                    <span className="absolute -top-px -start-px h-4 w-4 border-t-2 border-s-2 border-accent" />
+                    <span className="absolute -top-px -end-px h-4 w-4 border-t-2 border-e-2 border-accent" />
+                    <span className="absolute -bottom-px -start-px h-4 w-4 border-b-2 border-s-2 border-accent" />
+                    <span className="absolute -bottom-px -end-px h-4 w-4 border-b-2 border-e-2 border-accent" />
+                  </div>
                   <span className="pointer-events-none absolute end-3 bottom-3 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border-default bg-bg-secondary/90 text-text-secondary opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
                     <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
@@ -351,447 +361,447 @@ export function ProjectDetailPage() {
 
         {/* Main Content + Sidebar (Zero Empty Sections) */}
         <div className="grid gap-8 lg:grid-cols-12">
-          <div className="min-w-0 space-y-6 lg:col-span-8">
-            {/* 1. Overview */}
-            {hasOverview && (
-              <Card className="space-y-3 p-6 sm:p-8">
-                <h2 className="text-xl font-semibold text-text-primary">
-                  {t('pages:projectDetail.overviewHeading')}
-                </h2>
-                <p className="text-[15px] leading-relaxed text-text-secondary sm:text-base">
-                  {pick(project.overview)}
-                </p>
-              </Card>
-            )}
+            <div className="min-w-0 space-y-6 lg:col-span-8">
+              {/* 1. Overview */}
+              {hasOverview && (
+                <Card className="space-y-3 p-6 sm:p-8">
+                  <h2 className="text-xl font-semibold text-text-primary">
+                    {t('pages:projectDetail.overviewHeading')}
+                  </h2>
+                  <p className="text-[15px] leading-relaxed text-text-secondary sm:text-base">
+                    {pick(project.overview)}
+                  </p>
+                </Card>
+              )}
 
-            {/* 4. My Role & Contributions (Structured contributions OR legacy deliverables) */}
-            {(contributions.length > 0 || project.deliverables.length > 0) && (
-              <Card className="space-y-4 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                  <ClipboardList className="h-5 w-5 text-accent" aria-hidden="true" />
-                  <span>{t('pages:projectDetail.deliverablesHeading')}</span>
-                </h2>
+              {/* 4. My Role & Contributions (Structured contributions OR legacy deliverables) */}
+              {(contributions.length > 0 || project.deliverables.length > 0) && (
+                <Card className="space-y-4 p-6 sm:p-8">
+                  <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                    <ClipboardList className="h-5 w-5 text-accent" aria-hidden="true" />
+                    <span>{t('pages:projectDetail.deliverablesHeading')}</span>
+                  </h2>
 
-                {contributions.length > 0 && (
-                  <div className="space-y-3">
-                    {contributions.map((contrib) => (
-                      <div
-                        key={contrib.id}
-                        className="rounded-xl border border-border-default bg-bg-primary p-4"
-                      >
-                        <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary sm:text-base">
-                          <CheckCircle2
-                            className="h-4 w-4 shrink-0 text-accent"
-                            aria-hidden="true"
-                          />
-                          <span>{pick(contrib.title)}</span>
-                        </h3>
-                        {pick(contrib.description).trim() && (
-                          <p className="mt-1.5 ps-6 text-xs leading-relaxed text-text-secondary sm:text-sm">
-                            {pick(contrib.description)}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {project.deliverables.length > 0 && (
-                  <ul className="space-y-2.5">
-                    {project.deliverables.map((deliverable, idx) => (
-                      <li
-                        key={idx}
-                        className="flex items-start gap-3 text-sm text-text-secondary sm:text-[15px]"
-                      >
-                        <CheckCircle2
-                          className="mt-0.5 h-4 w-4 shrink-0 text-accent"
-                          aria-hidden="true"
-                        />
-                        <span>{pick(deliverable)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Card>
-            )}
-
-            {/* 5. Engineering Process (ONLY if content exists) */}
-            {hasEngineeringProcess && (
-              <Card className="space-y-5 p-6 sm:p-8">
-                {hasChallenge && caseStudy?.challenge && (
-                  <div className="space-y-2">
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
-                      <Target className="h-5 w-5 text-accent" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.challengeHeading')}</span>
-                    </h2>
-                    <p className="text-[15px] leading-relaxed text-text-secondary">
-                      {pick(caseStudy.challenge)}
-                    </p>
-                  </div>
-                )}
-
-                {hasSolution && caseStudy?.solution && (
-                  <div className="space-y-2">
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
-                      <Compass className="h-5 w-5 text-accent" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.solutionHeading')}</span>
-                    </h2>
-                    <p className="text-[15px] leading-relaxed text-text-secondary">
-                      {pick(caseStudy.solution)}
-                    </p>
-                  </div>
-                )}
-
-                {hasSpecs && caseStudy?.specifications && (
-                  <div className="space-y-3">
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
-                      <Sliders className="h-5 w-5 text-accent" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.specsHeading')}</span>
-                    </h2>
-                    <dl className="grid gap-3 sm:grid-cols-2">
-                      {caseStudy.specifications.map((spec, idx) => (
+                  {contributions.length > 0 && (
+                    <div className="space-y-3">
+                      {contributions.map((contrib) => (
                         <div
-                          key={idx}
-                          className="rounded-xl border border-border-default bg-bg-primary p-3.5"
+                          key={contrib.id}
+                          className="rounded-xl border border-border-default bg-bg-primary p-4"
                         >
-                          <dt className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
-                            {pick(spec.label)}
-                          </dt>
-                          <dd className="mt-1 text-sm font-semibold text-text-primary">
-                            {pick(spec.value)}
-                          </dd>
+                          <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary sm:text-base">
+                            <CheckCircle2
+                              className="h-4 w-4 shrink-0 text-accent"
+                              aria-hidden="true"
+                            />
+                            <span>{pick(contrib.title)}</span>
+                          </h3>
+                          {pick(contrib.description).trim() && (
+                            <p className="mt-1.5 ps-6 text-xs leading-relaxed text-text-secondary sm:text-sm">
+                              {pick(contrib.description)}
+                            </p>
+                          )}
                         </div>
                       ))}
-                    </dl>
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                {hasOutcomes && caseStudy?.outcomes && (
-                  <div className="space-y-2.5">
-                    <h2 className="text-lg font-semibold text-text-primary">
-                      {t('pages:projectDetail.outcomesHeading')}
-                    </h2>
-                    <ul className="space-y-2">
-                      {caseStudy.outcomes.map((outcome, idx) => (
+                  {project.deliverables.length > 0 && (
+                    <ul className="space-y-2.5">
+                      {project.deliverables.map((deliverable, idx) => (
                         <li
                           key={idx}
-                          className="flex items-start gap-2.5 text-sm text-text-secondary"
+                          className="flex items-start gap-3 text-sm text-text-secondary sm:text-[15px]"
                         >
                           <CheckCircle2
                             className="mt-0.5 h-4 w-4 shrink-0 text-accent"
                             aria-hidden="true"
                           />
-                          <span>{pick(outcome)}</span>
+                          <span>{pick(deliverable)}</span>
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
-              </Card>
-            )}
+                  )}
+                </Card>
+              )}
 
-            {/* 7. Interactive Project Media & Technical Gallery (hidden when empty) */}
-            {gallery.length > 0 && (
+              {/* 5. Engineering Process (ONLY if content exists) */}
+              {hasEngineeringProcess && (
+                <Card className="space-y-5 p-6 sm:p-8">
+                  {hasChallenge && caseStudy?.challenge && (
+                    <div className="space-y-2">
+                      <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+                        <Target className="h-5 w-5 text-accent" aria-hidden="true" />
+                        <span>{t('pages:projectDetail.challengeHeading')}</span>
+                      </h2>
+                      <p className="text-[15px] leading-relaxed text-text-secondary">
+                        {pick(caseStudy.challenge)}
+                      </p>
+                    </div>
+                  )}
+
+                  {hasSolution && caseStudy?.solution && (
+                    <div className="space-y-2">
+                      <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+                        <Compass className="h-5 w-5 text-accent" aria-hidden="true" />
+                        <span>{t('pages:projectDetail.solutionHeading')}</span>
+                      </h2>
+                      <p className="text-[15px] leading-relaxed text-text-secondary">
+                        {pick(caseStudy.solution)}
+                      </p>
+                    </div>
+                  )}
+
+                  {hasSpecs && caseStudy?.specifications && (
+                    <div className="space-y-3">
+                      <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+                        <Sliders className="h-5 w-5 text-accent" aria-hidden="true" />
+                        <span>{t('pages:projectDetail.specsHeading')}</span>
+                      </h2>
+                      <dl className="grid gap-3 sm:grid-cols-2">
+                        {caseStudy.specifications.map((spec, idx) => (
+                          <div
+                            key={idx}
+                            className="rounded-xl border border-border-default bg-bg-primary p-3.5"
+                          >
+                            <dt className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
+                              {pick(spec.label)}
+                            </dt>
+                            <dd className="mt-1 text-sm font-semibold text-text-primary">
+                              {pick(spec.value)}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </div>
+                  )}
+
+                  {hasOutcomes && caseStudy?.outcomes && (
+                    <div className="space-y-2.5">
+                      <h2 className="text-lg font-semibold text-text-primary">
+                        {t('pages:projectDetail.outcomesHeading')}
+                      </h2>
+                      <ul className="space-y-2">
+                        {caseStudy.outcomes.map((outcome, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-2.5 text-sm text-text-secondary"
+                          >
+                            <CheckCircle2
+                              className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                              aria-hidden="true"
+                            />
+                            <span>{pick(outcome)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </Card>
+              )}
+
+              {/* 7. Interactive Project Media & Technical Gallery (hidden when empty) */}
+              {gallery.length > 0 && (
               <ProjectMediaGallery
                 images={gallery}
                 projectTitle={pick(project.title)}
               />
-            )}
+              )}
 
-            {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid isolated/HTTPS URL) */}
-            {hasValidViewer && viewer && resolvedViewerUrl && (
-              <Card className="space-y-4 p-6 sm:p-8">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                    <Box className="h-5 w-5 text-accent" aria-hidden="true" />
-                    <span>
-                      {viewer.title && pick(viewer.title).trim()
-                        ? pick(viewer.title)
-                        : t('pages:projectDetail.viewerHeading')}
-                    </span>
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleToggleFullscreen}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
-                    >
-                      <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>{t('pages:projectDetail.fullscreenViewer')}</span>
-                    </button>
-                    <a
-                      href={resolvedViewerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent"
-                    >
-                      <span>{t('pages:projectDetail.openViewerExternal')}</span>
-                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    </a>
-                  </div>
-                </div>
-
-                {viewerFailed ? (
-                  <div className="rounded-xl border border-border-default bg-bg-primary p-6 text-center text-sm text-text-secondary">
-                    {viewer.fallbackMessage && pick(viewer.fallbackMessage).trim()
-                      ? pick(viewer.fallbackMessage)
-                      : t('pages:projectDetail.viewerFallback')}
-                  </div>
-                ) : (
-                  <div
-                    ref={viewerContainerRef}
-                    className={
-                      isViewerFullscreen
-                        ? 'fixed inset-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden bg-bg-primary'
-                        : 'overflow-hidden rounded-xl border border-border-default bg-bg-primary'
-                    }
-                  >
-                    {isViewerFullscreen && (
-                      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border-default bg-bg-secondary/95 px-3 py-2.5 backdrop-blur sm:px-5">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <Box
-                            className="h-4 w-4 shrink-0 text-accent"
-                            aria-hidden="true"
-                          />
-                          <span className="truncate text-xs font-semibold text-text-primary sm:text-sm">
-                            {viewer.title && pick(viewer.title).trim()
-                              ? pick(viewer.title)
-                              : pick(project.title)}
-                          </span>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <a
-                            href={resolvedViewerUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hidden items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent sm:inline-flex"
-                          >
-                            <span>{t('pages:projectDetail.openViewerExternal')}</span>
-                            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                          </a>
-                          <button
-                            type="button"
-                            onClick={handleExitFullscreen}
-                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground shadow-sm transition-opacity hover:opacity-90"
-                          >
-                            <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
-                            <span>{t('pages:projectDetail.exitFullscreenViewer')}</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    <iframe
-                      title={
-                        viewer.title && pick(viewer.title).trim()
+              {/* 8. Interactive 3D / eDrawings Viewer (ONLY if enabled & valid isolated/HTTPS URL) */}
+              {hasValidViewer && viewer && resolvedViewerUrl && (
+                <Card className="space-y-4 p-6 sm:p-8">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                      <Box className="h-5 w-5 text-accent" aria-hidden="true" />
+                      <span>
+                        {viewer.title && pick(viewer.title).trim()
                           ? pick(viewer.title)
-                          : pick(project.title)
-                      }
-                      src={resolvedViewerUrl}
-                      sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
-                      allow="fullscreen; xr-spatial-tracking"
-                      allowFullScreen
-                      referrerPolicy="no-referrer"
-                      loading="lazy"
-                      onError={() => setViewerFailed(true)}
-                      style={
-                        isViewerFullscreen
-                          ? undefined
-                          : { height: `${viewer.heightPx ?? 540}px` }
-                      }
+                          : t('pages:projectDetail.viewerHeading')}
+                      </span>
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleToggleFullscreen}
+                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent"
+                      >
+                        <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>{t('pages:projectDetail.fullscreenViewer')}</span>
+                      </button>
+                      <a
+                        href={resolvedViewerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent"
+                      >
+                        <span>{t('pages:projectDetail.openViewerExternal')}</span>
+                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                      </a>
+                    </div>
+                  </div>
+
+                  {viewerFailed ? (
+                    <div className="rounded-xl border border-border-default bg-bg-primary p-6 text-center text-sm text-text-secondary">
+                      {viewer.fallbackMessage && pick(viewer.fallbackMessage).trim()
+                        ? pick(viewer.fallbackMessage)
+                        : t('pages:projectDetail.viewerFallback')}
+                    </div>
+                  ) : (
+                    <div
+                      ref={viewerContainerRef}
                       className={
                         isViewerFullscreen
-                          ? 'min-h-0 h-full w-full flex-1 border-0'
-                          : 'w-full border-0'
+                          ? 'fixed inset-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden bg-bg-primary'
+                          : 'overflow-hidden rounded-xl border border-border-default bg-bg-primary'
                       }
-                    />
-                  </div>
-                )}
-              </Card>
-            )}
-
-            {/* 9. Project Attachments (ONLY if available) */}
-            {attachments.length > 0 && (
-              <Card className="space-y-4 p-6 sm:p-8">
-                <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-                  <FileText className="h-5 w-5 text-accent" aria-hidden="true" />
-                  <span>{t('pages:projectDetail.attachmentsHeading')}</span>
-                </h2>
-                <div className="divide-y divide-border-default">
-                  {attachments.map((att) => (
-                    <div
-                      key={att.id}
-                      className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
                     >
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-semibold text-text-primary">
-                          {pick(att.title)}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge variant="accent" mono>
-                            {att.fileType}
-                          </Badge>
-                          {att.fileSizeLabel && (
-                            <Badge variant="muted" mono>
-                              {att.fileSizeLabel}
-                            </Badge>
-                          )}
+                      {isViewerFullscreen && (
+                        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border-default bg-bg-secondary/95 px-3 py-2.5 backdrop-blur sm:px-5">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <Box
+                              className="h-4 w-4 shrink-0 text-accent"
+                              aria-hidden="true"
+                            />
+                            <span className="truncate text-xs font-semibold text-text-primary sm:text-sm">
+                              {viewer.title && pick(viewer.title).trim()
+                                ? pick(viewer.title)
+                                : pick(project.title)}
+                            </span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <a
+                              href={resolvedViewerUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hidden items-center gap-1 rounded-lg border border-border-default bg-bg-primary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+                            >
+                              <span>{t('pages:projectDetail.openViewerExternal')}</span>
+                              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={handleExitFullscreen}
+                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground shadow-sm transition-opacity hover:opacity-90"
+                            >
+                              <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />
+                              <span>{t('pages:projectDetail.exitFullscreenViewer')}</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      {att.downloadable !== false && (
-                        <a
-                          href={att.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download
-                          className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-accent/40 bg-accent-subtle px-3.5 text-xs font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
-                        >
-                          <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                          <span>{t('pages:projectDetail.downloadAttachment')}</span>
-                        </a>
                       )}
+                      <iframe
+                        title={
+                          viewer.title && pick(viewer.title).trim()
+                            ? pick(viewer.title)
+                            : pick(project.title)
+                        }
+                        src={resolvedViewerUrl}
+                        sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"
+                        allow="fullscreen; xr-spatial-tracking"
+                        allowFullScreen
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                        onError={() => setViewerFailed(true)}
+                        style={
+                          isViewerFullscreen
+                            ? undefined
+                            : { height: `${viewer.heightPx ?? 540}px` }
+                        }
+                        className={
+                          isViewerFullscreen
+                            ? 'min-h-0 h-full w-full flex-1 border-0'
+                            : 'w-full border-0'
+                        }
+                      />
                     </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </div>
+                  )}
+                </Card>
+              )}
 
-          {/* Sidebar */}
-          <aside className="space-y-6 lg:col-span-4">
-            {/* Client Information (when applicable) */}
-            {company && (
-              <Card elevated className="space-y-3 p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                  {t('pages:projectDetail.companyLabel')}
-                </h2>
-                <Link
-                  to={`/companies/${company.slug}`}
-                  className="block rounded-xl border border-border-default bg-bg-primary p-4 transition-colors hover:border-accent"
-                >
-                  <p className="text-base font-semibold text-text-primary">
-                    {pick(company.name)}
-                  </p>
-                  <p className="mt-0.5 text-xs text-text-secondary">
-                    {pick(company.industry)}
-                  </p>
-                </Link>
-              </Card>
-            )}
-
-            {/* Tools & Technologies */}
-            {project.technologies.length > 0 && (
-              <Card elevated className="space-y-3 p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                  {t('pages:projectDetail.technologiesHeading')}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech) => (
-                    <span
-                      key={tech}
-                      className="rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            {/* Metadata */}
-            <Card className="space-y-3 p-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                {t('pages:projectDetail.metadataHeading')}
-              </h2>
-              <dl className="space-y-3 text-sm">
-                <div>
-                  <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                    {t('pages:projectDetail.categoryLabel')}
-                  </dt>
-                  <dd className="mt-1 flex flex-wrap gap-1.5">
-                    {assignedCategories.map((cat) => (
-                      <Link
-                        key={cat.id}
-                        to={`/portfolio?category=${encodeURIComponent(cat.id)}`}
-                        className="rounded-md border border-border-default bg-bg-primary px-2 py-0.5 text-xs font-medium text-text-primary hover:border-accent hover:text-accent"
+              {/* 9. Project Attachments (ONLY if available) */}
+              {attachments.length > 0 && (
+                <Card className="space-y-4 p-6 sm:p-8">
+                  <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
+                    <FileText className="h-5 w-5 text-accent" aria-hidden="true" />
+                    <span>{t('pages:projectDetail.attachmentsHeading')}</span>
+                  </h2>
+                  <div className="divide-y divide-border-default">
+                    {attachments.map((att) => (
+                      <div
+                        key={att.id}
+                        className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
                       >
-                        {cat.label}
-                      </Link>
+                        <div className="min-w-0 space-y-1">
+                          <p className="text-sm font-semibold text-text-primary">
+                            {pick(att.title)}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <Badge variant="accent" mono>
+                              {att.fileType}
+                            </Badge>
+                            {att.fileSizeLabel && (
+                              <Badge variant="muted" mono>
+                                {att.fileSizeLabel}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        {att.downloadable !== false && (
+                          <a
+                            href={att.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-accent/40 bg-accent-subtle px-3.5 text-xs font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+                          >
+                            <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                            <span>{t('pages:projectDetail.downloadAttachment')}</span>
+                          </a>
+                        )}
+                      </div>
                     ))}
-                  </dd>
-                </div>
-                {dateRange && (
+                  </div>
+                </Card>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <aside className="space-y-6 lg:col-span-4">
+              {/* Client Information (when applicable) */}
+              {company && (
+                <Card elevated className="space-y-3 p-6">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                    {t('pages:projectDetail.companyLabel')}
+                  </h2>
+                  <Link
+                    to={`/companies/${company.slug}`}
+                    className="block rounded-xl border border-border-default bg-bg-primary p-4 transition-colors hover:border-accent"
+                  >
+                    <p className="text-base font-semibold text-text-primary">
+                      {pick(company.name)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-text-secondary">
+                      {pick(company.industry)}
+                    </p>
+                  </Link>
+                </Card>
+              )}
+
+              {/* Tools & Technologies */}
+              {project.technologies.length > 0 && (
+                <Card elevated className="space-y-3 p-6">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                    {t('pages:projectDetail.technologiesHeading')}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {project.technologies.map((tech) => (
+                      <span
+                        key={tech}
+                        className="rounded-lg border border-border-default bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              {/* Metadata */}
+              <Card className="space-y-3 p-6">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                  {t('pages:projectDetail.metadataHeading')}
+                </h2>
+                <dl className="space-y-3 text-sm">
                   <div>
                     <dt className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('pages:projectDetail.timelineLabel')}
+                      {t('pages:projectDetail.categoryLabel')}
                     </dt>
-                    <dd className="font-mono text-xs font-medium text-text-primary">
-                      {dateRange}
+                    <dd className="mt-1 flex flex-wrap gap-1.5">
+                      {assignedCategories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          to={`/portfolio?category=${encodeURIComponent(cat.id)}`}
+                          className="rounded-md border border-border-default bg-bg-primary px-2 py-0.5 text-xs font-medium text-text-primary hover:border-accent hover:text-accent"
+                        >
+                          {cat.label}
+                        </Link>
+                      ))}
                     </dd>
                   </div>
-                )}
-              </dl>
-            </Card>
-          </aside>
-        </div>
-
-        {/* 10. Related Projects */}
-        {relatedProjects.length > 0 && (
-          <div className="space-y-5 border-t border-border-default pt-10">
-            <h2 className="text-2xl font-semibold text-text-primary">
-              {t('pages:projectDetail.relatedHeading')}
-            </h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {relatedProjects.map((rel) => (
-                <ProjectCard key={rel.id} project={rel} />
-              ))}
-            </div>
+                  {dateRange && (
+                    <div>
+                      <dt className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('pages:projectDetail.timelineLabel')}
+                      </dt>
+                      <dd className="font-mono text-xs font-medium text-text-primary">
+                        {dateRange}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </Card>
+            </aside>
           </div>
-        )}
 
-        {/* Previous / Next Navigation */}
-        {(previousProject || nextProject) && (
-          <nav
-            aria-label={t('pages:projectDetail.navigationLabel')}
-            className="grid gap-4 border-t border-border-default pt-8 sm:grid-cols-2"
-          >
-            <div>
-              {previousProject && (
-                <Link
-                  to={`/portfolio/${previousProject.slug}`}
-                  className="group flex items-center gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 transition-colors hover:border-accent"
-                >
-                  <ArrowLeft className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
-                  <div className="min-w-0">
-                    <p className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('common:actions.previousProject')}
-                    </p>
-                    <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
-                      {pick(previousProject.title)}
-                    </p>
-                  </div>
-                </Link>
-              )}
+          {/* 10. Related Projects */}
+          {relatedProjects.length > 0 && (
+            <div className="space-y-5 border-t border-border-default pt-10">
+              <h2 className="text-2xl font-semibold text-text-primary">
+                {t('pages:projectDetail.relatedHeading')}
+              </h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {relatedProjects.map((rel) => (
+                  <ProjectCard key={rel.id} project={rel} />
+                ))}
+              </div>
             </div>
-            <div>
-              {nextProject && (
-                <Link
-                  to={`/portfolio/${nextProject.slug}`}
-                  className="group flex items-center justify-end gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 text-end transition-colors hover:border-accent"
-                >
-                  <div className="min-w-0">
-                    <p className="font-mono text-[11px] uppercase text-text-secondary">
-                      {t('common:actions.nextProject')}
-                    </p>
-                    <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
-                      {pick(nextProject.title)}
-                    </p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
-                </Link>
-              )}
-            </div>
-          </nav>
-        )}
+          )}
+
+          {/* Previous / Next Navigation */}
+          {(previousProject || nextProject) && (
+            <nav
+              aria-label={t('pages:projectDetail.navigationLabel')}
+              className="grid gap-4 border-t border-border-default pt-8 sm:grid-cols-2"
+            >
+              <div>
+                {previousProject && (
+                  <Link
+                    to={`/portfolio/${previousProject.slug}`}
+                    className="group flex items-center gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 transition-colors hover:border-accent"
+                  >
+                    <ArrowLeft className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
+                    <div className="min-w-0">
+                      <p className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('common:actions.previousProject')}
+                      </p>
+                      <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
+                        {pick(previousProject.title)}
+                      </p>
+                    </div>
+                  </Link>
+                )}
+              </div>
+              <div>
+                {nextProject && (
+                  <Link
+                    to={`/portfolio/${nextProject.slug}`}
+                    className="group flex items-center justify-end gap-3 rounded-xl border border-border-default bg-bg-secondary p-4 text-end transition-colors hover:border-accent"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-mono text-[11px] uppercase text-text-secondary">
+                        {t('common:actions.nextProject')}
+                      </p>
+                      <p className="truncate text-sm font-semibold text-text-primary group-hover:text-accent">
+                        {pick(nextProject.title)}
+                      </p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-accent rtl:rotate-180" />
+                  </Link>
+                )}
+              </div>
+            </nav>
+          )}
       </Container>
 
       {/* Lightbox Modal for Gallery Images */}
